@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  // Only apply a basePath if the environment variable is explicitly set (e.g. on GitHub Actions)
-  ...(process.env.NEXT_PUBLIC_BASE_PATH && { basePath: process.env.NEXT_PUBLIC_BASE_PATH }),
+  // V3: Removed `output: 'export'` to enable API Routes and server-side rendering.
+  // Deploy to Vercel, Railway, or any Node.js host (not static hosts like GitHub Pages).
   images: {
     unoptimized: true,
     remotePatterns: [

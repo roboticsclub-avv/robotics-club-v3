@@ -4,13 +4,50 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import AlertPopup from "@/components/ui/AlertPopup";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [alertConfig, setAlertConfig] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        actionLabel: "",
+        onAction: null
+    });
     const router = useRouter();
+
+    const handleResendConfirmation = async (emailAddress) => {
+        setAlertConfig(prev => ({ ...prev, isOpen: false }));
+        setLoading(true);
+        setError("");
+        try {
+            const { error: resendError } = await supabase.auth.resend({
+                type: 'signup',
+                email: emailAddress,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/login`
+                }
+            });
+            if (resendError) throw resendError;
+
+            setAlertConfig({
+                isOpen: true,
+                title: "Verification Sent",
+                message: `A new confirmation link has been sent to ${emailAddress}. Please verify your email before signing in.`,
+                actionLabel: "",
+                onAction: null
+            });
+        } catch (err) {
+            console.error("Error resending email:", err);
+            setError("Failed to resend verification: " + err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -39,12 +76,13 @@ export default function LoginPage() {
                 .from('users')
                 .select('*')
                 .eq('uid', user.id)
-                .single();
+                .maybeSingle();
 
             if (dbError) throw dbError;
 
             if (userData) {
-                if (userData.role === 'admin') {
+                const dashboardRoles = ['admin', 'data'];
+                if (dashboardRoles.includes(userData.role)) {
                     router.push('/dashboard');
                     return;
                 }
@@ -61,18 +99,26 @@ export default function LoginPage() {
                     return;
                 }
 
-                // If accepted/approved
-                router.push('/');
+                // If accepted/approved → send members to member portal
+                router.push('/member');
             } else {
                 await supabase.auth.signOut();
-                setError("Error: User profile not found.");
+                setError("Error: User profile not found in the club database. Please request access or re-apply.");
             }
-        } catch (error) {
-            console.error("Error logging in:", error);
-            if (error.status === 400 || error.message.includes("Invalid login credentials")) {
+        } catch (err) {
+            console.error("Error logging in:", err);
+            if (err.message?.includes("Email not confirmed")) {
+                setAlertConfig({
+                    isOpen: true,
+                    title: "Email Not Verified",
+                    message: "You need to verify your email address before logging in. Check your inbox for the verification link or request a new one.",
+                    actionLabel: "Resend Email",
+                    onAction: () => handleResendConfirmation(safeEmail)
+                });
+            } else if (err.status === 400 || err.message?.includes("Invalid login credentials")) {
                 setError("ACCESS DENIED: Invalid login credentials.");
             } else {
-                setError("Login Failed: " + error.message);
+                setError("Login Failed: " + err.message);
             }
         } finally {
             setLoading(false);
@@ -84,19 +130,23 @@ export default function LoginPage() {
             <div className="glass-card max-w-md w-full p-8 rounded-xl border border-white/10 shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-purple-600"></div>
                 <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold font-orbitron text-white mb-2">SYSTEM.LOGIN</h2>
-                    <p className="text-gray-400 font-mono text-sm">AUTHENTICATE TO ACCESS SECURE AREAS</p>
+                    <h2 className="text-3xl font-bold font-inter text-white mb-2">Welcome Back</h2>
+                    <p className="text-gray-400 font-inter text-sm">Sign in to access your account</p>
+                    <button onClick={() => router.push('/')} className="mt-4 inline-flex items-center gap-2 text-gray-500 hover:text-cyan-400 font-inter text-xs transition-colors">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M3 12L12 3l9 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M9 21V12h6v9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        Back to Home
+                    </button>
                 </div>
 
                 {error && (
-                    <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded text-red-400 text-sm font-mono">
+                    <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded text-red-400 text-sm font-inter">
                         {error}
                     </div>
                 )}
 
                 <form onSubmit={handleLogin} className="space-y-6">
                     <div>
-                        <label className="block text-cyan-400 font-mono text-xs mb-2">EMAIL ADDRESS</label>
+                        <label className="block text-cyan-400 font-inter font-semibold text-xs mb-2 uppercase tracking-wide">Email Address</label>
                         <input
                             type="email"
                             required
@@ -107,7 +157,7 @@ export default function LoginPage() {
                         />
                     </div>
                     <div>
-                        <label className="block text-cyan-400 font-mono text-xs mb-2">PASSWORD</label>
+                        <label className="block text-cyan-400 font-inter font-semibold text-xs mb-2 uppercase tracking-wide">Password</label>
                         <input
                             type="password"
                             required
@@ -120,16 +170,25 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold font-orbitron py-3 rounded hover:opacity-90 transition-opacity disabled:opacity-50 mt-4"
+                        className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold font-inter py-3 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 mt-4"
                     >
-                        {loading ? "AUTHENTICATING..." : "INITIATE LOGIN"}
+                        {loading ? "Authenticating..." : "Sign In"}
                     </button>
                 </form>
 
-                <div className="mt-6 text-center text-sm text-gray-400">
-                    ACCESS DENIED? <Link href="/join-us" className="text-cyan-400 hover:underline">REQUEST ACCESS</Link>
+                <div className="mt-6 text-center text-sm text-gray-400 font-inter">
+                    Don't have an account? <Link href="/join-us" className="text-cyan-400 hover:underline font-semibold">Apply to Join</Link>
                 </div>
             </div>
+
+            <AlertPopup
+                isOpen={alertConfig.isOpen}
+                onClose={() => setAlertConfig(prev => ({ ...prev, isOpen: false }))}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                actionLabel={alertConfig.actionLabel}
+                onAction={alertConfig.onAction}
+            />
         </div>
     );
 }

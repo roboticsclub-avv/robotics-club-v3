@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
+import { showAlert, showConfirm } from "@/lib/alert-store";
 
 export default function EventsTab() {
     const [events, setEvents] = useState([]);
@@ -35,7 +36,7 @@ export default function EventsTab() {
             setEvents(evts);
         } catch (error) {
             console.error("Error fetching events:", error);
-            alert("Error loading events: " + error.message);
+            await showAlert("Error loading events: " + error.message, "Load Error");
         } finally {
             setLoading(false);
         }
@@ -107,7 +108,7 @@ export default function EventsTab() {
             fetchEvents();
         } catch (error) {
             console.error("Error saving event:", error);
-            alert("Error saving event: " + error.message);
+            await showAlert("Error saving event: " + error.message, "Save Error");
         } finally {
             setIsUploading(false);
         }
@@ -130,13 +131,14 @@ export default function EventsTab() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("Are you sure you want to delete this event?")) return;
+        const isConfirmed = await showConfirm("Are you sure you want to delete this event?", "Delete Event");
+        if (!isConfirmed) return;
         try {
             const { error } = await supabase.from('events').delete().eq('id', id);
             if (error) throw error;
             fetchEvents();
         } catch (error) {
-            alert("Error deleting event: " + error.message);
+            await showAlert("Error deleting event: " + error.message, "Delete Error");
         }
     };
 
@@ -152,7 +154,7 @@ export default function EventsTab() {
         <div>
             {/* Event Management Form */}
             <div className="mb-10 glass-card p-6">
-                <h2 className="text-xl font-bold font-orbitron text-white mb-4">
+                <h2 className="text-xl font-bold font-inter text-white mb-4">
                     {editingId ? "EDIT EVENT" : "CREATE NEW EVENT"}
                 </h2>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -194,11 +196,11 @@ export default function EventsTab() {
                         className={`md:col-span-2 bg-slate-900 border border-slate-600 rounded px-4 py-2 text-white focus:outline-none focus:border-cyan-400 ${formData.comingSoon ? "opacity-50" : ""}`} />
 
                     <div className="md:col-span-2 flex gap-4">
-                        <button type="submit" disabled={isUploading} className="flex-grow bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-bold font-orbitron py-2 rounded hover:opacity-90 transition-opacity disabled:opacity-50">
+                        <button type="submit" disabled={isUploading} className="flex-grow bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-bold font-inter py-2 rounded hover:opacity-90 transition-opacity disabled:opacity-50">
                             {isUploading ? "UPLOADING..." : (editingId ? "UPDATE EVENT" : "PUBLISH EVENT")}
                         </button>
                         {editingId && (
-                            <button type="button" onClick={handleCancel} disabled={isUploading} className="px-6 bg-slate-700 text-white font-bold font-orbitron py-2 rounded hover:bg-slate-600 transition-colors">
+                            <button type="button" onClick={handleCancel} disabled={isUploading} className="px-6 bg-slate-700 text-white font-bold font-inter py-2 rounded hover:bg-slate-600 transition-colors">
                                 CANCEL
                             </button>
                         )}
@@ -209,7 +211,7 @@ export default function EventsTab() {
             {/* Event List */}
             <div className="glass-card overflow-hidden">
                 <div className="p-4 border-b border-slate-700 bg-slate-900/50">
-                    <h2 className="text-lg font-bold font-orbitron text-white">EXISTING EVENTS</h2>
+                    <h2 className="text-lg font-bold font-inter text-white">EXISTING EVENTS</h2>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">

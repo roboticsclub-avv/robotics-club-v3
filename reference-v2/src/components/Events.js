@@ -4,12 +4,23 @@ import { useState, useEffect } from "react";
 import styles from "./Events.module.css";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+import TextAnimation from "./ui/scroll-text";
+
 
 export default function Events() {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Read client cache on mount to avoid hydration mismatch
+        if (typeof window !== 'undefined') {
+            const cached = sessionStorage.getItem('cached_events');
+            if (cached) {
+                setEvents(JSON.parse(cached));
+                setLoading(false);
+            }
+        }
+
         const fetchEvents = async () => {
             try {
                 const { data, error } = await supabase.from('events').select('*');
@@ -26,6 +37,7 @@ export default function Events() {
                 });
 
                 setEvents(evts);
+                sessionStorage.setItem('cached_events', JSON.stringify(evts));
             } catch (error) {
                 console.error("Error fetching events:", error);
             } finally {
@@ -52,12 +64,28 @@ export default function Events() {
     return (
         <section className={`section ${styles.events}`} id="events">
             <div className="container">
-                <div className={`${styles.eventsHeader} fade-in`}>
-                    <span className="section-label">Upcoming Events</span>
-                    <h2 className="section-title">What&apos;s happening</h2>
-                    <p className="section-description" style={{ margin: "0 auto" }}>
-                        From workshops to hackathons, there&apos;s always something exciting on the calendar.
-                    </p>
+                <div className={styles.eventsHeader}>
+                    <div style={{ marginBottom: "16px" }}>
+                        <TextAnimation
+                            as="span"
+                            text="Upcoming Events"
+                            classname="section-label"
+                            direction="up"
+                        />
+                    </div>
+                    <TextAnimation
+                        as="h2"
+                        text="What's happening"
+                        classname="section-title"
+                        direction="down"
+                    />
+                    <TextAnimation
+                        as="p"
+                        text="From workshops to hackathons, there's always something exciting on the calendar."
+                        classname="section-description"
+                        direction="down"
+                        style={{ margin: "0 auto" }}
+                    />
                 </div>
 
                 <div className={styles.eventsGrid}>
@@ -70,7 +98,7 @@ export default function Events() {
                             const dateInfo = formatDate(event.date, event.comingSoon);
 
                             return (
-                                <div key={event.id} className={`glass-card ${styles.eventCard} fade-in`}>
+                                <div key={event.id} className={`glass-card ${styles.eventCard}`}>
                                     {event.image && (
                                         <div className={styles.eventImageWrapper}>
                                             <img src={event.image} alt={event.title} className={styles.eventImage} loading="lazy" />

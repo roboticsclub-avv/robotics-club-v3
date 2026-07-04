@@ -4,6 +4,9 @@ import styles from "./Hero.module.css";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
+import TextAnimation from "./ui/scroll-text";
+
+
 // Lazy load spline to improve performance on main thread
 const Spline = dynamic(() => import('@splinetool/react-spline'), {
     ssr: false,
@@ -11,7 +14,6 @@ const Spline = dynamic(() => import('@splinetool/react-spline'), {
         <div style={{ height: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div className={styles.cubeScene}>
                 <div className={styles.cube}>
-                    {/* Simplified loading indicator instead of heavy CSS 3D */}
                     <div style={{ color: 'var(--accent-purple)', fontFamily: 'var(--font-orbitron)' }}>
                         LOADING ASSETS...
                     </div>
@@ -54,8 +56,30 @@ function CubePlaceholder() {
 
 export default function Hero({ isReady }) {
     const [isRecruiting, setIsRecruiting] = useState(true);
+    const [inView, setInView] = useState(true);
 
     useEffect(() => {
+        // Unmount Spline WebGL when scrolled out of view to save CPU/GPU cycles
+        const visualElement = document.querySelector(`.${styles.heroVisual}`);
+        if (!visualElement) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                setInView(entry.isIntersecting);
+            });
+        }, { threshold: 0.0 });
+
+        observer.observe(visualElement);
+        return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+        // Read client cache on mount to avoid hydration mismatch
+        const cached = sessionStorage.getItem('is_recruiting');
+        if (cached !== null) {
+            setIsRecruiting(cached === 'true');
+        }
+
         const fetchSettings = async () => {
             try {
                 const { data } = await supabase
@@ -63,7 +87,10 @@ export default function Hero({ isReady }) {
                     .select('value')
                     .eq('id', 'is_recruiting')
                     .single();
-                if (data) setIsRecruiting(data.value);
+                if (data) {
+                    setIsRecruiting(data.value);
+                    sessionStorage.setItem('is_recruiting', String(data.value));
+                }
             } catch (err) {
                 console.error("Error fetching recruitment setting:", err);
             }
@@ -77,23 +104,15 @@ export default function Hero({ isReady }) {
         let phraseIndex = 0;
         let charIndex = 0;
         let isDeleting = false;
-        let typingDelay = 100;
 
         function type() {
             if (!textElement) return;
             const currentPhrase = phrases[phraseIndex];
-
-            // Safely get substring up to charIndex
             const subStr = currentPhrase.substring(0, charIndex);
-
-            // Split into lines based on where \n is
             const lines = subStr.split('\n');
-
-            // If we are on the last line of the phrase
             const isTypingLastLine = lines.length === currentPhrase.split('\n').length;
 
             if (isTypingLastLine && lines[lines.length - 1].length > 0) {
-                // Wrap the last line (the last word) in the gradient span
                 const precedingLines = lines.slice(0, lines.length - 1);
                 const lastLine = lines[lines.length - 1];
 
@@ -102,15 +121,12 @@ export default function Hero({ isReady }) {
                 html += `<span class="${styles.heroTitleAccent}">${lastLine}</span>`;
                 textElement.innerHTML = html;
             } else {
-                // Otherwise normal typing
                 textElement.innerHTML = subStr.replace(/\n/g, '<br/>');
             }
 
-            // Determine typing speed
             let typeSpeed = isDeleting ? 50 : 100;
 
             if (!isDeleting && charIndex === currentPhrase.length) {
-                // Pause at the end of a phrase
                 typeSpeed = 2000;
                 isDeleting = true;
             } else if (isDeleting && charIndex === 0) {
@@ -119,9 +135,7 @@ export default function Hero({ isReady }) {
                 typeSpeed = 500;
             }
 
-            // Adjust char index
             charIndex += isDeleting ? -1 : 1;
-
             setTimeout(type, typeSpeed);
         }
 
@@ -155,10 +169,13 @@ export default function Hero({ isReady }) {
                         <span className={`typewriter-text ${styles.typewriterText}`} />
                     </h1>
 
-                    <p className={styles.heroDescription}>
-                        Join our community of makers, engineers, and dreamers who are
-                        shaping the future of automation.
-                    </p>
+                    <TextAnimation
+                        as="p"
+                        text="Join our community of makers, engineers, and dreamers who are shaping the future of automation."
+                        classname={styles.heroDescription}
+                        direction="down"
+                        viewport={{ amount: 0.05, once: true }}
+                    />
 
                     <div className={styles.heroCta}>
                         <a href="#contact" className={styles.ctaPrimary}>
@@ -169,13 +186,13 @@ export default function Hero({ isReady }) {
                         </a>
                     </div>
 
-                    <div className={styles.shortcut}>
+                    <div className={styles.heroShortcut}>
                         Press <span className={styles.key}>J</span> to join instantly
                     </div>
                 </div>
 
                 <div className={styles.heroVisual}>
-                    {isReady ? (
+                    {isReady && inView ? (
                         <div className={styles.splineWrapper}>
                             <Spline scene={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/scene.splinecode`} />
                         </div>

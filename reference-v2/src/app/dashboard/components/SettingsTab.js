@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { showAlert } from "@/lib/alert-store";
 
 export default function SettingsTab() {
     const [isRecruiting, setIsRecruiting] = useState(true);
@@ -41,7 +42,7 @@ export default function SettingsTab() {
             setIsRecruiting(newValue);
         } catch (err) {
             console.error("Failed to update setting:", err);
-            alert("Failed to update setting: " + err.message);
+            await showAlert("Failed to update setting: " + err.message, "Settings Error");
         } finally {
             setSaving(false);
         }
@@ -51,7 +52,7 @@ export default function SettingsTab() {
 
     return (
         <div className="mb-10 glass-card p-6 max-w-2xl mx-auto">
-            <h2 className="text-xl font-bold font-orbitron text-white mb-6 border-b border-slate-700 pb-2">
+            <h2 className="text-xl font-bold font-inter text-white mb-6 border-b border-slate-700 pb-2">
                 SITE CONFIGURATION
             </h2>
             <div className="flex items-center justify-between bg-slate-900 border border-slate-700 rounded-lg p-6">

@@ -6,7 +6,13 @@ module.exports = {
         "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
     ],
     theme: {
-        extend: {},
+        extend: {
+            fontFamily: {
+                // V3: Orbitron loaded via next/font, exposed as CSS variable
+                orbitron: ["var(--font-orbitron)", "sans-serif"],
+                inter: ["var(--font-inter)", "sans-serif"],
+            },
+        },
     },
     plugins: [],
 };

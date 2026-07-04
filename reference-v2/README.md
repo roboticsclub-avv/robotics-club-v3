@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Robotics Club AVV — Website V3.0
 
-## Getting Started
+## 🚀 Version 3.0 — Production-Grade Upgrade
 
-First, run the development server:
+Built on the foundation of V2 (Next.js 16 + React 19 + Supabase), V3 introduces major improvements in security, SEO, error handling, and developer experience — while preserving the exact V2 UI.
 
+---
+
+## ✅ What's New in V3
+
+| Feature | V2 | V3 |
+|---|---|---|
+| Admin writes | Direct client-side Supabase | **Secure API routes (server-side)** |
+| Error handling | None | **`error.js`, `not-found.js`, Error Boundary** |
+| Loading states | Manual spinners | **Route-level `loading.js` skeletons** |
+| SEO | Basic title only | **Full OpenGraph, Twitter Cards, robots.txt, sitemap.xml** |
+| Font loading | Google CDN | **`next/font` (optimized, no FOUT)** |
+| Tailwind fonts | Hardcoded strings | **CSS variable mapping via `tailwind.config.js`** |
+| Static export | `output: 'export'` (API routes broken) | **Node.js server mode (API routes enabled)** |
+
+---
+
+## 🛠 Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **UI**: React 19 + Tailwind CSS + CSS Modules
+- **Database**: Supabase (PostgreSQL)
+- **Auth**: Supabase Auth
+- **Email**: EmailJS
+- **3D**: Spline (`scene.splinecode`)
+
+---
+
+## ⚙️ Setup
+
+### 1. Install dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure environment variables
+Copy `.env.local.example` to `.env.local` and fill in your values:
+```
+NEXT_PUBLIC_SUPABASE_URL=https://eeseizfyjbuleedynhlx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### 3. Run development server
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🗄️ Database Tables
 
-To learn more about Next.js, take a look at the following resources:
+All tables exist in the Supabase project (`eeseizfyjbuleedynhlx`):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Table | Purpose |
+|---|---|
+| `users` | Member applications and profiles |
+| `events` | Club events |
+| `hardware` | Hardware inventory items |
+| `allocations` | Hardware lending records |
+| `core_team` | Team members shown on homepage |
+| `settings` | Site configuration (e.g. `is_recruiting`) |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+SQL schema files are in the `/sql` directory.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🔐 Security Architecture (V3)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Admin write operations are protected by **Next.js API routes** that:
+1. Verify the caller's Supabase session token
+2. Check the caller has `role = 'admin'` in the database
+3. Use the **Service Role Key** (server-side only) to perform privileged operations
+
+| Operation | V2 | V3 |
+|---|---|---|
+| Accept/Reject applicants | Client writes directly | `/api/applicants/update-status` |
+| Delete applicants | Client writes directly | `/api/applicants/delete` |
+
+---
+
+## 🚢 Deployment
+
+Deploy to **Vercel** (recommended) or any Node.js host.
+
+> ⚠️ **Do NOT deploy to GitHub Pages** — V3 removed `output: 'export'` to enable API routes. Static hosts are not compatible.
+
+```bash
+npm run build
+npm run start
+```

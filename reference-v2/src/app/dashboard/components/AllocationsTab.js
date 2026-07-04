@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { showAlert, showConfirm } from "@/lib/alert-store";
 
 export default function AllocationsTab() {
     const [allocations, setAllocations] = useState([]);
@@ -36,7 +37,7 @@ export default function AllocationsTab() {
 
         } catch (error) {
             console.error("Error fetching data:", error);
-            alert("Error loading data: " + error.message);
+            await showAlert("Error loading data: " + error.message, "Load Error");
         } finally {
             setLoading(false);
         }
@@ -75,14 +76,14 @@ export default function AllocationsTab() {
 
     const handleIssue = async () => {
         if (!selectedMember || !selectedItemId || !returnDate) {
-            alert("Complete all fields.");
+            await showAlert("Complete all fields.", "Missing Fields");
             return;
         }
 
         try {
             const item = inventory.find(i => i.id === selectedItemId || i.id === Number(selectedItemId)); // Supabase ID might be int
             if (!item || item.availableQuantity <= 0) {
-                alert("Item not available.");
+                await showAlert("Item not available.", "Stock Error");
                 return;
             }
 
@@ -107,7 +108,7 @@ export default function AllocationsTab() {
             }).eq('id', selectedItemId);
             if (updateError) throw updateError;
 
-            alert("Item Issued Successfully!");
+            await showAlert("Item Issued Successfully!", "Issue Confirmed");
             setMemberSearch("");
             setSelectedMember(null);
             setSearchResult(null);
@@ -115,12 +116,13 @@ export default function AllocationsTab() {
             setReturnDate("");
             fetchData();
         } catch (error) {
-            alert("Error issuing item: " + error.message);
+            await showAlert("Error issuing item: " + error.message, "Issue Error");
         }
     };
 
     const handleReturn = async (allocId, itemId) => {
-        if (!confirm("Confirm return of this item?")) return;
+        const isConfirmed = await showConfirm("Confirm return of this item?", "Return Hardware");
+        if (!isConfirmed) return;
         try {
             // Update Allocation Status
             const { error: updateAllocError } = await supabase.from('allocations').update({
@@ -140,10 +142,10 @@ export default function AllocationsTab() {
                 if (updateHwError) throw updateHwError;
             }
 
-            alert("Item Returned!");
+            await showAlert("Item Returned!", "Return Confirmed");
             fetchData();
         } catch (error) {
-            alert("Error returning item: " + error.message);
+            await showAlert("Error returning item: " + error.message, "Return Error");
         }
     };
 
@@ -151,7 +153,7 @@ export default function AllocationsTab() {
         <div>
             {/* Issue Form */}
             <div className="mb-10 glass-card p-6">
-                <h2 className="text-xl font-bold font-orbitron text-white mb-4">ISSUE HARDWARE</h2>
+                <h2 className="text-xl font-bold font-inter text-white mb-4">ISSUE HARDWARE</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="md:col-span-2">
                         <div className="relative">
@@ -183,7 +185,7 @@ export default function AllocationsTab() {
                     </div>
                     <div className="flex items-end">
                         <button onClick={handleIssue} disabled={!selectedMember || !selectedItemId || !returnDate}
-                            className="w-full bg-green-600 text-white font-bold font-orbitron py-2 rounded hover:bg-green-500 transition-colors disabled:opacity-50">
+                            className="w-full bg-green-600 text-white font-bold font-inter py-2 rounded hover:bg-green-500 transition-colors disabled:opacity-50">
                             ISSUE ITEM
                         </button>
                     </div>
@@ -193,7 +195,7 @@ export default function AllocationsTab() {
             {/* Table */}
             <div className="glass-card overflow-hidden">
                 <div className="p-4 border-b border-slate-700 bg-slate-900/50">
-                    <h2 className="text-lg font-bold font-orbitron text-white">ACTIVE ALLOCATIONS</h2>
+                    <h2 className="text-lg font-bold font-inter text-white">ACTIVE ALLOCATIONS</h2>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">

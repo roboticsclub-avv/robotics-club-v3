@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { showAlert, showConfirm } from "@/lib/alert-store";
 
 export default function InventoryTab() {
     const [inventory, setInventory] = useState([]);
@@ -19,7 +20,7 @@ export default function InventoryTab() {
             setInventory(data || []);
         } catch (error) {
             console.error("Error fetching hardware:", error);
-            alert("Error loading hardware: " + error.message);
+            await showAlert("Error loading hardware: " + error.message, "Load Error");
         } finally {
             setLoading(false);
         }
@@ -55,7 +56,7 @@ export default function InventoryTab() {
             setFormData({ name: "", category: "", totalQuantity: "", image: "" });
             fetchInventory();
         } catch (error) {
-            alert("Error saving item: " + error.message);
+            await showAlert("Error saving item: " + error.message, "Save Error");
         }
     };
 
@@ -71,13 +72,14 @@ export default function InventoryTab() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("Are you sure you want to delete this item?")) return;
+        const isConfirmed = await showConfirm("Are you sure you want to delete this item?", "Delete Hardware");
+        if (!isConfirmed) return;
         try {
             const { error } = await supabase.from('hardware').delete().eq('id', id);
             if (error) throw error;
             fetchInventory();
         } catch (error) {
-            alert("Error deleting item: " + error.message);
+            await showAlert("Error deleting item: " + error.message, "Delete Error");
         }
     };
 
@@ -90,7 +92,7 @@ export default function InventoryTab() {
         <div>
             {/* Form */}
             <div className="mb-10 glass-card p-6">
-                <h2 className="text-xl font-bold font-orbitron text-white mb-4">
+                <h2 className="text-xl font-bold font-inter text-white mb-4">
                     {editingId ? "EDIT HARDWARE ITEM" : "ADD HARDWARE ITEM"}
                 </h2>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -104,11 +106,11 @@ export default function InventoryTab() {
                         className="bg-slate-900 border border-slate-600 rounded px-4 py-2 text-white focus:outline-none focus:border-cyan-400" />
 
                     <div className="md:col-span-2 flex gap-4">
-                        <button type="submit" className="flex-grow bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold font-orbitron py-2 rounded hover:opacity-90 transition-opacity">
+                        <button type="submit" className="flex-grow bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold font-inter py-2 rounded hover:opacity-90 transition-opacity">
                             {editingId ? "UPDATE ITEM" : "SAVE ITEM"}
                         </button>
                         {editingId && (
-                            <button type="button" onClick={handleCancel} className="px-6 bg-slate-700 text-white font-bold font-orbitron py-2 rounded hover:bg-slate-600 transition-colors">
+                            <button type="button" onClick={handleCancel} className="px-6 bg-slate-700 text-white font-bold font-inter py-2 rounded hover:bg-slate-600 transition-colors">
                                 CANCEL
                             </button>
                         )}
@@ -119,7 +121,7 @@ export default function InventoryTab() {
             {/* Table */}
             <div className="glass-card overflow-hidden">
                 <div className="p-4 border-b border-slate-700 bg-slate-900/50">
-                    <h2 className="text-lg font-bold font-orbitron text-white">INVENTORY LIST</h2>
+                    <h2 className="text-lg font-bold font-inter text-white">INVENTORY LIST</h2>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
