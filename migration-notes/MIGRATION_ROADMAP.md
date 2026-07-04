@@ -1,54 +1,133 @@
-# Migration Roadmap
+# Robotics Club Website 3.0
 
-## Phase 1
+# Migration Roadmap v2.1
 
-Next.js Architecture Migration
+---
+
+## Phase 1A
+
+Architecture Discovery
 
 Goal:
-Convert the Version 1 website into a modern Next.js application while preserving all functionality.
+
+Analyze V1 and V2 completely.
 
 Deliverables:
 
-* App Router setup
-* Component extraction
-* Shared layout
-* Firebase integration
+- Architecture report
+- Component inventory
+- Migration mapping
+
+---
+
+## Phase 1B
+
+Target Architecture Specification
+
+Goal:
+
+Define final V3 architecture.
+
+Deliverables:
+
+- Folder structure
+- Routing structure
+- Component hierarchy
+- Firebase architecture
+
+---
+
+## Phase 1C
+
+API Architecture Design
+
+Goal:
+
+Design secure API architecture.
+
+Deliverables:
+
+- API route map
+- Permission model
+- Firebase Admin strategy
 
 ---
 
 ## Phase 2
 
-Loading Experience
+Next.js Migration
+
+Goal:
+
+Convert V1 into Next.js App Router architecture.
 
 Deliverables:
 
-* Session-based loader
-* Design → Develop → Dominate sequence
+- App Router
+- Shared layouts
+- Route structure
+- Components
 
 ---
 
 ## Phase 3
 
-Hero Section Upgrade
+Loading Experience
 
 Deliverables:
 
-* Version 2 hero structure
-* Spline robot
-* Version 1 glitch tagline
+- Session loader
+- Loading routes
+- Skeleton loaders
 
 ---
 
 ## Phase 4
 
+Hero Experience
+
+Deliverables:
+
+- Spline robot
+- Hero redesign
+- Glitch tagline
+
+---
+
+## Phase 4B
+
 Theme System
 
 Deliverables:
 
-* Cosmic Premium
-* Aurora Light
-* Deep Space
-* Theme persistence
+- Cosmic Premium
+- Aurora Light
+- Deep Space
+- Theme persistence
+
+---
+
+## Phase 4C
+
+Alert System
+
+Deliverables:
+
+- Global alerts
+- Toast notifications
+- Notification architecture
+
+---
+
+## Phase 4D
+
+Error Handling
+
+Deliverables:
+
+- Error page
+- 404 page
+- Route fallbacks
 
 ---
 
@@ -58,9 +137,9 @@ Gallery Upgrade
 
 Deliverables:
 
-* Masonry layout
-* Lightbox
-* Lazy loading
+- Masonry layout
+- Lightbox
+- Lazy loading
 
 ---
 
@@ -70,21 +149,21 @@ Events Upgrade
 
 Deliverables:
 
-* New event cards
-* Event detail pages
-* Firebase integration
+- Modern cards
+- Event detail pages
+- Firebase integration
 
 ---
 
 ## Phase 7
 
-Performance
+Performance Optimization
 
 Deliverables:
 
-* Dynamic imports
-* Skeleton loaders
-* Image optimization
+- Dynamic imports
+- Image optimization
+- Lazy loading
 
 ---
 
@@ -94,10 +173,10 @@ SEO
 
 Deliverables:
 
-* Metadata
-* Open Graph
-* Sitemap
-* Robots.txt
+- Metadata
+- Open Graph
+- Robots.txt
+- Sitemap.xml
 
 ---
 
@@ -107,9 +186,9 @@ Testing
 
 Deliverables:
 
-* Cross-browser testing
-* Mobile testing
-* Lighthouse testing
+- Mobile testing
+- Browser testing
+- Accessibility testing
 
 ---
 
@@ -119,6 +198,6 @@ Production Deployment
 
 Deliverables:
 
-* Final deployment
-* Documentation
-* Handover
+- Deployment
+- Documentation
+- Handover
