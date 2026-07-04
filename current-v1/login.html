@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Robotics Club</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body
+    class="bg-slate-900 text-gray-100 font-inter min-h-screen flex items-center justify-center relative overflow-hidden">
+    <!-- Background Grid -->
+    <div class="fixed inset-0 z-[-1] grid-bg"></div>
+
+    <div
+        class="w-full max-w-md p-8 relative z-10 glass-card rounded-xl border border-white/10 shadow-[0_0_50px_rgba(6,182,212,0.15)]">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold font-orbitron text-white mb-2">SYSTEM LOGIN</h2>
+            <p class="text-cyan-400 font-mono text-sm">> AUTHENTICATE IDENTITY</p>
+        </div>
+
+        <form id="loginForm" class="space-y-6">
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-400 mb-1">Email Address</label>
+                <input type="email" id="email" required
+                    class="w-full bg-slate-800/50 border border-slate-600 rounded px-4 py-2 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all placeholder-gray-500"
+                    placeholder="member@roboticsclub.edu">
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-400 mb-1">Password</label>
+                <input type="password" id="password" required
+                    class="w-full bg-slate-800/50 border border-slate-600 rounded px-4 py-2 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all placeholder-gray-500"
+                    placeholder="••••••••">
+            </div>
+
+            <button type="submit"
+                class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold font-orbitron py-3 rounded transition-all transform hover:scale-[1.02] shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+                LOGIN
+            </button>
+        </form>
+
+        <div class="mt-6 text-center text-sm text-gray-400">
+            <p>Not a member yet? <a href="join-us.html" class="text-cyan-400 hover:text-cyan-300 underline">Join Now</a>
+            </p>
+            <p class="mt-2"><a href="index.html" class="text-gray-500 hover:text-gray-300">← Back to
+                    Home</a></p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { loginUser } from './auth.js';
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            await loginUser(email, password);
+        });
+    </script>
+</body>
+
+</html>

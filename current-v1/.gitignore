@@ -1,0 +1,13 @@
+# Connectivity
+firebase-config.js
+
+# Node
+node_modules/
+
+# Mac System
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

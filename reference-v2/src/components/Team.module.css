@@ -1,0 +1,397 @@
+.team {
+    position: relative;
+    overflow: hidden;
+}
+
+.teamHeader {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.teamHeader .sectionDescription {
+    margin: 0 auto;
+}
+
+/* Faculty Mentor */
+.facultyCard {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.15);
+    margin-bottom: 4rem;
+}
+
+@media (min-width: 768px) {
+    .facultyCard {
+        flex-direction: row;
+    }
+}
+
+.facultyImageWrapper {
+    width: 100%;
+    position: relative;
+    min-height: 300px;
+}
+
+@media (min-width: 768px) {
+    .facultyImageWrapper {
+        width: 33.333333%;
+    }
+}
+
+.facultyImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.facultyImageOverlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, #0f172a, transparent);
+}
+
+@media (min-width: 768px) {
+    .facultyImageOverlay {
+        background: linear-gradient(to right, transparent, #0f172a);
+    }
+}
+
+.facultyContent {
+    width: 100%;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+}
+
+@media (min-width: 768px) {
+    .facultyContent {
+        width: 66.666667%;
+    }
+}
+
+.facultyIcon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 1rem;
+    opacity: 0.2;
+    width: 6rem;
+    height: 6rem;
+    color: var(--accent-purple);
+}
+
+.facultyName {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .facultyName {
+        font-size: 2.25rem;
+    }
+}
+
+.facultyRole {
+    color: var(--accent-purple);
+    font-family: monospace;
+    font-size: 1.125rem;
+    margin-bottom: 1.5rem;
+}
+
+.facultyQuote {
+    border-left: 4px solid var(--accent-purple);
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+    color: var(--text-secondary);
+    font-size: 1.125rem;
+}
+
+.contentSection {
+    margin-bottom: 1.5rem;
+}
+
+.contentLabel {
+    color: var(--text-primary);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+}
+
+.facultyBio {
+    color: var(--text-muted);
+    line-height: 1.625;
+}
+
+.interestsList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.interestTag {
+    padding: 0.25rem 0.75rem;
+    background: rgba(168, 85, 247, 0.2);
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    border-radius: var(--radius-pill);
+    color: #d8b4fe;
+    font-size: 0.75rem;
+    font-family: monospace;
+}
+
+/* Team Grid */
+.teamGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+@media (min-width: 768px) {
+    .teamGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .teamGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.teamCard {
+    overflow: hidden;
+    position: relative;
+    height: 24rem;
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+}
+
+.teamCard:hover .teamImage {
+    transform: scale(1.1);
+}
+
+.teamImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 300ms ease-out;
+    will-change: transform;
+}
+
+.teamInfo {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem;
+    background: linear-gradient(to top, rgba(15, 23, 42, 1) 0%, rgba(15, 23, 42, 0) 100%);
+    z-index: 10;
+}
+
+.memberName {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.memberRole {
+    color: var(--accent-cyan);
+    font-size: 0.875rem;
+    font-family: monospace;
+}
+
+.teamHoverOverlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem;
+    opacity: 0;
+    visibility: hidden;
+    z-index: 20;
+    transition: opacity 200ms ease-out, visibility 200ms ease-out;
+    will-change: opacity, visibility;
+}
+
+.teamCard:hover .teamHoverOverlay {
+    opacity: 1;
+    visibility: visible;
+}
+
+.memberQuote {
+    color: var(--text-secondary);
+    font-style: italic;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.viewProfileBtn {
+    padding: 0.5rem 1.5rem;
+    border: 1px solid var(--accent-cyan);
+    color: var(--accent-cyan);
+    font-weight: 700;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    background: transparent;
+    cursor: pointer;
+}
+
+.viewProfileBtn:hover {
+    background: var(--accent-cyan);
+    color: #000;
+}
+
+/* Modal Styles */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    animation: fadeIn 300ms ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.modalContent {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: slideUp 300ms ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modalCloseBtn {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    font-size: 2rem;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+    transition: color var(--transition-fast);
+}
+
+.modalCloseBtn:hover {
+    color: var(--text-primary);
+}
+
+.modalBody {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 768px) {
+    .modalBody {
+        flex-direction: row;
+    }
+}
+
+.modalImageWrapper {
+    width: 100%;
+    position: relative;
+    min-height: 300px;
+}
+
+@media (min-width: 768px) {
+    .modalImageWrapper {
+        width: 40%;
+    }
+}
+
+.modalImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    inset: 0;
+}
+
+.modalInfo {
+    width: 100%;
+    padding: 2rem;
+}
+
+@media (min-width: 768px) {
+    .modalInfo {
+        width: 60%;
+        padding: 3rem;
+    }
+}
+
+.modalName {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-family: var(--font-orbitron);
+}
+
+.modalRole {
+    color: var(--accent-cyan);
+    font-family: monospace;
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    letter-spacing: 0.05em;
+}
+
+.modalSection {
+    margin-bottom: 1.5rem;
+}
+
+.modalSectionTitle {
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    font-family: var(--font-orbitron);
+}
+
+.modalSectionText {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    white-space: pre-wrap;
+}

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmailJS Debugger</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-900 text-white p-10 font-sans">
+    <div class="max-w-md mx-auto bg-slate-800 p-6 rounded-lg border border-slate-700">
+        <h1 class="text-2xl font-bold mb-4 text-cyan-400">EmailJS Debugger</h1>
+        <p class="mb-4 text-sm text-slate-400">Test your configuration in isolation.</p>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs uppercase font-bold text-slate-500 mb-1">To Email (Recipient)</label>
+                <input type="email" id="testEmail" value="test@example.com"
+                    class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+            </div>
+
+            <button onclick="sendTest()" id="btn"
+                class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 rounded">
+                SEND TEST EMAIL
+            </button>
+
+            <div id="log" class="bg-black p-4 rounded font-mono text-xs h-40 overflow-auto text-green-400">
+                Ready...
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { MAIL_CONFIG } from './mail-config.js';
+
+        // Load SDK
+        const script = document.createElement('script');
+        script.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js";
+        document.head.appendChild(script);
+
+        script.onload = () => {
+            log("SDK Loaded.");
+            log("Initializing with Key: " + MAIL_CONFIG.PUBLIC_KEY);
+            emailjs.init(MAIL_CONFIG.PUBLIC_KEY);
+        };
+
+        function log(msg) {
+            const div = document.getElementById('log');
+            div.innerHTML += `<div>> ${msg}</div>`;
+            div.scrollTop = div.scrollHeight;
+        }
+
+        window.sendTest = async () => {
+            const email = document.getElementById('testEmail').value;
+            const btn = document.getElementById('btn');
+
+            btn.disabled = true;
+            btn.innerText = "SENDING...";
+            log(`Attempting send to: ${email}`);
+
+            const params = {
+                // Testing all common variations
+                to_email: email,
+                email: email,
+                user_email: email,
+                recipient: email,
+
+                to_name: "Test User",
+                message: "This is a test message from the Debugger.",
+                member_id: "TEST-123",
+                status: "accepted"
+            };
+
+            log("Params: " + JSON.stringify(params));
+
+            try {
+                const res = await emailjs.send(
+                    MAIL_CONFIG.SERVICE_ID,
+                    MAIL_CONFIG.ACCEPTANCE_TEMPLATE_ID,
+                    params
+                );
+                log(`SUCCESS! Status: ${res.status}`);
+                alert("Email Sent Successfully! Check inbox.");
+            } catch (e) {
+                log(`ERROR: ${e.text || e.message || JSON.stringify(e)}`);
+                console.error(e);
+                alert("Failed: " + (e.text || e.message));
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "SEND TEST EMAIL";
+            }
+        };
+    </script>
+</body>
+
+</html>

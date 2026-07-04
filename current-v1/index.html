@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robotics Club | Future of Tech</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Orbitron -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="text-gray-100 font-inter overflow-x-hidden">
+
+    <!-- Background Grid Animation Container -->
+    <div class="fixed inset-0 z-[-1] grid-bg"></div>
+
+    <!-- Header -->
+    <header class="fixed w-full top-0 z-50 glass-header transition-all duration-300">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center relative">
+            <a href="#" class="flex items-center space-x-3 group">
+                <!-- Logo Image -->
+                <img src="media/logo.png" alt="Robotics Club Logo"
+                    class="h-10 w-auto group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.8)] transition-all">
+                <span
+                    class="text-xl font-bold font-orbitron tracking-wider text-white group-hover:text-cyan-400 transition-colors">ROBOTICS<span
+                        class="text-cyan-400">.CLUB</span></span>
+            </a>
+
+            <!-- Navigation -->
+            <div class="flex items-center space-x-4">
+                <div id="nav-links"
+                    class="hidden md:flex items-center md:space-x-8 text-white text-sm font-medium tracking-wide transition-all duration-300">
+                    <a href="#hero" class="nav-link hover:text-cyan-400 transition-colors">HOME</a>
+                    <a href="#about" class="nav-link hover:text-cyan-400 transition-colors">ABOUT</a>
+                    <a href="#projects" class="nav-link hover:text-cyan-400 transition-colors">PROJECTS</a>
+                    <a href="#training" class="nav-link hover:text-cyan-400 transition-colors">TRAINING</a>
+                    <a href="#team" class="nav-link hover:text-cyan-400 transition-colors">TEAM</a>
+                    <a href="#gallery" class="nav-link hover:text-cyan-400 transition-colors">GALLERY</a>
+                    <!-- Auth Button Container -->
+                    <div id="auth-container">
+                        <a href="login.html"
+                            class="px-4 py-2 border border-cyan-400 text-cyan-400 font-bold font-orbitron rounded hover:bg-cyan-400 hover:text-black transition-all text-xs">LOGIN</a>
+                    </div>
+                </div>
+                <button id="mobile-menu-button" aria-label="Toggle navigation" aria-expanded="false"
+                    class="md:hidden p-2 rounded border border-white/20 hover:border-cyan-400 text-white hover:text-cyan-400 transition-colors">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m0 6H4">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Body -->
+    <main>
+
+        <!-- Hero Section -->
+        <section id="hero" class="min-h-screen flex items-center justify-center relative pt-20">
+            <div class="absolute inset-0 z-0">
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/80 to-slate-900"></div>
+                <!-- We can add a video or animated bg here later -->
+            </div>
+
+            <div class="container mx-auto px-4 z-10 text-center">
+                <h2 class="text-cyan-400 font-orbitron tracking-[0.2em] text-sm md:text-base mb-4 animate-pulse">
+                    SYSTEM.INIT(2025)</h2>
+                <h1
+                    class="text-5xl md:text-7xl lg:text-8xl font-black font-orbitron mb-6 leading-tight typewriter-container">
+                    <div class="typewriter-line" id="line1"></div>
+                    <div class="typewriter-line" id="line2"></div>
+                    <div class="typewriter-line" id="line3"></div>
+                </h1>
+                <p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+                    Join the elite community of creators shaping the future of intelligent machines.
+                    <span class="text-cyan-400">AI</span>, <span class="text-purple-400">Robotics</span>, and <span
+                        class="text-green-400">Automation</span> converge here.
+                </p>
+                <div class="flex flex-col md:flex-row justify-center gap-4">
+                    <a href="#projects"
+                        class="px-8 py-4 bg-cyan-500 text-black font-bold font-orbitron tracking-wide rounded hover:bg-cyan-400 hover:scale-105 transition-all shadow-[0_0_20px_rgba(6,182,212,0.5)]">
+                        EXPLORE PROJECTS
+                    </a>
+                    <a href="join-us.html"
+                        class="px-8 py-4 border border-purple-500 text-purple-400 font-bold font-orbitron tracking-wide rounded hover:bg-purple-500/10 hover:text-purple-300 transition-all">
+                        JOIN US
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- About & Mission Section (Split Layout) -->
+        <section id="about" class="py-20 relative">
+            <div class="container mx-auto px-4">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                    <div class="space-y-8">
+                        <div class="border-l-4 border-cyan-400 pl-6">
+                            <h2 class="text-3xl md:text-4xl font-bold font-orbitron text-white mb-2">ABOUT THE CLUB</h2>
+                            <p class="text-cyan-400 font-mono text-sm">> ACCESSING ARCHIVES...</p>
+                        </div>
+                        <p class="text-gray-300 text-lg leading-relaxed">
+                            Driven by a passion for innovation and intelligent automation, our Robotics Club is a
+                            vibrant community of aspiring engineers and researchers dedicated to exploring the frontiers
+                            of robotics. We believe in nurturing creativity, technical excellence, and practical
+                            problem-solving through a collaborative teaching-learning process.
+                        </p>
+
+                        <div class="glass-card p-6 rounded-lg border border-white/10 space-y-6">
+                            <div>
+                                <h3 class="text-xl font-bold font-orbitron text-purple-400 mb-2">OUR VISION</h3>
+                                <p class="text-gray-400">
+                                    To develop well-rounded solutions that integrate creativity, technology, and
+                                    practicality for a smarter, automated future.
+                                </p>
+                            </div>
+                            <div class="pt-4 border-t border-white/10">
+                                <h3 class="text-xl font-bold font-orbitron text-cyan-400 mb-2">THEME</h3>
+                                <p class="text-white italic mb-2">"Innovate, Automate, and Elevate: Building the Future
+                                    with AI for Robotics"</p>
+                                <p class="text-gray-400 text-sm">
+                                    This theme reflects our mission to empower undergraduate students with the skills,
+                                    knowledge, and creativity needed to thrive in the ever-evolving field of robotics.
+                                    Through hands-on projects, real-world automation challenges, and interdisciplinary
+                                    teamwork, we aim to elevate problem-solving capabilities using cutting-edge
+                                    technologies.
+                                </p>
+                            </div>
+                            <div class="pt-4 border-t border-white/10">
+                                <h3 class="text-xl font-bold font-orbitron text-green-400 mb-3">AREAS OF INTEREST</h3>
+                                <p class="text-gray-400 text-sm mb-3">Autonomous Marine, Aerial, and Ground Robots,
+                                    including:</p>
+                                <ul class="grid grid-cols-2 gap-2 mb-3">
+                                    <li class="flex items-center text-gray-300 text-sm">
+                                        <svg class="w-4 h-4 mr-2 text-cyan-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Sensor Integration
+                                    </li>
+                                    <li class="flex items-center text-gray-300 text-sm">
+                                        <svg class="w-4 h-4 mr-2 text-cyan-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Data-Driven Control
+                                    </li>
+                                    <li class="flex items-center text-gray-300 text-sm">
+                                        <svg class="w-4 h-4 mr-2 text-cyan-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Computer Vision
+                                    </li>
+                                    <li class="flex items-center text-gray-300 text-sm">
+                                        <svg class="w-4 h-4 mr-2 text-cyan-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Artificial Intelligence
+                                    </li>
+                                </ul>
+                                <p class="text-gray-400 text-sm italic border-l-2 border-purple-500 pl-3">
+                                    "Together, we are building a future where intelligent machines enhance human
+                                    potential and transform industries."
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <div
+                            class="absolute -inset-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-lg opacity-30 blur-lg">
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto-format&fit=crop"
+                            alt="Robotics Lab"
+                            class="relative rounded-lg shadow-2xl border border-white/10 w-full object-cover h-[400px]">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Upcoming Events Section -->
+        <section id="events" class="py-20 bg-slate-900/80 border-y border-white/5 relative hidden">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-5xl font-bold font-orbitron text-white mb-4">UPCOMING EVENTS</h2>
+                    <div class="h-1 w-24 bg-gradient-to-r from-purple-500 to-cyan-500 mx-auto"></div>
+                </div>
+
+                <div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Events will be populated here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Spotlight (Grid) -->
+        <section id="projects" class="py-20 bg-slate-900/50">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-5xl font-bold font-orbitron text-white mb-4">PROJECT SPOTLIGHT</h2>
+                    <div class="h-1 w-24 bg-gradient-to-r from-cyan-400 to-purple-600 mx-auto"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Project 1 -->
+                    <div class="glass-card p-1 rounded-xl hover:scale-[1.02] transition-all duration-300 group">
+                        <div class="bg-slate-800/80 p-6 rounded-lg h-full flex flex-col relative overflow-hidden">
+                            <div
+                                class="absolute top-0 right-0 p-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                                <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                                </svg>
+                            </div>
+                            <h3
+                                class="text-xl font-bold font-orbitron text-white mb-2 group-hover:text-cyan-400 transition-colors">
+                                ROBOCUP 2025</h3>
+                            <p class="text-gray-400 text-sm mb-4 flex-grow">Autonomous navigation system for soccer
+                                bots. Advanced pathfinding algorithms implemented.</p>
+                            <div class="flex items-center justify-between mt-4 border-t border-white/10 pt-4">
+                                <span class="text-xs font-mono text-cyan-500">STATUS: ACTIVE</span>
+                                <span class="text-xs text-gray-500">v2.4.0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project 2 -->
+                    <div class="glass-card p-1 rounded-xl hover:scale-[1.02] transition-all duration-300 group">
+                        <div class="bg-slate-800/80 p-6 rounded-lg h-full flex flex-col relative overflow-hidden">
+                            <div
+                                class="absolute top-0 right-0 p-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                                <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <h3
+                                class="text-xl font-bold font-orbitron text-white mb-2 group-hover:text-purple-400 transition-colors">
+                                DRONE SWARM</h3>
+                            <p class="text-gray-400 text-sm mb-4 flex-grow">Stability algorithms for multi-drone
+                                coordination. 20% reduction in flight drift.</p>
+                            <div class="flex items-center justify-between mt-4 border-t border-white/10 pt-4">
+                                <span class="text-xs font-mono text-purple-500">STATUS: TESTING</span>
+                                <span class="text-xs text-gray-500">v1.1.beta</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project 3 -->
+                    <div class="glass-card p-1 rounded-xl hover:scale-[1.02] transition-all duration-300 group">
+                        <div class="bg-slate-800/80 p-6 rounded-lg h-full flex flex-col relative overflow-hidden">
+                            <div
+                                class="absolute top-0 right-0 p-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                                <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <h3
+                                class="text-xl font-bold font-orbitron text-white mb-2 group-hover:text-green-400 transition-colors">
+                                IOT SMART LAB</h3>
+                            <p class="text-gray-400 text-sm mb-4 flex-grow">Automated inventory tracking and
+                                environmental control for the robotics lab.</p>
+                            <div class="flex items-center justify-between mt-4 border-t border-white/10 pt-4">
+                                <span class="text-xs font-mono text-green-500">STATUS: DEPLOYED</span>
+                                <span class="text-xs text-gray-500">v3.0.1</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Training Section (Flip Cards) -->
+        <section id="training" class="py-20 relative overflow-hidden">
+            <!-- Background Decoration -->
+            <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0 opacity-20 pointer-events-none">
+                <div
+                    class="absolute top-10 left-10 w-64 h-64 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl animate-blob">
+                </div>
+                <div
+                    class="absolute top-10 right-10 w-64 h-64 bg-cyan-600 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000">
+                </div>
+            </div>
+
+            <div class="container mx-auto px-4 z-10 relative">
+                <div class="flex items-end justify-between mb-12">
+                    <div>
+                        <h2 class="text-3xl md:text-5xl font-bold font-orbitron text-white">TRAINING MODULES</h2>
+                        <p class="text-gray-400 mt-2">Equipping you with the arsenal for the future.</p>
+                    </div>
+                    <div class="hidden md:block text-right">
+                        <p class="font-mono text-cyan-400 text-sm">MODULES_LOADED: 15</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                    <!-- 3D Printing -->
+                    <div class="flip-card h-40">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front glass-card border border-white/10">
+                                <svg class="w-12 h-12 mb-3 text-cyan-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                                    </path>
+                                </svg>
+                                <span class="font-bold font-orbitron text-sm text-white">3D PRINTING</span>
+                            </div>
+                            <div class="flip-card-back bg-cyan-900/90 border border-cyan-500/50">
+                                <span class="font-bold text-cyan-300 text-sm">HANDS-ON<br>TRAINING</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Augmented Reality -->
+                    <div class="flip-card h-40">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front glass-card border border-white/10">
+                                <svg class="w-12 h-12 mb-3 text-purple-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                    </path>
+                                </svg>
+                                <span class="font-bold font-orbitron text-sm text-white">AR / VR</span>
+                            </div>
+                            <div class="flip-card-back bg-purple-900/90 border border-purple-500/50">
+                                <span class="font-bold text-purple-300 text-sm">IMMERSIVE<br>TECH</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Blender -->
+                    <div class="flip-card h-40">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front glass-card border border-white/10">
+                                <svg class="w-12 h-12 mb-3 text-orange-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5">
+                                    </path>
+                                </svg>
+                                <span class="font-bold font-orbitron text-sm text-white">BLENDER</span>
+                            </div>
+                            <div class="flip-card-back bg-orange-900/90 border border-orange-500/50">
+                                <span class="font-bold text-orange-300 text-sm">3D MODELING</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Drones -->
+                    <div class="flip-card h-40">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front glass-card border border-white/10">
+                                <svg class="w-12 h-12 mb-3 text-sky-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                                </svg>
+                                <span class="font-bold font-orbitron text-sm text-white">DRONES</span>
+                            </div>
+                            <div class="flip-card-back bg-sky-900/90 border border-sky-500/50">
+                                <span class="font-bold text-sky-300 text-sm">AERIAL<br>ROBOTICS</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Embedded System -->
+                    <div class="flip-card h-40">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front glass-card border border-white/10">
+                                <svg class="w-12 h-12 mb-3 text-green-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z">
+                                    </path>
+                                </svg>
+                                <span class="font-bold font-orbitron text-sm text-white">EMBEDDED</span>
+                            </div>
+                            <div class="flip-card-back bg-green-900/90 border border-green-500/50">
+                                <span class="font-bold text-green-300 text-sm">HARDWARE<br>LOGIC</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Image Processing -->
+                    <div class="flip-card h-40">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front glass-card border border-white/10">
+                                <svg class="w-12 h-12 mb-3 text-pink-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                    </path>
+                                </svg>
+                                <span class="font-bold font-orbitron text-sm text-white">CV / IP</span>
+                            </div>
+                            <div class="flip-card-back bg-pink-900/90 border border-pink-500/50">
+                                <span class="font-bold text-pink-300 text-sm">COMPUTER<br>VISION</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- IoT -->
+                    <div class="flip-card h-40">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front glass-card border border-white/10">
+                                <svg class="w-12 h-12 mb-3 text-blue-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0">
+                                    </path>
+                                </svg>
+                                <span class="font-bold font-orbitron text-sm text-white">IoT</span>
+                            </div>
+                            <div class="flip-card-back bg-blue-900/90 border border-blue-500/50">
+                                <span class="font-bold text-blue-300 text-sm">CONNECTED<br>DEVICES</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Machine Learning -->
+                    <div class="flip-card h-40">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front glass-card border border-white/10">
+                                <svg class="w-12 h-12 mb-3 text-red-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z">
+                                    </path>
+                                </svg>
+                                <span class="font-bold font-orbitron text-sm text-white">ML / AI</span>
+                            </div>
+                            <div class="flip-card-back bg-red-900/90 border border-red-500/50">
+                                <span class="font-bold text-red-300 text-sm">INTELLIGENT<br>SYSTEMS</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Python -->
+                    <div class="flip-card h-40">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front glass-card border border-white/10">
+                                <svg class="w-12 h-12 mb-3 text-yellow-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                                </svg>
+                                <span class="font-bold font-orbitron text-sm text-white">PYTHON</span>
+                            </div>
+                            <div class="flip-card-back bg-yellow-900/90 border border-yellow-500/50">
+                                <span class="font-bold text-yellow-300 text-sm">CODING<br>CORE</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ROS 2 -->
+                    <div class="flip-card h-40">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front glass-card border border-white/10">
+                                <svg class="w-12 h-12 mb-3 text-indigo-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4">
+                                    </path>
+                                </svg>
+                                <span class="font-bold font-orbitron text-sm text-white">ROS 2</span>
+                            </div>
+                            <div class="flip-card-back bg-indigo-900/90 border border-indigo-500/50">
+                                <span class="font-bold text-indigo-300 text-sm">ROBOT<br>OS</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Gazebo -->
+                    <div class="flip-card h-40">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front glass-card border border-white/10">
+                                <svg class="w-12 h-12 mb-3 text-orange-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                                    </path>
+                                </svg>
+                                <span class="font-bold font-orbitron text-sm text-white">GAZEBO</span>
+                            </div>
+                            <div class="flip-card-back bg-orange-900/90 border border-orange-600/50">
+                                <span class="font-bold text-orange-300 text-sm">SIMULATION</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- FPGA -->
+                    <div class="flip-card h-40">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front glass-card border border-white/10">
+                                <svg class="w-12 h-12 mb-3 text-teal-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z">
+                                    </path>
+                                </svg>
+                                <span class="font-bold font-orbitron text-sm text-white">FPGA</span>
+                            </div>
+                            <div class="flip-card-back bg-teal-900/90 border border-teal-500/50">
+                                <span class="font-bold text-teal-300 text-sm">LOGIC<br>GATES</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Multi Terrain Vehicle Robots -->
+                    <div class="flip-card h-40">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front glass-card border border-white/10">
+                                <svg class="w-12 h-12 mb-3 text-lime-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                </svg>
+                                <span class="font-bold font-orbitron text-sm text-white">MTV ROBOTS</span>
+                            </div>
+                            <div class="flip-card-back bg-lime-900/90 border border-lime-500/50">
+                                <span class="font-bold text-lime-300 text-sm">ALL<br>TERRAIN</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- CoppeliaSim -->
+                    <div class="flip-card h-40">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front glass-card border border-white/10">
+                                <svg class="w-12 h-12 mb-3 text-violet-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5">
+                                    </path>
+                                </svg>
+                                <span class="font-bold font-orbitron text-sm text-white">COPPELIA</span>
+                            </div>
+                            <div class="flip-card-back bg-violet-900/90 border border-violet-500/50">
+                                <span class="font-bold text-violet-300 text-sm">ROBOT<br>SIM</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- STM32 -->
+                    <div class="flip-card h-40">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front glass-card border border-white/10">
+                                <svg class="w-12 h-12 mb-3 text-blue-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z">
+                                    </path>
+                                </svg>
+                                <span class="font-bold font-orbitron text-sm text-white">STM32</span>
+                            </div>
+                            <div class="flip-card-back bg-blue-900/90 border border-blue-600/50">
+                                <span class="font-bold text-blue-300 text-sm">MICRO<br>CONTROLLER</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Team Section -->
+        <section id="team" class="py-20 bg-slate-900/50">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-5xl font-bold font-orbitron text-white mb-4">CORE TEAM</h2>
+                    <p class="text-gray-400">The minds behind the machines.</p>
+                </div>
+
+                <!-- Featured Faculty Mentor -->
+                <div class="mb-16">
+                    <div
+                        class="glass-card rounded-xl overflow-hidden flex flex-col md:flex-row border border-purple-500/30 shadow-[0_0_30px_rgba(168,85,247,0.15)]">
+                        <div class="w-full md:w-1/3 relative group">
+                            <img class="w-full h-full object-cover min-h-[300px]" src="media/desai.png"
+                                alt="Dr. Ravishankar P Desai">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent md:bg-gradient-to-r">
+                            </div>
+                        </div>
+                        <div class="w-full md:w-2/3 p-8 flex flex-col justify-center relative">
+                            <div class="absolute top-0 right-0 p-4 opacity-20">
+                                <svg class="w-24 h-24 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M14.017 21L14.017 18C14.017 16.8954 13.1216 16 12.017 16H9.01703V15C9.01703 14.3196 9.18203 13.6552 9.48803 13.0567C9.64803 12.7444 9.85103 12.455 10.089 12.191L11.977 10.303C12.609 9.671 13.017 8.829 13.017 7.917C13.017 6.031 11.49 4.5 9.60803 4.5H5.01703C4.46475 4.5 4.01703 4.94772 4.01703 5.5V9.5C4.01703 10.0523 4.46475 10.5 5.01703 10.5H8.01703V11.504C8.01703 12.0563 7.56931 12.504 7.01703 12.504H5.01703C3.91246 12.504 3.01703 13.3994 3.01703 14.504V18C3.01703 19.1046 3.91246 20 5.01703 20H14.017V21ZM21.017 21L21.017 18C21.017 16.8954 20.1216 16 19.017 16H16.017V15C16.017 14.3196 16.182 13.6552 16.488 13.0567C16.648 12.7444 16.851 12.455 17.089 12.191L18.977 10.303C19.609 9.671 20.017 8.829 20.017 7.917C20.017 6.031 18.49 4.5 16.608 4.5H12.017C11.4647 4.5 11.017 4.94772 11.017 5.5V9.5C11.017 10.0523 11.4647 10.5 12.017 10.5H15.017V11.504C15.017 12.0563 14.5693 12.504 14.017 12.504H12.017C10.9125 12.504 10.017 13.3994 10.017 14.504V18C10.017 19.1046 10.9125 20 12.017 20H21.017V21Z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-3xl md:text-4xl font-bold font-orbitron text-white mb-2">DR. RAVISHANKAR P
+                                DESAI</h3>
+                            <p class="text-purple-400 font-mono text-lg mb-6">FACULTY MENTOR</p>
+
+                            <blockquote class="border-l-4 border-purple-500 pl-4 mb-6 italic text-gray-300 text-lg">
+                                "Guiding the next generation of innovators."
+                            </blockquote>
+
+                            <div class="mb-6">
+                                <h4 class="text-white font-bold font-orbitron mb-2 text-sm tracking-wider">BIO</h4>
+                                <p class="text-gray-400 leading-relaxed">Dr. Desai is a distinguished professor with
+                                    over 15 years of experience in robotics research. He provides invaluable guidance
+                                    and mentorship to the club members.</p>
+                            </div>
+
+                            <div>
+                                <h4 class="text-white font-bold font-orbitron mb-2 text-sm tracking-wider">RESEARCH
+                                    INTERESTS</h4>
+                                <div class="flex flex-wrap gap-2">
+                                    <span
+                                        class="px-3 py-1 bg-purple-500/20 border border-purple-500/40 rounded-full text-purple-300 text-xs font-mono">Control
+                                        Systems</span>
+                                    <span
+                                        class="px-3 py-1 bg-purple-500/20 border border-purple-500/40 rounded-full text-purple-300 text-xs font-mono">AI/ML
+                                        & RL for Autonomous Robot
+                                    </span>
+                                    <span
+                                        class="px-3 py-1 bg-purple-500/20 border border-purple-500/40 rounded-full text-purple-300 text-xs font-mono">Control
+                                        of Autonomous (Marine, Aerial, and Ground) Vehicles</span>
+                                    <span
+                                        class="px-3 py-1 bg-purple-500/20 border border-purple-500/40 rounded-full text-purple-300 text-xs font-mono">Process
+                                        and Biomedical Instrumentation
+                                    </span>
+                                    <span
+                                        class="px-3 py-1 bg-purple-500/20 border border-purple-500/40 rounded-full text-purple-300 text-xs font-mono">Underwater
+                                        and Medical Image Processing
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Member 1: Shashwat Mishra -->
+                    <div class="team-card glass-card rounded-xl overflow-hidden relative group h-96">
+                        <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            src="media/Shashwat.jpg" alt="Shashwat Mishra">
+                        <div
+                            class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-slate-900 to-transparent z-10">
+                            <h3 class="text-xl font-bold font-orbitron text-white">SHASHWAT MISHRA</h3>
+                            <p class="text-cyan-400 text-sm font-mono">PRESIDENT</p>
+                        </div>
+                        <div
+                            class="team-overlay absolute inset-0 bg-slate-900/90 backdrop-blur-sm flex flex-col justify-center items-center p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 translate-y-4 group-hover:translate-y-0">
+                            <p class="text-gray-300 italic text-center mb-6">"Innovation distinguishes between a leader
+                                and a follower."</p>
+                            <button
+                                class="view-profile-btn px-6 py-2 border border-cyan-400 text-cyan-400 font-bold font-orbitron rounded hover:bg-cyan-400 hover:text-black transition-all"
+                                data-id="shashwat">
+                                VIEW PROFILE
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Member 2: Yashashwini Rao -->
+                    <div class="team-card glass-card rounded-xl overflow-hidden relative group h-96">
+                        <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            src="media/Yashashwini.jpeg" alt="Yashashwini Rao">
+                        <div
+                            class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-slate-900 to-transparent z-10">
+                            <h3 class="text-xl font-bold font-orbitron text-white">YASHASHWINI RAO</h3>
+                            <p class="text-pink-400 text-sm font-mono">STUDENT MENTOR</p>
+                        </div>
+                        <div
+                            class="team-overlay absolute inset-0 bg-slate-900/90 backdrop-blur-sm flex flex-col justify-center items-center p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 translate-y-4 group-hover:translate-y-0">
+                            <p class="text-gray-300 italic text-center mb-6">"Empowering others to achieve their best."
+                            </p>
+                            <button
+                                class="view-profile-btn px-6 py-2 border border-pink-400 text-pink-400 font-bold font-orbitron rounded hover:bg-pink-400 hover:text-black transition-all"
+                                data-id="yashashwini">
+                                VIEW PROFILE
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Member 3: C Rithvik Bhaskar -->
+                    <div class="team-card glass-card rounded-xl overflow-hidden relative group h-96">
+                        <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            src="media/Rithvik.jpeg" alt="Rithwik Bhaskar">
+                        <div
+                            class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-slate-900 to-transparent z-10">
+                            <h3 class="text-xl font-bold font-orbitron text-white">C RITHVIK BHASKAR</h3>
+                            <p class="text-green-400 text-sm font-mono">STUDENT MENTOR</p>
+                        </div>
+                        <div
+                            class="team-overlay absolute inset-0 bg-slate-900/90 backdrop-blur-sm flex flex-col justify-center items-center p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 translate-y-4 group-hover:translate-y-0">
+                            <p class="text-gray-300 italic text-center mb-6">"Sharing knowledge is the key to
+                                growth."
+                            </p>
+                            <button
+                                class="view-profile-btn px-6 py-2 border border-green-400 text-green-400 font-bold font-orbitron rounded hover:bg-green-400 hover:text-black transition-all"
+                                data-id="rithwik">
+                                VIEW PROFILE
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Member 4: Arekatla Nishanth -->
+                    <div class="team-card glass-card rounded-xl overflow-hidden relative group h-96">
+                        <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            src="media/Nishanth.jpeg" alt="Arekatla Nishanth">
+                        <div
+                            class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-slate-900 to-transparent z-10">
+                            <h3 class="text-xl font-bold font-orbitron text-white">AREKATLA NISHANTH</h3>
+                            <p class="text-yellow-400 text-sm font-mono">VICE PRESIDENT</p>
+                        </div>
+                        <div
+                            class="team-overlay absolute inset-0 bg-slate-900/90 backdrop-blur-sm flex flex-col justify-center items-center p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 translate-y-4 group-hover:translate-y-0">
+                            <p class="text-gray-300 italic text-center mb-6">"Execution is everything."</p>
+                            <button
+                                class="view-profile-btn px-6 py-2 border border-yellow-400 text-yellow-400 font-bold font-orbitron rounded hover:bg-yellow-400 hover:text-black transition-all"
+                                data-id="nishanth">
+                                VIEW PROFILE
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Member 5: Shaik Thaslim -->
+                    <div class="team-card glass-card rounded-xl overflow-hidden relative group h-96">
+                        <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            src="media/Thaslim.jpg" alt="Shaik Thaslim">
+                        <div
+                            class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-slate-900 to-transparent z-10">
+                            <h3 class="text-xl font-bold font-orbitron text-white">SHAIK THASLIM</h3>
+                            <p class="text-orange-400 text-sm font-mono">TREASURER</p>
+                        </div>
+                        <div
+                            class="team-overlay absolute inset-0 bg-slate-900/90 backdrop-blur-sm flex flex-col justify-center items-center p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 translate-y-4 group-hover:translate-y-0">
+                            <p class="text-gray-300 italic text-center mb-6">"Managing resources for maximum
+                                impact."
+                            </p>
+                            <button
+                                class="view-profile-btn px-6 py-2 border border-orange-400 text-orange-400 font-bold font-orbitron rounded hover:bg-orange-400 hover:text-black transition-all"
+                                data-id="thaslim">
+                                VIEW PROFILE
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Member 6: Charitha Sree -->
+                    <div class="team-card glass-card rounded-xl overflow-hidden relative group h-96">
+                        <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            src="media/Charitha.jpeg" alt="Charitha Sree">
+                        <div
+                            class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-slate-900 to-transparent z-10">
+                            <h3 class="text-xl font-bold font-orbitron text-white">CHARITHA SREE</h3>
+                            <p class="text-teal-400 text-sm font-mono">GENERAL SECRETARY</p>
+                        </div>
+                        <div
+                            class="team-overlay absolute inset-0 bg-slate-900/90 backdrop-blur-sm flex flex-col justify-center items-center p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 translate-y-4 group-hover:translate-y-0">
+                            <p class="text-gray-300 italic text-center mb-6">"Building impactful tech solutions and
+                                pushing technical limits."</p>
+                            <button
+                                class="view-profile-btn px-6 py-2 border border-orange-400 text-orange-400 font-bold font-orbitron rounded hover:bg-orange-400 hover:text-black transition-all"
+                                data-id="charithasree">
+                                VIEW PROFILE
+                            </button>
+                        </div>
+                    </div>
+                </div>
+        </section>
+
+        <!-- Gallery Section -->
+        <section id="gallery" class="py-20 bg-slate-900 relative overflow-hidden">
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5">
+            </div>
+            <div class="container mx-auto px-4 relative z-10">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-5xl font-bold font-orbitron text-white mb-4">GALLERY</h2>
+                    <p class="text-gray-400">Capturing our journey.</p>
+                </div>
+
+                <div class="marquee py-4">
+                    <div class="marquee-content space-x-6 px-3">
+                        <!-- Gallery Item 1 -->
+                        <div class="gallery-item w-80 md:w-96 flex-shrink-0 cursor-pointer group"
+                            onclick="openModal('https://images.unsplash.com/photo-1531746790733-2488c0672045?q=80&w=2070&auto-format&fit=crop', 'KICK-OFF WORKSHOP', 'DATE: 2025-10-15')">
+                            <div class="overflow-hidden rounded-lg border border-white/10 relative">
+                                <div
+                                    class="absolute inset-0 bg-cyan-500/20 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                </div>
+                                <img src="https://images.unsplash.com/photo-1531746790733-2488c0672045?q=80&w=2070&auto-format&fit=crop"
+                                    alt="Workshop"
+                                    class="w-full h-56 object-cover grayscale group-hover:grayscale-0 transition-all duration-500">
+                                <div
+                                    class="absolute bottom-0 left-0 right-0 p-4 bg-black/80 backdrop-blur-sm border-t border-white/10">
+                                    <h3 class="font-bold font-orbitron text-white text-sm">KICK-OFF WORKSHOP</h3>
+                                    <p class="text-xs text-cyan-400 font-mono">DATE: 2025-10-15</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gallery Item 2 -->
+                        <div class="gallery-item w-80 md:w-96 flex-shrink-0 cursor-pointer group"
+                            onclick="openModal('https://images.unsplash.com/photo-1606663889134-b1dedb548b08?q=80&w=2070&auto-format&fit=crop', 'ROBOCUP PRACTICE', 'DATE: 2025-09-20')">
+                            <div class="overflow-hidden rounded-lg border border-white/10 relative">
+                                <div
+                                    class="absolute inset-0 bg-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                </div>
+                                <img src="https://images.unsplash.com/photo-1606663889134-b1dedb548b08?q=80&w=2070&auto-format&fit=crop"
+                                    alt="RoboCup"
+                                    class="w-full h-56 object-cover grayscale group-hover:grayscale-0 transition-all duration-500">
+                                <div
+                                    class="absolute bottom-0 left-0 right-0 p-4 bg-black/80 backdrop-blur-sm border-t border-white/10">
+                                    <h3 class="font-bold font-orbitron text-white text-sm">ROBOCUP PRACTICE</h3>
+                                    <p class="text-xs text-purple-400 font-mono">DATE: 2025-09-20</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gallery Item 3 -->
+                        <div class="gallery-item w-80 md:w-96 flex-shrink-0 cursor-pointer group"
+                            onclick="openModal('https://images.unsplash.com/photo-1581092580497-c2d29cb5f324?q=80&w=2070&auto-format&fit=crop', 'DRONE TESTING', 'DATE: 2025-09-10')">
+                            <div class="overflow-hidden rounded-lg border border-white/10 relative">
+                                <div
+                                    class="absolute inset-0 bg-green-500/20 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                </div>
+                                <img src="https://images.unsplash.com/photo-1581092580497-c2d29cb5f324?q=80&w=2070&auto-format&fit=crop"
+                                    alt="Drone"
+                                    class="w-full h-56 object-cover grayscale group-hover:grayscale-0 transition-all duration-500">
+                                <div
+                                    class="absolute bottom-0 left-0 right-0 p-4 bg-black/80 backdrop-blur-sm border-t border-white/10">
+                                    <h3 class="font-bold font-orbitron text-white text-sm">DRONE TESTING</h3>
+                                    <p class="text-xs text-green-400 font-mono">DATE: 2025-09-10</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gallery Item 4 -->
+                        <div class="gallery-item w-80 md:w-96 flex-shrink-0 cursor-pointer group"
+                            onclick="openModal('https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=2070&auto-format&fit=crop', 'AI SEMINAR', 'DATE: 2025-08-05')">
+                            <div class="overflow-hidden rounded-lg border border-white/10 relative">
+                                <div
+                                    class="absolute inset-0 bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                </div>
+                                <img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=2070&auto-format&fit=crop"
+                                    alt="AI Seminar"
+                                    class="w-full h-56 object-cover grayscale group-hover:grayscale-0 transition-all duration-500">
+                                <div
+                                    class="absolute bottom-0 left-0 right-0 p-4 bg-black/80 backdrop-blur-sm border-t border-white/10">
+                                    <h3 class="font-bold font-orbitron text-white text-sm">AI SEMINAR</h3>
+                                    <p class="text-xs text-blue-400 font-mono">DATE: 2025-08-05</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Duplicate items for smooth marquee effect -->
+                        <div class="gallery-item w-80 md:w-96 flex-shrink-0 cursor-pointer group"
+                            onclick="openModal('https://images.unsplash.com/photo-1531746790733-2488c0672045?q=80&w=2070&auto-format&fit=crop', 'KICK-OFF WORKSHOP', 'DATE: 2025-10-15')">
+                            <div class="overflow-hidden rounded-lg border border-white/10 relative">
+                                <div
+                                    class="absolute inset-0 bg-cyan-500/20 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                </div>
+                                <img src="https://images.unsplash.com/photo-1531746790733-2488c0672045?q=80&w=2070&auto-format&fit=crop"
+                                    alt="Workshop"
+                                    class="w-full h-56 object-cover grayscale group-hover:grayscale-0 transition-all duration-500">
+                                <div
+                                    class="absolute bottom-0 left-0 right-0 p-4 bg-black/80 backdrop-blur-sm border-t border-white/10">
+                                    <h3 class="font-bold font-orbitron text-white text-sm">KICK-OFF WORKSHOP</h3>
+                                    <p class="text-xs text-cyan-400 font-mono">DATE: 2025-10-15</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 bg-slate-900 pt-16 pb-8">
+        <div class="container mx-auto px-4 text-center">
+            <h3 class="text-2xl font-bold font-orbitron text-white mb-6">CONNECT WITH US</h3>
+            <div class="flex justify-center space-x-8 mb-8">
+                <a href="#" class="text-gray-400 hover:text-cyan-400 transition-colors transform hover:scale-110">
+                    <span class="sr-only">LinkedIn</span>
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                    </svg>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-purple-400 transition-colors transform hover:scale-110">
+                    <span class="sr-only">Instagram</span>
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.012 3.584-.07 4.85c-.148 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.069-4.85.069s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.012-3.584.07-4.85c.148-3.225 1.664-4.771 4.919-4.919 1.266-.058 1.644-.069 4.85-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948s.014 3.667.072 4.947c.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072s3.667-.014 4.947-.072c4.358-.2 6.78-2.618 6.98-6.98.059-1.281.073-1.689.073-4.948s-.014-3.667-.072-4.947c-.2-4.358-2.618-6.78-6.98-6.98-1.281-.059-1.689-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.441 1.441 1.441 1.441-.645 1.441-1.441-.645-1.44-1.441-1.44z" />
+                    </svg>
+                </a>
+                <a href="mailto:contact@roboticsclub.edu"
+                    class="text-gray-400 hover:text-blue-400 transition-colors transform hover:scale-110">
+                    <span class="sr-only">Email</span>
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z" />
+                    </svg>
+                </a>
+            </div>
+            <p class="text-gray-600 text-sm font-mono">&copy; 2025 ROBOTICS CLUB. SYSTEM STATUS: ONLINE.</p>
+        </div>
+    </footer>
+
+    <!-- The Modal -->
+    <div id="galleryModal" class="modal-overlay">
+        <div class="modal-content glass-card border border-white/20">
+            <span id="closeModal" class="modal-close text-white hover:text-cyan-400">&times;</span>
+            <img id="modalImage" src="" alt="Event image"
+                class="w-full h-auto max-h-[70vh] object-contain rounded-lg mb-4 border border-white/10">
+            <h3 id="modalTitle" class="text-2xl font-bold font-orbitron text-white"></h3>
+            <p id="modalDate" class="text-md text-cyan-400 font-mono"></p>
+        </div>
+    </div>
+
+    <!-- Team Modal -->
+    <div id="teamModal" class="modal-overlay">
+        <div class="modal-content glass-card border border-white/20 max-w-2xl w-full mx-4">
+            <span id="closeTeamModal" class="modal-close text-white hover:text-cyan-400">&times;</span>
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="w-full md:w-1/3">
+                    <img id="teamModalImage" src="" alt="Team Member"
+                        class="w-full h-auto rounded-lg border border-white/10 shadow-lg">
+                </div>
+                <div class="w-full md:w-2/3">
+                    <h3 id="teamModalName" class="text-3xl font-bold font-orbitron text-white mb-1"></h3>
+                    <p id="teamModalRole" class="text-cyan-400 font-mono text-sm mb-6"></p>
+
+                    <div class="mb-6">
+                        <h4 class="text-white font-bold font-orbitron mb-2 border-b border-white/10 pb-1">BIO</h4>
+                        <p id="teamModalBio" class="text-gray-300 text-sm leading-relaxed"></p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-white font-bold font-orbitron mb-2 border-b border-white/10 pb-1">RESEARCH
+                            INTERESTS</h4>
+                        <p id="teamModalResearch" class="text-gray-300 text-sm leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Placeholder for auth buttons in header/nav -->
+    <!-- This div should ideally be placed within your actual header/navigation structure -->
+    <!-- For this specific content, it's placed here as a functional placeholder -->
+    <div id="auth-container" class="absolute top-4 right-4 z-50">
+        <!-- Login/Profile button will be rendered here by JavaScript -->
+    </div>
+
+    <script src="script.js"></script>
+    <script type="module">
+        import { monitorAuthState, logoutUser } from './auth.js';
+        import { db } from './firebase-config.js';
+        import { getUpcomingEvents } from './events.js';
+        import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Auth Logic
+        const authContainer = document.getElementById('auth-container');
+
+        monitorAuthState(async (user) => {
+            const heroJoinBtn = document.querySelector('a[href="join-us.html"]');
+
+            if (user) {
+                // Change Hero Button
+                if (heroJoinBtn) {
+                    heroJoinBtn.innerText = "EXPLORE EVENTS";
+                    heroJoinBtn.href = "#events";
+                    heroJoinBtn.classList.remove('border-purple-500', 'text-purple-400', 'hover:bg-purple-500/10', 'hover:text-purple-300');
+                    heroJoinBtn.classList.add('bg-purple-600', 'text-white', 'hover:bg-purple-500', 'border-transparent');
+                }
+
+                // Fetch User Details
+                let userData = {};
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        userData = userDoc.data();
+                    }
+                } catch (e) { console.error(e); }
+
+                const isAdmin = userData.role === 'admin';
+                const avatarUrl = `https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${user.uid}`;
+
+                authContainer.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <div class="relative group">
+                            <button class="flex items-center space-x-3 text-cyan-400 hover:text-white transition-all group-hover:bg-slate-800/50 p-2 rounded-lg">
+                                <img src="${avatarUrl}" alt="Avatar" class="w-8 h-8 rounded-full border border-cyan-500/50 bg-slate-900">
+                                <div class="text-left hidden md:block">
+                                    <p class="font-orbitron font-bold text-xs uppercase text-white">${userData.name || 'Member'}</p>
+                                    <p class="text-[10px] text-cyan-500 font-mono">${userData.memberId || 'ID: PENDING'}</p>
+                                </div>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            
+                            <!-- Enhanced Profile Dropdown -->
+                            <div class="absolute right-0 mt-2 w-72 bg-slate-800 border border-slate-700 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right z-50 overflow-hidden backdrop-blur-md">
+                                
+                                <!-- Header -->
+                                <div class="p-4 bg-slate-900/50 border-b border-slate-700 flex items-center space-x-4">
+                                    <img src="${avatarUrl}" alt="Avatar" class="w-12 h-12 rounded-full border-2 border-cyan-500 bg-slate-900">
+                                    <div class="overflow-hidden">
+                                        <h4 class="font-orbitron font-bold text-white text-sm truncate">${userData.name || 'Robotics Member'}</h4>
+                                        <p class="text-xs text-gray-400 truncate">${user.email}</p>
+                                        <span class="inline-block px-2 py-0.5 mt-1 rounded text-[10px] bg-cyan-900 text-cyan-300 border border-cyan-500/30 uppercase tracking-wider font-mono">
+                                            ${userData.role || 'MEMBER'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Details -->
+                                <div class="p-4 space-y-3">
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-500">Member ID</span>
+                                        <span class="text-white font-mono">${userData.memberId || 'PENDING'}</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-500">Branch / Year</span>
+                                        <span class="text-gray-300">${userData.branch || '-'} / ${userData.year || '-'}</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-500">Since</span>
+                                        <span class="text-gray-300">${userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'N/A'}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Borrowed Hardware (Phase 3) -->
+                                <div class="px-4 pb-4 border-t border-slate-700/50">
+                                    <h5 class="text-[10px] font-bold font-orbitron text-purple-400 mt-3 mb-2 tracking-widest uppercase">Borrowed Components</h5>
+                                    <div id="memberHardwareList" class="space-y-2">
+                                        <p class="text-[10px] text-slate-500 italic text-center py-2">Loading...</p>
+                                    </div>
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="bg-slate-900/30 p-2 border-t border-slate-700">
+                                    ${isAdmin ? `
+                                    <a href="dashboard.html" class="flex items-center px-4 py-2 text-sm text-purple-400 hover:bg-slate-700 rounded transition-colors mb-1">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                                        Admin Dashboard
+                                    </a>` : ''}
+                                    
+                                    <button id="logoutBtn" class="w-full flex items-center px-4 py-2 text-sm text-red-400 hover:bg-slate-700 rounded transition-colors">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                        Sign Out
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('logoutBtn').addEventListener('click', logoutUser);
+
+                // Fetch Borrowed Hardware
+                if (userData.memberId && userData.memberId !== 'PENDING') {
+                    try {
+                        const q = query(collection(db, "allocations"), where("memberId", "==", userData.memberId), where("status", "==", "issued"));
+                        const snap = await getDocs(q);
+                        const listEl = document.getElementById('memberHardwareList');
+                        if (listEl) {
+                            if (snap.empty) {
+                                listEl.innerHTML = '<p class="text-[10px] text-slate-500 italic text-center py-2">No components borrowed.</p>';
+                            } else {
+                                listEl.innerHTML = snap.docs.map(docSnap => `
+                                    <div class="flex justify-between items-center text-[10px] bg-slate-900/50 p-1.5 rounded border border-white/5">
+                                        <span class="text-gray-300 truncate mr-2" title="${docSnap.data().itemName}">${docSnap.data().itemName}</span>
+                                        <span class="text-cyan-600 font-mono flex-shrink-0">${docSnap.data().expectedReturn}</span>
+                                    </div>
+                                `).join('');
+                            }
+                        }
+                    } catch (err) { console.error("Error fetching member hardware:", err); }
+                }
+
+            } else {
+                authContainer.innerHTML = `
+                    <a href="login.html" class="px-4 py-2 border border-cyan-400 text-cyan-400 font-bold font-orbitron rounded hover:bg-cyan-400 hover:text-black transition-all text-xs">LOGIN</a>
+                `;
+            }
+        });
+
+        // Load Events
+        async function loadEvents() {
+            const events = await getUpcomingEvents();
+            const eventsSection = document.getElementById('events');
+            const eventsGrid = document.getElementById('events-grid');
+
+            if (events.length > 0) {
+                eventsSection.classList.remove('hidden');
+                eventsGrid.innerHTML = events.map(event => `
+                    <div class="glass-card rounded-xl overflow-hidden group hover:border-cyan-500/50 transition-all duration-300 flex flex-col h-full">
+                        <div class="h-48 overflow-hidden relative">
+                            <img src="${event.image || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80'}" 
+                                 alt="${event.title}" 
+                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            <div class="absolute top-4 right-4 bg-black/70 backdrop-blur px-3 py-1 rounded border border-white/20">
+                                <span class="text-cyan-400 font-mono text-xs font-bold">
+                                    ${event.comingSoon ? 'COMING SOON' : new Date(event.date).toLocaleDateString()}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-6 flex flex-col flex-grow">
+                            <h3 class="text-xl font-bold font-orbitron text-white mb-2 group-hover:text-cyan-400 transition-colors">${event.title}</h3>
+                            <p class="text-gray-400 text-sm mb-6 flex-grow line-clamp-3">${event.description}</p>
+                            ${event.comingSoon ?
+                        `<div class="w-full text-center px-4 py-2 bg-slate-800/50 text-slate-500 border border-slate-700 rounded font-bold font-orbitron text-sm cursor-default">
+                                    STAY TUNED
+                                </div>` :
+                        `<a href="${event.link || '#'}" class="w-full text-center px-4 py-2 bg-slate-800 hover:bg-cyan-600 text-cyan-400 hover:text-black border border-cyan-500/30 hover:border-transparent rounded font-bold font-orbitron text-sm transition-all">
+                                    REGISTER NOW
+                                </a>`
+                    }
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+        loadEvents();
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Database Debugger</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: #fff;
+            font-family: monospace;
+            padding: 2rem;
+        }
+
+        pre {
+            background: #333;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+
+        .error {
+            color: #ff5555;
+        }
+
+        .success {
+            color: #55ff55;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Firestore Debugger: 'users' Collection</h1>
+    <p>Project ID: <span id="projId">Loading...</span></p>
+    <p>Status: <span id="status">Connecting...</span></p>
+    <div id="output"></div>
+
+    <script type="module">
+        import { db, auth, app } from './firebase-config.js';
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Display Config Info
+        const config = app.options;
+        document.getElementById('projId').innerText = config.projectId;
+
+        async function dumpDB() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "users"));
+                const output = document.getElementById('output');
+                document.getElementById('status').innerText = `Found ${querySnapshot.size} documents.`;
+                document.getElementById('status').className = 'success';
+
+                if (querySnapshot.empty) {
+                    output.innerHTML = "<p>Collection is EMPTY.</p>";
+                    return;
+                }
+
+                let html = "";
+                querySnapshot.forEach((doc) => {
+                    html += `<pre>ID: ${doc.id}\nDATA: ${JSON.stringify(doc.data(), null, 2)}</pre>`;
+                });
+                output.innerHTML = html;
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('status').innerText = "ERROR: " + e.message;
+                document.getElementById('status').className = 'error';
+                document.getElementById('output').innerText = "Check console for details. Possible issues: Permission denied, Wrong Collection Name, Network.";
+            }
+        }
+
+        dumpDB();
+    </script>
+</body>
+
+</html>
