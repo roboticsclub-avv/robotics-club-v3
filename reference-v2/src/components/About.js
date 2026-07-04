@@ -1,4 +1,5 @@
 import styles from "./About.module.css";
+import TextAnimation from "./ui/scroll-text";
 
 const STATS = [
     { number: "50+", label: "Members" },
@@ -38,19 +39,27 @@ export default function About() {
         <section className={`section ${styles.about}`} id="about">
             <div className="container">
                 <div className={styles.aboutGrid}>
-                    <div className={`${styles.aboutContent} fade-in`}>
-                        <span className="section-label">About Us</span>
-                        <h2 className="section-title">
-                            Where engineering
-                            <br />
-                            meets creativity
-                        </h2>
-                        <p className="section-description">
-                            We&apos;re a community of passionate engineers, designers, and
-                            innovators working together to push the boundaries of what
-                            robots can do. From autonomous drones to AI-powered assistants,
-                            we turn ideas into reality.
-                        </p>
+                    <div className={styles.aboutContent}>
+                        <div style={{ marginBottom: '16px' }}>
+                            <TextAnimation
+                                as="span"
+                                text="About Us"
+                                classname="section-label"
+                                direction="up"
+                            />
+                        </div>
+                        <TextAnimation
+                            as="h2"
+                            text="Where engineering meets creativity"
+                            classname="section-title"
+                            direction="down"
+                        />
+                        <TextAnimation
+                            as="p"
+                            text="We're a community of passionate engineers, designers, and innovators working together to push the boundaries of what robots can do. From autonomous drones to AI-powered assistants, we turn ideas into reality."
+                            classname="section-description"
+                            direction="down"
+                        />
 
                         <div className={styles.stats}>
                             {STATS.map((stat) => (
@@ -62,7 +71,7 @@ export default function About() {
                         </div>
                     </div>
 
-                    <div className={`${styles.features} fade-in`}>
+                    <div className={styles.features}>
                         {FEATURES.map((feature) => (
                             <div key={feature.title} className={`glass-card ${styles.featureItem}`}>
                                 <div className={styles.featureIcon}>{feature.icon}</div>

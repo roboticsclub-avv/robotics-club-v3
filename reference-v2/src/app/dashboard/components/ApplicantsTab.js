@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { sendStatusNotification, initEmailJS } from "@/lib/email";
+import { showAlert, showConfirm } from "@/lib/alert-store";
 
 export default function ApplicantsTab() {
     const [applicants, setApplicants] = useState([]);
@@ -29,7 +30,7 @@ export default function ApplicantsTab() {
             setStats({ total, pending, accepted });
         } catch (error) {
             console.error("Error fetching applicants:", error);
-            alert("Error loading data: " + error.message);
+            await showAlert("Error loading data: " + error.message, "Fetch Error");
         } finally {
             setLoading(false);
         }
@@ -40,28 +41,32 @@ export default function ApplicantsTab() {
         fetchApplicants();
     }, []);
 
+    // V3: Admin writes now go through secure API routes instead of direct Supabase client writes
+    const getCallerToken = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        return session?.access_token || null;
+    };
+
     const handleUpdateStatus = async (id, status) => {
-        if (!confirm(`Mark this applicant as ${status.toUpperCase()}?`)) return;
+        const isConfirmed = await showConfirm(`Mark this applicant as ${status.toUpperCase()}?`, "Status Update");
+        if (!isConfirmed) return;
         try {
-            const updates = { status };
-            let memberId = null;
+            const callerToken = await getCallerToken();
+            if (!callerToken) throw new Error("Not authenticated. Please log in again.");
 
-            if (status === 'accepted') {
-                memberId = 'RC-' + Math.floor(1000 + Math.random() * 9000);
-                updates.memberId = memberId;
-                updates.role = 'member';
-            }
+            const response = await fetch('/api/applicants/update-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ applicantId: id, status, callerToken }),
+            });
 
-            const { data: userDataList, error: updateError } = await supabase
-                .from('users')
-                .update(updates)
-                .eq('uid', id)
-                .select();
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'API request failed');
 
-            if (updateError) throw updateError;
-            const userData = userDataList?.[0];
+            const { memberId, user: userData } = result;
 
-            if (userData && userData.email) {
+            // Send email notification via EmailJS (client-side is fine for email)
+            if (userData?.email) {
                 try {
                     await sendStatusNotification(
                         userData.email,
@@ -70,32 +75,70 @@ export default function ApplicantsTab() {
                         status,
                         userData.interests || 'General'
                     );
-                    if (status === 'accepted') alert(`User Accepted! New Member ID: ${memberId}`);
-                    else alert(`User Rejected.`);
+                    if (status === 'accepted') {
+                        await showAlert(`User Accepted! New Member ID: ${memberId}`, "Application Approved");
+                    } else {
+                        await showAlert("User Rejected.", "Application Rejected");
+                    }
                 } catch (mailError) {
                     console.error("Mail Error:", mailError);
-                    alert("Status updated, but failed to send email. Ensure EmailJS keys are correct.");
+                    await showAlert("Status updated, but failed to send email. Ensure EmailJS keys are correct.", "Notification Error");
                 }
             } else {
-                alert("Status updated, but user has no email for notification.");
+                await showAlert("Status updated, but user has no email for notification.", "Notification Error");
             }
 
             fetchApplicants();
         } catch (error) {
             console.error(error);
-            alert("Error updating status: " + error.message);
+            await showAlert("Error updating status: " + error.message, "Status Update Error");
+        }
+    };
+
+    const handleUpdateRole = async (id, role) => {
+        const isConfirmed = await showConfirm(`Change user's role to ${role.toUpperCase()}?`, "Role Reassignment");
+        if (!isConfirmed) return;
+        try {
+            const callerToken = await getCallerToken();
+            if (!callerToken) throw new Error("Not authenticated. Please log in again.");
+
+            const response = await fetch('/api/applicants/update-role', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ applicantId: id, role, callerToken }),
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'API request failed');
+
+            await showAlert(`Role successfully updated to ${role.toUpperCase()}`, "Role Updated");
+            fetchApplicants();
+        } catch (error) {
+            console.error(error);
+            await showAlert("Error updating role: " + error.message, "Role Update Error");
         }
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("Are you sure you want to PERMANENTLY DELETE this record? This cannot be undone.")) return;
+        const isConfirmed = await showConfirm("Are you sure you want to PERMANENTLY DELETE this record? This cannot be undone.", "Delete Record");
+        if (!isConfirmed) return;
         try {
-            const { error } = await supabase.from('users').delete().eq('uid', id);
-            if (error) throw error;
-            alert("Record deleted.");
+            const callerToken = await getCallerToken();
+            if (!callerToken) throw new Error("Not authenticated. Please log in again.");
+
+            const response = await fetch('/api/applicants/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ applicantId: id, callerToken }),
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'API request failed');
+
+            await showAlert("Record deleted.", "Record Deleted");
             fetchApplicants();
         } catch (error) {
-            alert("Error deleting: " + error.message);
+            await showAlert("Error deleting: " + error.message, "Deletion Error");
         }
     };
 
@@ -105,15 +148,15 @@ export default function ApplicantsTab() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                 <div className="glass-card p-6">
                     <h3 className="text-slate-400 text-sm font-bold mb-2">TOTAL APPLICANTS</h3>
-                    <p className="text-4xl font-orbitron text-white">{stats.total}</p>
+                    <p className="text-4xl font-inter text-white">{stats.total}</p>
                 </div>
                 <div className="glass-card p-6">
                     <h3 className="text-slate-400 text-sm font-bold mb-2">PENDING REVIEW</h3>
-                    <p className="text-4xl font-orbitron text-yellow-400">{stats.pending}</p>
+                    <p className="text-4xl font-inter text-yellow-400">{stats.pending}</p>
                 </div>
                 <div className="glass-card p-6">
                     <h3 className="text-slate-400 text-sm font-bold mb-2">ACCEPTED</h3>
-                    <p className="text-4xl font-orbitron text-green-400">{stats.accepted}</p>
+                    <p className="text-4xl font-inter text-green-400">{stats.accepted}</p>
                 </div>
             </div>
 
@@ -128,17 +171,18 @@ export default function ApplicantsTab() {
                                 <th className="p-4">Interest</th>
                                 <th className="p-4">Reason</th>
                                 <th className="p-4">Status</th>
+                                <th className="p-4">Role</th>
                                 <th className="p-4 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="6" className="p-8 text-center text-slate-500 italic">Loading data...</td>
+                                    <td colSpan="7" className="p-8 text-center text-slate-500 italic">Loading data...</td>
                                 </tr>
                             ) : applicants.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="p-8 text-center text-slate-500">No applicants yet.</td>
+                                    <td colSpan="7" className="p-8 text-center text-slate-500">No applicants yet.</td>
                                 </tr>
                             ) : (
                                 applicants.map((app) => (
@@ -170,6 +214,26 @@ export default function ApplicantsTab() {
                                                 }`}>
                                                 {app.status || 'pending'}
                                             </span>
+                                        </td>
+                                        <td className="p-4 text-sm">
+                                            {app.status === 'accepted' ? (
+                                                <select
+                                                    value={app.role || 'member'}
+                                                    onChange={(e) => handleUpdateRole(app.id, e.target.value)}
+                                                    className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white outline-none focus:border-cyan-400 capitalize"
+                                                >
+                                                    <option value="member">member</option>
+                                                    <option value="technical">technical</option>
+                                                    <option value="ops">ops</option>
+                                                    <option value="data">data</option>
+                                                    <option value="secretary">secretary</option>
+                                                    <option value="admin">admin</option>
+                                                </select>
+                                            ) : (
+                                                <span className="text-xs text-slate-500 font-mono capitalize">
+                                                    {app.role || 'applicant'}
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="p-4 text-right space-x-2 whitespace-nowrap">
                                             {app.status === 'pending' && (

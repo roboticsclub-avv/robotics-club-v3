@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
+import { showAlert, showConfirm } from "@/lib/alert-store";
 
 const getImageUrl = (url) => {
     if (!url) return null;
@@ -40,7 +41,7 @@ export default function TeamTab() {
             setTeam(data || []);
         } catch (error) {
             console.error("Error fetching team:", error);
-            alert("Error loading team: " + error.message);
+            await showAlert("Error loading team: " + error.message, "Load Error");
         } finally {
             setLoading(false);
         }
@@ -112,7 +113,7 @@ export default function TeamTab() {
 
         } catch (error) {
             console.error("Error saving member:", error);
-            alert("Error saving member: " + error.message);
+            await showAlert("Error saving member: " + error.message, "Save Error");
         } finally {
             setIsUploading(false);
         }
@@ -137,13 +138,14 @@ export default function TeamTab() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("Are you sure you want to completely delete this team member? This cannot be undone.")) return;
+        const isConfirmed = await showConfirm("Are you sure you want to completely delete this team member? This cannot be undone.", "Delete Core Member");
+        if (!isConfirmed) return;
         try {
             const { error } = await supabase.from('core_team').delete().eq('id', id);
             if (error) throw error;
             fetchTeam();
         } catch (error) {
-            alert("Error deleting member: " + error.message);
+            await showAlert("Error deleting member: " + error.message, "Delete Error");
         }
     };
 
@@ -159,7 +161,7 @@ export default function TeamTab() {
         <div>
             {/* Team Management Form */}
             <div className="mb-10 glass-card p-6">
-                <h2 className="text-xl font-bold font-orbitron text-white mb-4">
+                <h2 className="text-xl font-bold font-inter text-white mb-4">
                     {editingId ? "EDIT TEAM MEMBER" : "ADD CORE TEAM MEMBER"}
                 </h2>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -211,11 +213,11 @@ export default function TeamTab() {
 
                         <div className="flex gap-4">
                             {editingId && (
-                                <button type="button" onClick={handleCancel} disabled={isUploading} className="px-6 bg-slate-700 text-white font-bold font-orbitron py-2 rounded hover:bg-slate-600 transition-colors">
+                                <button type="button" onClick={handleCancel} disabled={isUploading} className="px-6 bg-slate-700 text-white font-bold font-inter py-2 rounded hover:bg-slate-600 transition-colors">
                                     CANCEL
                                 </button>
                             )}
-                            <button type="submit" disabled={isUploading} className="px-8 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold font-orbitron py-2 rounded hover:opacity-90 transition-opacity disabled:opacity-50">
+                            <button type="submit" disabled={isUploading} className="px-8 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold font-inter py-2 rounded hover:opacity-90 transition-opacity disabled:opacity-50">
                                 {isUploading ? "UPLOADING..." : (editingId ? "SAVE CHANGES" : "ADD MEMBER")}
                             </button>
                         </div>
@@ -226,7 +228,7 @@ export default function TeamTab() {
             {/* Existing Core Team List */}
             <div className="glass-card overflow-hidden">
                 <div className="p-4 border-b border-slate-700 bg-slate-900/50">
-                    <h2 className="text-lg font-bold font-orbitron text-white">CURRENT CORE TEAM DIRECTORY</h2>
+                    <h2 className="text-lg font-bold font-inter text-white">CURRENT CORE TEAM DIRECTORY</h2>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">

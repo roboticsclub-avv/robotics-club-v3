@@ -51,13 +51,36 @@
 }
 
 html {
-  scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Lenis smooth scrolling defaults */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+body, input, textarea, button, select {
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
@@ -80,50 +103,15 @@ body::before {
   z-index: 0;
 }
 
-/* ===== GLOW EFFECTS ===== */
-body::after {
-  content: '';
-  position: fixed;
-  top: 20%;
-  right: 10%;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, var(--accent-purple-glow) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
+/* ===== GLOW EFFECTS — removed in V3 ===== */
 
-/* Ambient Background Orbs injected via Layout.js */
+/* Ambient Background Orbs — color removed in V3 */
 .bg-orb-1 {
-  position: fixed;
-  top: -10vh;
-  left: -10vw;
-  width: 50vw;
-  height: 50vw;
-  min-width: 600px;
-  min-height: 600px;
-  background: radial-gradient(circle, rgba(124, 58, 237, 0.25) 0%, transparent 70%);
-  filter: blur(60px);
-  z-index: -1;
-  pointer-events: none;
-  animation: floatOrb 25s ease-in-out infinite alternate;
-  will-change: transform;
+  display: none;
 }
 
 .bg-orb-2 {
-  position: fixed;
-  bottom: -10vh;
-  right: -10vw;
-  width: 60vw;
-  height: 60vw;
-  min-width: 700px;
-  min-height: 700px;
-  background: radial-gradient(circle, rgba(6, 182, 212, 0.25) 0%, transparent 70%);
-  filter: blur(60px);
-  z-index: -1;
-  pointer-events: none;
-  animation: floatOrb 20s ease-in-out infinite alternate-reverse;
-  will-change: transform;
+  display: none;
 }
 
 @keyframes floatOrb {
@@ -269,9 +257,7 @@ spline-viewer {
   top: 0;
   width: 100%;
   min-height: 100vh;
-  background: rgba(10, 10, 10, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: #0a0a0a;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
@@ -294,11 +280,11 @@ spline-viewer {
 
 /* Alternating backdrop solid tints for clean overlap masking */
 .section-bg-dark {
-  background: rgba(8, 8, 8, 0.98);
+  background: #080808;
 }
 
 .section-bg-light {
-  background: rgba(12, 12, 12, 0.98);
+  background: #0c0c0c;
 }
 
 /* ===== SPLINE VIEWER OVERRIDES ===== */
@@ -320,3 +306,15 @@ spline-viewer::part(logo) {
     --container-padding: 0 20px;
   }
 }
+
+/* ===== INFINITE MOVING CARDS ANIMATION ===== */
+@keyframes scroll {
+  to {
+    transform: translate(calc(-50% - 0.5rem));
+  }
+}
+
+.animate-scroll {
+  animation: scroll var(--animation-duration, 40s) linear infinite;
+  animation-direction: var(--animation-direction);
+}

@@ -1,4 +1,6 @@
 import styles from "./Projects.module.css";
+import TextAnimation from "./ui/scroll-text";
+import { InfiniteMovingCards } from "./ui/infinite-moving-cards";
 
 const PROJECTS = [
     {
@@ -36,50 +38,62 @@ const PROJECTS = [
         ],
         link: "#",
     },
+    {
+        emoji: "🚗",
+        title: "Self-Driving Delivery Cart",
+        description:
+            "A campus delivery vehicle equipped with sensor fusion, path planning, and GPS checkpoint tracking for autonomous runs.",
+        tags: [
+            { label: "C++", style: "tagPurple" },
+            { label: "GPS Mapping", style: "tagTeal" },
+            { label: "Hardware", style: "tagOrange" },
+        ],
+        link: "#",
+    },
+    {
+        emoji: "🖨️",
+        title: "High-Precision 3D Printer",
+        description:
+            "Custom core-XY 3D printer built from scratch with custom firmware, optimized for fast and ultra-precise technical printing.",
+        tags: [
+            { label: "Firmware", style: "tagOrange" },
+            { label: "Hardware", style: "tagOrange" },
+        ],
+        link: "#",
+    }
 ];
 
 export default function Projects() {
     return (
         <section className={`section ${styles.projects}`} id="projects">
             <div className="container">
-                <div className={`${styles.projectsHeader} fade-in`}>
-                    <span className="section-label">Our Projects</span>
-                    <h2 className="section-title">Built by us</h2>
-                    <p className="section-description" style={{ margin: "0 auto" }}>
-                        From concept to competition — explore the projects our members
-                        have designed, built, and deployed.
-                    </p>
+                <div className={styles.projectsHeader}>
+                    <div style={{ marginBottom: "16px" }}>
+                        <TextAnimation
+                            as="span"
+                            text="Our Projects"
+                            classname="section-label"
+                            direction="up"
+                        />
+                    </div>
+                    <TextAnimation
+                        as="h2"
+                        text="Built by us"
+                        classname="section-title"
+                        direction="down"
+                    />
+                    <TextAnimation
+                        as="p"
+                        text="From concept to competition — explore the projects our members have designed, built, and deployed."
+                        classname="section-description"
+                        direction="down"
+                        style={{ margin: "0 auto" }}
+                    />
                 </div>
 
-                <div className={styles.projectsGrid}>
-                    {PROJECTS.map((project) => (
-                        <div key={project.title} className={`glass-card ${styles.projectCard} fade-in`}>
-                            <div className={styles.projectImage}>
-                                <div className={styles.projectImagePlaceholder}>
-                                    {project.emoji}
-                                </div>
-                            </div>
-                            <div className={styles.projectBody}>
-                                <h3 className={styles.projectTitle}>{project.title}</h3>
-                                <p className={styles.projectDescription}>
-                                    {project.description}
-                                </p>
-                                <div className={styles.projectTags}>
-                                    {project.tags.map((tag) => (
-                                        <span
-                                            key={tag.label}
-                                            className={`${styles.tag} ${styles[tag.style]}`}
-                                        >
-                                            {tag.label}
-                                        </span>
-                                    ))}
-                                </div>
-                                <a href={project.link} className={styles.projectLink}>
-                                    View Project <span>→</span>
-                                </a>
-                            </div>
-                        </div>
-                    ))}
+                {/* Infinite Moving Cards Carousel containing actual Projects */}
+                <div className="mt-16 w-full relative flex items-center justify-center">
+                  <InfiniteMovingCards items={PROJECTS} direction="right" speed="slow" />
                 </div>
             </div>
         </section>

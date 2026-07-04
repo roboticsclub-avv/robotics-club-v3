@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./Navbar.module.css";
+import { LiquidGlassCard } from "./ui/liquid-glass";
 
 const NAV_ITEMS = [
     { label: "About", href: "/#about" },
@@ -26,7 +27,11 @@ export default function Navbar() {
             const targetId = href.replace('/#', '');
             const elem = document.getElementById(targetId);
             if (elem) {
-                elem.scrollIntoView({ behavior: 'smooth' });
+                if (window.lenis) {
+                    window.lenis.scrollTo(elem);
+                } else {
+                    elem.scrollIntoView({ behavior: 'smooth' });
+                }
                 // Optional: update URL hash manually
                 if (window.history.pushState) {
                     window.history.pushState(null, null, href.replace('/', ''));
@@ -45,52 +50,61 @@ export default function Navbar() {
     return (
         <>
             <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ""}`}>
-                <div className={styles.navContainer}>
-                    <Link href="/" className={styles.logo}>
-                        <div className={styles.logoIcon}>
-                            <Image
-                                src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/media/logo.png`}
-                                alt="Robotics Club Logo"
-                                width={32}
-                                height={32}
-                                style={{ objectFit: "contain" }}
-                            />
+                <LiquidGlassCard
+                    className={styles.navbarBacking}
+                    blurIntensity="xl"
+                    borderRadius="20px"
+                    glowIntensity={scrolled ? "md" : "sm"}
+                    shadowIntensity="md"
+                    draggable={false}
+                >
+                    <div className={styles.navContainer}>
+                        <Link href="/" className={styles.logo}>
+                            <div className={styles.logoIcon}>
+                                <Image
+                                    src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/media/logo.png`}
+                                    alt="Robotics Club Logo"
+                                    width={32}
+                                    height={32}
+                                    style={{ objectFit: "contain" }}
+                                />
+                            </div>
+                            Robotics Club
+                        </Link>
+
+                        <div className={styles.navLinks}>
+                            {NAV_ITEMS.map((item) => (
+                                <Link 
+                                    key={item.href} 
+                                    href={item.href} 
+                                    className={styles.navLink}
+                                    onClick={(e) => handleNavClick(e, item.href)}
+                                >
+                                    {item.label}
+                                </Link>
+                            ))}
                         </div>
-                        Robotics Club
-                    </Link>
 
-                    <div className={styles.navLinks}>
-                        {NAV_ITEMS.map((item) => (
-                            <Link 
-                                key={item.href} 
-                                href={item.href} 
-                                className={styles.navLink}
-                                onClick={(e) => handleNavClick(e, item.href)}
-                            >
-                                {item.label}
+                        <div className={styles.navActions}>
+                            <Link href="/login" className={styles.btnSecondary}>
+                                Login
                             </Link>
-                        ))}
-                    </div>
+                            <Link href="/join-us" className={styles.btnPrimary}>
+                                Join Us
+                            </Link>
+                        </div>
 
-                    <div className={styles.navActions}>
-                        <Link href="/login" className={styles.btnSecondary}>
-                            Login
-                        </Link>
-                        <Link href="/join-us" className={styles.btnPrimary}>
-                            Join Us
-                        </Link>
+                        <button
+                            className={styles.hamburger}
+                            onClick={() => setMobileOpen(true)}
+                            aria-label="Open menu"
+                        >
+                            <span className={styles.hamburgerLine} />
+                            <span className={styles.hamburgerLine} />
+                            <span className={styles.hamburgerLine} />
+                        </button>
                     </div>
-
-                    <button
-                        className={styles.hamburger}
-                        onClick={() => setMobileOpen(true)}
-                        aria-label="Open menu"
-                    >
-                        <span className={styles.hamburgerLine} />
-                        <span className={styles.hamburgerLine} />
-                        <span className={styles.hamburgerLine} />
-                    </button>
-                </div>
+                </LiquidGlassCard>
             </nav>
 
             {/* Mobile menu overlay */}

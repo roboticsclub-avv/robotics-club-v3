@@ -3,6 +3,8 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/lib/supabase";
+import TextAnimation from "./ui/scroll-text";
+
 
 const getImageUrl = (url) => {
     if (!url) return `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/media/placeholder.jpg`;
@@ -20,6 +22,18 @@ export default function Team() {
 
     useEffect(() => {
         setMounted(true);
+
+        // Read client cache on mount to avoid hydration mismatch
+        if (typeof window !== 'undefined') {
+            const cachedFaculty = sessionStorage.getItem('cached_faculty');
+            const cachedMembers = sessionStorage.getItem('cached_members');
+            if (cachedFaculty && cachedMembers) {
+                setFaculty(JSON.parse(cachedFaculty));
+                setMembers(JSON.parse(cachedMembers));
+                setLoading(false);
+            }
+        }
+
         const fetchTeam = async () => {
             try {
                 const { data, error } = await supabase
@@ -31,8 +45,12 @@ export default function Team() {
                 if (error) throw error;
 
                 if (data) {
-                    setFaculty(data.filter(m => m.type === 'faculty'));
-                    setMembers(data.filter(m => m.type === 'member'));
+                    const fac = data.filter(m => m.type === 'faculty');
+                    const mem = data.filter(m => m.type === 'member');
+                    setFaculty(fac);
+                    setMembers(mem);
+                    sessionStorage.setItem('cached_faculty', JSON.stringify(fac));
+                    sessionStorage.setItem('cached_members', JSON.stringify(mem));
                 }
             } catch (error) {
                 console.error("Failed to load core team:", error);
@@ -52,12 +70,28 @@ export default function Team() {
         <>
             <section className={`section ${styles.team}`} id="team">
                 <div className="container">
-                    <div className={`${styles.teamHeader} fade-in`}>
-                        <span className="section-label">Our Team</span>
-                        <h2 className="section-title">CORE TEAM</h2>
-                        <p className="section-description" style={{ margin: "0 auto" }}>
-                            The minds behind the machines.
-                        </p>
+                    <div className={styles.teamHeader}>
+                        <div style={{ marginBottom: "16px" }}>
+                            <TextAnimation
+                                as="span"
+                                text="Our Team"
+                                classname="section-label"
+                                direction="up"
+                            />
+                        </div>
+                        <TextAnimation
+                            as="h2"
+                            text="CORE TEAM"
+                            classname="section-title"
+                            direction="down"
+                        />
+                        <TextAnimation
+                            as="p"
+                            text="The minds behind the machines."
+                            classname="section-description"
+                            direction="down"
+                            style={{ margin: "0 auto" }}
+                        />
                     </div>
 
                     {loading ? (
