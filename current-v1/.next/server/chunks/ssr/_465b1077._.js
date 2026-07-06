@@ -1,0 +1,3 @@
+module.exports=[81967,a=>{a.n(a.i(29735))},827,a=>{a.n(a.i(95845))},65902,a=>{a.n(a.i(14092))},13718,a=>{a.n(a.i(85523))},18198,a=>{a.n(a.i(45518))},62212,a=>{a.n(a.i(66114))},7703,a=>{"use strict";var b=a.i(7997);function c(){return(0,b.jsxs)("div",{className:"min-h-screen flex flex-col items-center justify-center p-6 text-center",children:[(0,b.jsx)("h1",{className:"text-4xl font-black font-orbitron text-cyan-400 mb-4 animate-pulse",children:"ROBOTICS CLUB 3.0 // SYSTEM.INIT"}),(0,b.jsx)("p",{className:"text-gray-400 max-w-md font-inter",children:"Welcome to the next generation portal. Foundation setup complete."})]})}a.s(["default",()=>c])}];
+
+//# sourceMappingURL=_465b1077._.js.map

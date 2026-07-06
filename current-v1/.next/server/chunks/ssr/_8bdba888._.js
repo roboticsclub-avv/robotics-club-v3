@@ -1,0 +1,3 @@
+module.exports=[81967,a=>{a.n(a.i(29735))},827,a=>{a.n(a.i(95845))},65902,a=>{a.n(a.i(14092))},13718,a=>{a.n(a.i(85523))},18198,a=>{a.n(a.i(45518))},62212,a=>{a.n(a.i(66114))},75236,a=>{"use strict";var b=a.i(7997);function c(){return(0,b.jsxs)("div",{className:"min-h-screen flex flex-col items-center justify-center p-6 text-center",children:[(0,b.jsx)("h1",{className:"text-3xl font-bold font-orbitron text-white mb-2",children:"ADMIN DASHBOARD"}),(0,b.jsx)("p",{className:"text-red-400 font-mono text-sm mb-6",children:"> Critical sector. Admins only..."})]})}a.s(["default",()=>c])}];
+
+//# sourceMappingURL=_8bdba888._.js.map
