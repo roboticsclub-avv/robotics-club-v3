@@ -1,5 +1,9 @@
 1:"$Sreact.fragment"
-2:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/d2be314c3ece3fbe.js"],"OutletBoundary"]
-3:"$Sreact.suspense"
-0:{"buildId":"QhNtPcGJcC4vXz3C5w8O0","rsc":["$","$1","c",{"children":[["$","div",null,{"className":"min-h-screen flex flex-col items-center justify-center p-6 text-center","children":[["$","h1",null,{"className":"text-3xl font-bold font-orbitron text-white mb-2","children":"MEMBERSHIP APPLICATION"}],["$","p",null,{"className":"text-purple-400 font-mono text-sm mb-6","children":"> Recruitment steps loader initialized..."}]]}],null,["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"loading":null,"isPartial":false}
-4:null
+2:I[47257,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/d2be314c3ece3fbe.js"],"ClientPageRoot"]
+3:I[25771,["/_next/static/chunks/493ce00f5a3b7965.js","/_next/static/chunks/7cb242899606877c.js","/_next/static/chunks/7c92e96509cd355e.js","/_next/static/chunks/4ab67d4ad71ab2c2.js"],"default"]
+6:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/d2be314c3ece3fbe.js"],"OutletBoundary"]
+7:"$Sreact.suspense"
+0:{"buildId":"7lV_9F7LA-rLdotvRXnWO","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","script","script-0",{"src":"/_next/static/chunks/7c92e96509cd355e.js","async":true}],["$","script","script-1",{"src":"/_next/static/chunks/4ab67d4ad71ab2c2.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
+4:{}
+5:"$0:rsc:props:children:0:props:serverProvidedParams:params"
+8:null
