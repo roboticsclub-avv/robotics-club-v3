@@ -10,6 +10,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { validateRecruitmentField } from "@/schemas/user.schema";
 import FormProgress from "./FormProgress";
 import SuccessScreen from "./SuccessScreen";
+import Link from "next/link";
 
 const DRAFT_KEY = "robotics_recruitment_draft";
 const TOTAL_STEPS = 9;
@@ -45,6 +46,7 @@ export default function JoinForm() {
     if (savedDraft) {
       try {
         const parsed = JSON.parse(savedDraft);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setFormData((prev) => ({ ...prev, ...parsed }));
       } catch (e) {
         console.error("Error loading form draft:", e);
@@ -64,6 +66,7 @@ export default function JoinForm() {
     if (inputRef.current) {
       inputRef.current.focus();
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setErrorMsg("");
   }, [currentStep]);
 
@@ -176,7 +179,7 @@ export default function JoinForm() {
     return !querySnapshot.empty;
   };
 
-  const handleNext = async () => {
+  async function handleNext() {
     setErrorMsg("");
 
     // Identify field for validation
@@ -264,7 +267,7 @@ export default function JoinForm() {
     }, 350);
   };
 
-  const handleSubmit = async () => {
+  async function handleSubmit() {
     setErrorMsg("");
 
     // Validate photo attachment step
@@ -338,9 +341,9 @@ export default function JoinForm() {
         <div className="w-full md:w-5/12 bg-slate-950 p-12 flex flex-col justify-between border-r border-white/5 relative overflow-hidden min-h-[300px] md:min-h-screen">
           <div className="absolute inset-0 bg-gradient-to-tr from-cyan-950/20 via-transparent to-purple-950/10 pointer-events-none" />
           <div className="relative z-10">
-            <a href="/" className="text-xl font-black font-orbitron tracking-wider text-cyan-400">
+            <Link href="/" className="text-xl font-black font-orbitron tracking-wider text-cyan-400">
               ROBOTICS<span className="text-white font-normal">.CLUB</span>
-            </a>
+            </Link>
           </div>
           <div className="relative z-10 my-auto">
             <h2 className="text-5xl md:text-6xl font-black font-orbitron leading-tight text-white mb-4">

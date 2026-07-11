@@ -9,6 +9,7 @@ export default function useEvents(options = {}) {
 
   useEffect(() => {
     // Placeholder fetching logic
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     const timer = setTimeout(() => {
       setEvents([]);

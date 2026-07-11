@@ -9,6 +9,7 @@ export default function useAllocations(memberId) {
 
   useEffect(() => {
     if (!memberId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     const timer = setTimeout(() => {
       setAllocations([]);

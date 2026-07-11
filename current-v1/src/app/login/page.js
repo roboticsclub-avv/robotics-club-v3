@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { signInWithEmailAndPassword } from "@/lib/firebase/auth";
 import { auth } from "@/lib/firebase/auth";
 import useAuth from "@/hooks/useAuth";
@@ -24,15 +25,17 @@ export default function LoginPage() {
         router.replace("/member");
       } else if (profile?.status === "pending") {
         logout(); // Force sign out pending users as per V1 logic
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setErrorMsg("Access Denied: Your application is still PENDING approval.");
       } else if (profile?.status === "rejected") {
         logout(); // Force sign out rejected users
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setErrorMsg("Access Denied: Your application was rejected.");
       } else {
         router.replace("/");
       }
     }
-  }, [isAuthenticated, isAdmin, profile, loading, router]);
+  }, [isAuthenticated, isAdmin, profile, loading, router, logout]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -111,14 +114,14 @@ export default function LoginPage() {
         <div className="mt-6 text-center text-sm text-gray-400">
           <p>
             Not a member yet?{" "}
-            <a href="/join-us" className="text-cyan-400 hover:text-cyan-300 underline">
+            <Link href="/join-us" className="text-cyan-400 hover:text-cyan-300 underline">
               Join Now
-            </a>
+            </Link>
           </p>
           <p className="mt-2">
-            <a href="/" className="text-gray-500 hover:text-gray-300">
+            <Link href="/" className="text-gray-500 hover:text-gray-300">
               ← Back to Home
-            </a>
+            </Link>
           </p>
         </div>
       </div>

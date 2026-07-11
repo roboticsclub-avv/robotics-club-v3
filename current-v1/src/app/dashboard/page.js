@@ -1,17 +1,34 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import AdminRoute from "@/components/auth/AdminRoute";
+import useAuth from "@/hooks/useAuth";
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import ApplicantsTab from "@/components/dashboard/ApplicantsTab";
+import TeamTab from "@/components/dashboard/TeamTab";
+import EventsTab from "@/components/dashboard/EventsTab";
+import SettingsTab from "@/components/dashboard/SettingsTab";
 
 export default function DashboardPage() {
+  const [activeTab, setActiveTab] = useState("applicants");
+  const { user, profile, logout } = useAuth();
+
+  const adminEmail = profile?.email || user?.email || "Admin";
+
   return (
     <AdminRoute>
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="text-3xl font-bold font-orbitron text-white mb-2">
-          ADMIN DASHBOARD
-        </h1>
-        <p className="text-red-400 font-mono text-sm mb-6">&gt; Critical sector. Admins only...</p>
-      </div>
+      <DashboardShell
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        adminEmail={adminEmail}
+        onLogout={logout}
+      >
+        {activeTab === "applicants" && <ApplicantsTab />}
+        {activeTab === "team" && <TeamTab />}
+        {activeTab === "events" && <EventsTab />}
+        {activeTab === "settings" && <SettingsTab adminEmail={adminEmail} />}
+      </DashboardShell>
     </AdminRoute>
   );
 }
+
