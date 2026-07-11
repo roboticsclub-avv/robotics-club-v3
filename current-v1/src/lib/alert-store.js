@@ -1,43 +1,43 @@
-import { create } from "zustand";
+let listener = null;
 
-const useAlertStore = create((set) => ({
-  isOpen: false,
-  type: "alert",
-  title: "",
-  message: "",
-  onConfirm: null,
-  onCancel: null,
-  onClose: null,
-  showAlert: (message, title = "Notice") =>
-    new Promise((resolve) => {
-      set({
-        isOpen: true,
+export function subscribeAlert(l) {
+  listener = l;
+  return () => {
+    if (listener === l) listener = null;
+  };
+}
+
+export function showAlert(message, title = "Alert") {
+  return new Promise((resolve) => {
+    if (listener) {
+      listener({
         type: "alert",
         title,
         message,
-        onClose: () => {
-          set({ isOpen: false });
-          resolve();
-        },
+        onClose: resolve,
       });
-    }),
-  showConfirm: (message, title = "Confirm") =>
-    new Promise((resolve) => {
-      set({
-        isOpen: true,
+    } else {
+      // Fallback if component is not mounted yet
+      alert(message);
+      resolve();
+    }
+  });
+}
+
+export function showConfirm(message, title = "Confirm") {
+  return new Promise((resolve) => {
+    if (listener) {
+      listener({
         type: "confirm",
         title,
         message,
-        onConfirm: () => {
-          set({ isOpen: false });
-          resolve(true);
-        },
-        onCancel: () => {
-          set({ isOpen: false });
-          resolve(false);
-        },
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
       });
-    }),
-}));
-
-export default useAlertStore;
+    } else {
+      // Fallback if component is not mounted yet
+      const res = confirm(message);
+      resolve(res);
+    }
+  });
+}

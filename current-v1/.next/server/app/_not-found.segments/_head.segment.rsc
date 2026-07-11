@@ -1,5 +1,0 @@
-1:"$Sreact.fragment"
-2:I[97367,["/_next/static/chunks/fc9d60cd6d61264a.js","/_next/static/chunks/7cb242899606877c.js","/_next/static/chunks/d2be314c3ece3fbe.js"],"ViewportBoundary"]
-3:I[97367,["/_next/static/chunks/fc9d60cd6d61264a.js","/_next/static/chunks/7cb242899606877c.js","/_next/static/chunks/d2be314c3ece3fbe.js"],"MetadataBoundary"]
-4:"$Sreact.suspense"
-0:{"buildId":"7lV_9F7LA-rLdotvRXnWO","rsc":["$","$1","h",{"children":[["$","meta",null,{"name":"robots","content":"noindex"}],["$","$L2",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","div",null,{"hidden":true,"children":["$","$L3",null,{"children":["$","$4",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Robotics Club Website 3.0"}],["$","meta","1",{"name":"description","content":"Next-gen platform for Amrita Robotics Club"}]]}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],"loading":null,"isPartial":false}

@@ -1,8 +1,17 @@
-# Connectivity
+# connectivity
 firebase-config.js
 
 # Node
 node_modules/
+
+# Next.js build output
+.next/
+
+# Local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Mac System
 .DS_Store
