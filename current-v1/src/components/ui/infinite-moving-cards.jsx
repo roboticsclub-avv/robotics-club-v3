@@ -85,9 +85,10 @@ export const InfiniteMovingCards = ({
         {items.map((project, idx) => (
           <li
             key={`${project.title}-${idx}`}
-            className="w-[380px] max-w-full relative rounded-2xl border border-white/[0.08] flex-shrink-0 px-6 py-6"
+            className="w-[380px] max-w-full relative rounded-2xl flex-shrink-0 px-6 py-6"
             style={{
-              background: "rgba(255, 255, 255, 0.02)",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-card)",
               backdropFilter: "blur(12px)",
               WebkitBackdropFilter: "blur(12px)",
               transition: "transform 0.3s ease, border-color 0.3s ease",
@@ -96,17 +97,23 @@ export const InfiniteMovingCards = ({
             <div className="flex flex-col h-full justify-between gap-4">
               <div>
                 {/* Project Header (Emoji Placeholder) */}
-                <div className="w-12 h-12 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-2xl mb-4">
+                <div 
+                  className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4"
+                  style={{
+                    background: "var(--bg-card-hover)",
+                    border: "1px solid var(--border-subtle)"
+                  }}
+                >
                   {project.emoji}
                 </div>
 
                 {/* Project Title */}
-                <h3 className="text-lg font-bold text-[#f5f5f5] mb-2">
+                <h3 className="text-lg font-bold mb-2" style={{ color: "var(--text-primary)" }}>
                   {project.title}
                 </h3>
 
                 {/* Project Description */}
-                <p className="text-sm text-[#a0a0a0] leading-relaxed mb-4">
+                <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--text-secondary)" }}>
                   {project.description}
                 </p>
               </div>
