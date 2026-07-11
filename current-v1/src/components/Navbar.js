@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./Navbar.module.css";
 import { LiquidGlassCard } from "./ui/liquid-glass";
+import ThemeSwitcher from "./ui/ThemeSwitcher";
 
 const NAV_ITEMS = [
     { label: "About", href: "/#about" },
@@ -86,6 +87,7 @@ export default function Navbar() {
                         </div>
 
                         <div className={styles.navActions}>
+                            <ThemeSwitcher />
                             <Link href="/login" className={styles.btnSecondary}>
                                 Login
                             </Link>

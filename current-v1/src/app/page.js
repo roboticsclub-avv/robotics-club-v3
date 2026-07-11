@@ -8,6 +8,7 @@ import About from "@/components/About";
 import Team from "@/components/Team";
 import Events from "@/components/Events";
 import Projects from "@/components/Projects";
+import Gallery from "@/components/Gallery";
 import Footer from "@/components/Footer";
 import LoadingScreen from "@/components/LoadingScreen";
 import Lenis from "lenis";
@@ -130,6 +131,15 @@ export default function Home() {
             variants={sectionVariants}
           >
             <Projects />
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.12 }}
+            variants={sectionVariants}
+          >
+            <Gallery />
           </motion.div>
 
           <motion.div

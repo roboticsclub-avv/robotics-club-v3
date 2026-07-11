@@ -1,52 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import styles from "./Events.module.css";
-import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import TextAnimation from "./ui/scroll-text";
-
+import useEvents from "@/hooks/useEvents";
 
 export default function Events() {
-    const [events, setEvents] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        // Read client cache on mount to avoid hydration mismatch
-        if (typeof window !== 'undefined') {
-            const cached = sessionStorage.getItem('cached_events');
-            if (cached) {
-                setEvents(JSON.parse(cached));
-                setLoading(false);
-            }
-        }
-
-        const fetchEvents = async () => {
-            try {
-                const { data, error } = await supabase.from('events').select('*');
-                if (error) throw error;
-
-                const evts = data || [];
-
-                // Sort by comingSoon first, then date
-                evts.sort((a, b) => {
-                    if (a.comingSoon === b.comingSoon) {
-                        return new Date(a.date) - new Date(b.date);
-                    }
-                    return a.comingSoon ? -1 : 1;
-                });
-
-                setEvents(evts);
-                sessionStorage.setItem('cached_events', JSON.stringify(evts));
-            } catch (error) {
-                console.error("Error fetching events:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchEvents();
-    }, []);
+    const { events, loading } = useEvents();
 
     const formatDate = (dateString, isComingSoon) => {
         if (isComingSoon || !dateString) {

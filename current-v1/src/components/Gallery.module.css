@@ -1,0 +1,251 @@
+.gallery {
+    position: relative;
+    padding: var(--section-padding);
+    background: var(--bg-primary);
+    border-top: 1px solid var(--border-subtle);
+    overflow: hidden;
+}
+
+.galleryHeader {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 60px auto;
+}
+
+/* CSS Column Count Masonry */
+.masonryGrid {
+    column-count: 3;
+    column-gap: 24px;
+    width: 100%;
+}
+
+@media (max-width: 992px) {
+    .masonryGrid {
+        column-count: 2;
+        column-gap: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .masonryGrid {
+        column-count: 1;
+        column-gap: 0;
+    }
+}
+
+.galleryCard {
+    break-inside: avoid;
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 24px;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    transition: transform var(--transition-medium), border-color var(--transition-fast), box-shadow var(--transition-medium);
+}
+
+.galleryCard:hover {
+    transform: translateY(-6px) scale(1.01);
+    border-color: var(--accent-purple);
+    box-shadow: 0 12px 30px rgba(124, 58, 237, 0.15);
+}
+
+.imageContainer {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+}
+
+.image {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+    transition: transform var(--transition-slow);
+}
+
+.galleryCard:hover .image {
+    transform: scale(1.05);
+}
+
+/* Card Info Overlay */
+.cardOverlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(10, 10, 10, 0.95) 0%, rgba(10, 10, 10, 0.4) 60%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 24px;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    z-index: 10;
+}
+
+.galleryCard:hover .cardOverlay {
+    opacity: 1;
+}
+
+.categoryBadge {
+    align-self: flex-start;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    background: rgba(124, 58, 237, 0.2);
+    border: 1px solid rgba(124, 58, 237, 0.4);
+    color: var(--text-primary);
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+.cardTitle {
+    color: var(--text-primary);
+    font-family: var(--font-orbitron), sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+}
+
+.cardDate {
+    color: var(--text-muted);
+    font-family: monospace;
+    font-size: 0.7rem;
+}
+
+/* ===== LIGHTBOX ===== */
+.lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 5, 5, 0.9);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn var(--transition-fast) forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.lightboxClose {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    font-size: 2.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color var(--transition-fast);
+    line-height: 1;
+    z-index: 10001;
+}
+
+.lightboxClose:hover {
+    color: var(--text-primary);
+}
+
+.lightboxArrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    padding: 16px 20px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all var(--transition-fast);
+    z-index: 10001;
+}
+
+.lightboxArrow:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    scale: 1.05;
+}
+
+.arrowLeft {
+    left: 40px;
+}
+
+.arrowRight {
+    right: 40px;
+}
+
+@media (max-width: 768px) {
+    .lightboxArrow {
+        padding: 10px 14px;
+        font-size: 1.2rem;
+    }
+    .arrowLeft { left: 16px; }
+    .arrowRight { right: 16px; }
+}
+
+.lightboxContent {
+    max-width: 80%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    animation: zoomIn var(--transition-medium) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes zoomIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.lightboxImage {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    border: 1px solid var(--border-card);
+}
+
+.lightboxCaption {
+    width: 100%;
+    margin-top: 16px;
+    text-align: center;
+}
+
+.lightboxCategory {
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    background: rgba(124, 58, 237, 0.2);
+    border: 1px solid rgba(124, 58, 237, 0.4);
+    color: var(--text-primary);
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.lightboxTitle {
+    color: var(--text-primary);
+    font-family: var(--font-orbitron), sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-top: 8px;
+    letter-spacing: 0.03em;
+}
+
+.lightboxDate {
+    color: var(--text-muted);
+    font-family: monospace;
+    font-size: 0.75rem;
+    margin-top: 4px;
+}
