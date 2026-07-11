@@ -2,20 +2,378 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== DESIGN TOKENS ===== */
 :root {
+  /* Colors */
   --bg-primary: #0a0a0a;
   --bg-secondary: #111111;
   --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-card-hover: rgba(255, 255, 255, 0.06);
+
   --text-primary: #f5f5f5;
   --text-secondary: #a0a0a0;
+  --text-muted: #666666;
+
   --accent-orange: #ff6b35;
   --accent-purple: #7c3aed;
   --accent-teal: #06b6d4;
+  --accent-orange-glow: rgba(255, 107, 53, 0.15);
+  --accent-purple-glow: rgba(124, 58, 237, 0.15);
+  --accent-teal-glow: rgba(6, 182, 212, 0.12);
+
   --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.08);
+
+  /* Spacing */
+  --section-padding: 120px 0;
+  --container-max: 1200px;
+  --container-padding: 0 40px;
+
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-medium: 0.4s ease;
+  --transition-slow: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 100px;
+}
+
+/* ===== THEMES ===== */
+
+/* 1. Cosmic (Default Dark/Purple/Orange) */
+.theme-cosmic {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111111;
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-card-hover: rgba(255, 255, 255, 0.06);
+  --text-primary: #f5f5f5;
+  --text-secondary: #a0a0a0;
+  --text-muted: #666666;
+  --accent-orange: #ff6b35;
+  --accent-purple: #7c3aed;
+  --accent-teal: #06b6d4;
+  --accent-orange-glow: rgba(255, 107, 53, 0.15);
+  --accent-purple-glow: rgba(124, 58, 237, 0.15);
+  --accent-teal-glow: rgba(6, 182, 212, 0.12);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.08);
+}
+
+/* 2. Aurora (Cyber Light Theme) */
+.theme-aurora {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card: rgba(15, 23, 42, 0.03);
+  --bg-card-hover: rgba(15, 23, 42, 0.06);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --accent-orange: #10b981; /* Aurora Emerald */
+  --accent-purple: #06b6d4; /* Aurora Cyber Teal */
+  --accent-teal: #3b82f6;
+  --accent-orange-glow: rgba(16, 185, 129, 0.12);
+  --accent-purple-glow: rgba(6, 182, 212, 0.12);
+  --accent-teal-glow: rgba(59, 130, 246, 0.1);
+  --border-subtle: rgba(15, 23, 42, 0.06);
+  --border-card: rgba(15, 23, 42, 0.08);
+}
+
+/* 3. Deep Space (Monochrome Dark Chrome) */
+.theme-deepspace {
+  --bg-primary: #05070a;
+  --bg-secondary: #0b0f17;
+  --bg-card: rgba(255, 255, 255, 0.01);
+  --bg-card-hover: rgba(255, 255, 255, 0.03);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  --accent-orange: #ffffff; /* Slate White */
+  --accent-purple: #334155; /* Dark Chrome */
+  --accent-teal: #475569;
+  --accent-orange-glow: rgba(255, 255, 255, 0.1);
+  --accent-purple-glow: rgba(51, 65, 85, 0.15);
+  --accent-teal-glow: rgba(71, 85, 105, 0.1);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-card: rgba(255, 255, 255, 0.06);
+}
+
+/* ===== RESET & BASE ===== */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Lenis smooth scrolling defaults */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+body, input, textarea, button, select {
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: system-ui, sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
 }
+
+/* ===== GRID OVERLAY (like reference) ===== */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 80px 80px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===== GLOW EFFECTS — removed in V3 ===== */
+
+/* Ambient Background Orbs — color removed in V3 */
+.bg-orb-1 {
+  display: none;
+}
+
+.bg-orb-2 {
+  display: none;
+}
+
+@keyframes floatOrb {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate(50px, -50px) scale(1.1);
+  }
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+/* ===== UTILITY CLASSES ===== */
+.container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--container-padding);
+  position: relative;
+  z-index: 10;
+}
+
+.section {
+  padding: var(--section-padding);
+  position: relative;
+}
+
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent-orange);
+  margin-bottom: 16px;
+  display: inline-block;
+}
+
+.section-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.section-description {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  line-height: 1.7;
+}
+
+/* ===== SCROLL ANIMATIONS ===== */
+canvas,
+spline-viewer {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+  will-change: opacity, transform;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateZ(0);
+  /* Hardware acceleration */
+}
+
+/* ===== GLASS CARD ===== */
+.glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-medium);
+  will-change: transform;
+}
+
+.glass-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-4px) translateZ(0);
+}
+
+/* ===== SECTION DIVIDERS ===== */
+.section-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      var(--border-subtle) 20%,
+      rgba(124, 58, 237, 0.15) 50%,
+      var(--border-subtle) 80%,
+      transparent 100%);
+}
+
+/* ===== CINEMATIC SCROLL ARCHITECTURE ===== */
+.stacking-container {
+  position: relative;
+  width: 100%;
+}
+
+.stacking-wrapper {
+  position: relative;
+  width: 100%;
+  /* This creates a 70vh "track" for the section to stay pinned while the NEXT section slides up! */
+  padding-bottom: 70vh;
+}
+
+.last-wrapper {
+  padding-bottom: 0;
+}
+
+.stacking-section {
+  position: sticky;
+  /* Top is dynamically set by JS in page.js based on content height to enable natural scroll before pinning */
+  top: 0;
+  width: 100%;
+  min-height: 100vh;
+  background: #0a0a0a;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.5);
+}
+
+/* Ensure the absolute container inside can be transformed smoothly */
+.stacking-content {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  will-change: transform, opacity, filter;
+  transform-origin: center center;
+  transition: transform 0.1s linear, opacity 0.1s linear, filter 0.1s linear;
+  /* Fast transition to smooth rAF */
+}
+
+/* Alternating backdrop solid tints for clean overlap masking */
+.section-bg-dark {
+  background: #080808;
+}
+
+.section-bg-light {
+  background: #0c0c0c;
+}
+
+/* ===== SPLINE VIEWER OVERRIDES ===== */
+spline-viewer {
+  /* Some spline components respect this css variable */
+  --spline-watermark-display: none;
+}
+
+spline-viewer::part(logo) {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  :root {
+    --section-padding: 80px 0;
+    --container-padding: 0 20px;
+  }
+}
+
+/* ===== INFINITE MOVING CARDS ANIMATION ===== */
+@keyframes scroll {
+  to {
+    transform: translate(calc(-50% - 0.5rem));
+  }
+}
+
+.animate-scroll {
+  animation: scroll var(--animation-duration, 40s) linear infinite;
+  animation-direction: var(--animation-direction);
+}
