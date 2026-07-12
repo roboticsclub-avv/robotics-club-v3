@@ -22,6 +22,9 @@ export default function ApplicantsTab() {
   // Image preview state
   const [previewImageUrl, setPreviewImageUrl] = useState(null);
 
+  // Roster view toggle state: "general" | "team"
+  const [rosterView, setRosterView] = useState("general");
+
   async function loadData() {
     try {
       setLoading(true);
@@ -307,8 +310,32 @@ export default function ApplicantsTab() {
 
       </div>
 
+      {/* Roster View Buttons */}
+      <div className="flex gap-4 border-b border-white/[0.04] pb-4">
+        <button
+          onClick={() => setRosterView("general")}
+          className={`px-4 py-2 rounded-lg font-orbitron font-bold text-xs tracking-wider transition-all border cursor-pointer ${
+            rosterView === "general"
+              ? "bg-cyan-950/20 text-cyan-400 border-cyan-500/20 shadow-[0_0_15px_rgba(8,145,178,0.1)]"
+              : "text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/[0.02]"
+          }`}
+        >
+          GENERAL MEMBERS & APPLICANTS ({generalList.length})
+        </button>
+        <button
+          onClick={() => setRosterView("team")}
+          className={`px-4 py-2 rounded-lg font-orbitron font-bold text-xs tracking-wider transition-all border cursor-pointer ${
+            rosterView === "team"
+              ? "bg-cyan-950/20 text-cyan-400 border-cyan-500/20 shadow-[0_0_15px_rgba(8,145,178,0.1)]"
+              : "text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/[0.02]"
+          }`}
+        >
+          TEAM & STAFF ({teamStaffList.length})
+        </button>
+      </div>
+
       {/* Main Table Grid */}
-      <div className="bg-[#111115] border border-white/[0.04] rounded-xl overflow-hidden shadow-lg p-6 space-y-10">
+      <div className="bg-[#111115] border border-white/[0.04] rounded-xl overflow-hidden shadow-lg p-6">
         {loading ? (
           <div className="p-12 text-center text-gray-500 font-mono text-sm">
             &gt; Syncing application registers...
@@ -324,254 +351,266 @@ export default function ApplicantsTab() {
         ) : (
           <>
             {/* Section 1: Team & Staff */}
-            {teamStaffList.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between border-b border-white/[0.05] pb-2">
-                  <h3 className="font-orbitron font-bold text-xs text-cyan-400 uppercase tracking-widest">
-                    Team & Staff Members ({teamStaffList.length})
-                  </h3>
+            {rosterView === "team" && (
+              teamStaffList.length === 0 ? (
+                <div className="p-12 text-center text-gray-500 italic text-sm">
+                  No team & staff members found matching current search/filter.
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-sm">
-                    <thead className="bg-black/30 border-b border-white/[0.04] text-slate-400 font-orbitron uppercase text-[10px] tracking-wider font-bold">
-                      <tr>
-                        <th className="p-4 pl-6 w-12 text-center">
-                          <input
-                            type="checkbox"
-                            checked={teamStaffList.length > 0 && teamStaffList.every(item => selectedIds.has(item.id))}
-                            onChange={() => toggleSelectAll(teamStaffList)}
-                            className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-cyan-600 focus:ring-cyan-500 focus:ring-offset-slate-900 cursor-pointer"
-                          />
-                        </th>
-                        <th className="p-4">Profile</th>
-                        <th className="p-4">Year / Branch</th>
-                        <th className="p-4">Interests</th>
-                        <th className="p-4">Status</th>
-                        <th className="p-4 pr-6 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/[0.02]">
-                      {teamStaffList.map((applicant) => (
-                        <tr key={applicant.id} className="hover:bg-white/[0.01] transition-colors">
-                          <td className="p-4 pl-6 w-12 text-center">
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b border-white/[0.05] pb-2">
+                    <h3 className="font-orbitron font-bold text-xs text-cyan-400 uppercase tracking-widest">
+                      Team & Staff Members ({teamStaffList.length})
+                    </h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-sm">
+                      <thead className="bg-black/30 border-b border-white/[0.04] text-slate-400 font-orbitron uppercase text-[10px] tracking-wider font-bold">
+                        <tr>
+                          <th className="p-4 pl-6 w-12 text-center">
                             <input
                               type="checkbox"
-                              checked={selectedIds.has(applicant.id)}
-                              onChange={() => toggleSelectOne(applicant.id)}
+                              checked={teamStaffList.length > 0 && teamStaffList.every(item => selectedIds.has(item.id))}
+                              onChange={() => toggleSelectAll(teamStaffList)}
                               className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-cyan-600 focus:ring-cyan-500 focus:ring-offset-slate-900 cursor-pointer"
                             />
-                          </td>
-                          <td className="p-4 flex items-center gap-3">
-                            <div 
-                              onClick={() => setPreviewImageUrl(applicant.photoURL)}
-                              title="Click to view fullsize profile photo"
-                              className="w-10 h-10 rounded-full border border-white/[0.1] bg-slate-800 overflow-hidden shrink-0 cursor-pointer hover:scale-110 transition-transform shadow-[0_0_10px_rgba(6,182,212,0.15)]"
-                            >
-                              {applicant.photoURL ? (
-                                <img
-                                  src={applicant.photoURL}
-                                  alt={`${applicant.name || "User"}'s avatar`}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.style.display = "none";
-                                    e.target.parentNode.innerHTML = `<div class="w-full h-full flex items-center justify-center text-cyan-400 font-orbitron font-semibold text-xs">${(applicant.name || "N")[0].toUpperCase()}</div>`;
-                                  }}
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-cyan-400 font-orbitron font-semibold text-xs">
-                                  {(applicant.name || "N")[0].toUpperCase()}
-                                </div>
-                              )}
-                            </div>
-                            <div>
-                              <div className="font-bold text-white text-sm flex items-center gap-2">
-                                {applicant.name}
-                                <span className="bg-purple-500/20 text-purple-400 border border-purple-500/30 text-[8px] font-mono font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-wider">
-                                  {applicant.role || "MEMBER"}
-                                </span>
-                              </div>
-                              <div className="text-xs text-gray-500 font-mono mt-0.5">{applicant.email}</div>
-                              {applicant.memberId && applicant.memberId !== "PENDING" && (
-                                <div className="text-[10px] font-mono text-cyan-500 mt-0.5 font-semibold">
-                                  {applicant.memberId}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="p-4 text-xs">
-                            <div className="text-gray-300 font-medium">{applicant.year ? `${applicant.year} Year` : "-"}</div>
-                            <div className="text-gray-500 font-mono mt-0.5">{applicant.branch || "-"}</div>
-                          </td>
-                          <td className="p-4">
-                            <span className="px-2 py-1 rounded bg-[#18181b] border border-white/[0.04] text-[10px] font-mono text-cyan-300 uppercase tracking-wide">
-                              {applicant.interests || "General"}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <span className={`px-2.5 py-1 rounded border text-[10px] font-bold uppercase tracking-wider ${getStatusBadgeStyle(applicant.status)}`}>
-                              {applicant.status || "pending"}
-                            </span>
-                          </td>
-                          <td className="p-4 pr-6 text-right space-x-2 shrink-0">
-                            <button
-                              onClick={() => {
-                                console.log("[ApplicantsTab] Clicking details for:", applicant);
-                                setSelectedApplicant(applicant);
-                              }}
-                              className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-orbitron font-bold rounded tracking-wider border border-slate-700 transition-colors"
-                            >
-                              DETAILS
-                            </button>
-                            {applicant.status !== "accepted" && (
-                              <button
-                                onClick={() => handleUpdateStatus(applicant, "accepted")}
-                                disabled={actionLoading}
-                                className="px-2.5 py-1.5 bg-green-950/20 hover:bg-green-600 border border-green-500/30 text-green-400 hover:text-white text-[10px] font-orbitron font-bold rounded tracking-wider transition-colors disabled:opacity-50"
-                              >
-                                ACCEPT
-                              </button>
-                            )}
-                            {applicant.status !== "rejected" && (
-                              <button
-                                onClick={() => handleUpdateStatus(applicant, "rejected")}
-                                disabled={actionLoading}
-                                className="px-2.5 py-1.5 bg-red-950/20 hover:bg-red-600 border border-red-500/30 text-red-400 hover:text-white text-[10px] font-orbitron font-bold rounded tracking-wider transition-colors disabled:opacity-50"
-                              >
-                                REJECT
-                              </button>
-                            )}
-                          </td>
+                          </th>
+                          <th className="p-4">Profile</th>
+                          <th className="p-4">Year / Branch</th>
+                          <th className="p-4">Interests</th>
+                          <th className="p-4">Status</th>
+                          <th className="p-4 pr-6 text-right">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-white/[0.02]">
+                        {teamStaffList.map((applicant) => (
+                          <tr key={applicant.id} className="hover:bg-white/[0.01] transition-colors">
+                            <td className="p-4 pl-6 w-12 text-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedIds.has(applicant.id)}
+                                onChange={() => toggleSelectOne(applicant.id)}
+                                className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-cyan-600 focus:ring-cyan-500 focus:ring-offset-slate-900 cursor-pointer"
+                              />
+                            </td>
+                            <td className="p-4 flex items-center gap-3">
+                              <div 
+                                onClick={() => setPreviewImageUrl(applicant.photoURL)}
+                                title="Click to view fullsize profile photo"
+                                className="w-10 h-10 rounded-full border border-white/[0.1] bg-slate-800 overflow-hidden shrink-0 cursor-pointer hover:scale-110 transition-transform shadow-[0_0_10px_rgba(6,182,212,0.15)]"
+                              >
+                                {applicant.photoURL ? (
+                                  <img
+                                    src={applicant.photoURL}
+                                    alt={`${applicant.name || "User"}'s avatar`}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.target.onerror = null;
+                                      e.target.style.display = "none";
+                                      e.target.parentNode.innerHTML = `<div class="w-full h-full flex items-center justify-center text-cyan-400 font-orbitron font-semibold text-xs">${(applicant.name || "N")[0].toUpperCase()}</div>`;
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-cyan-400 font-orbitron font-semibold text-xs">
+                                    {(applicant.name || "N")[0].toUpperCase()}
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <div className="font-bold text-white text-sm flex items-center gap-2">
+                                  {applicant.name}
+                                  <span className="bg-purple-500/20 text-purple-400 border border-purple-500/30 text-[8px] font-mono font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-wider">
+                                    {applicant.role || "MEMBER"}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-gray-500 font-mono mt-0.5">{applicant.email}</div>
+                                {applicant.memberId && applicant.memberId !== "PENDING" && (
+                                  <div className="text-[10px] font-mono text-cyan-500 mt-0.5 font-semibold">
+                                    {applicant.memberId}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-4 text-xs">
+                              <div className="text-gray-300 font-medium">{applicant.year ? `${applicant.year} Year` : "-"}</div>
+                              <div className="text-gray-500 font-mono mt-0.5">{applicant.branch || "-"}</div>
+                            </td>
+                            <td className="p-4">
+                              <span className="px-2 py-1 rounded bg-[#18181b] border border-white/[0.04] text-[10px] font-mono text-cyan-300 uppercase tracking-wide">
+                                {applicant.interests || "General"}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <span className={`px-2.5 py-1 rounded border text-[10px] font-bold uppercase tracking-wider ${getStatusBadgeStyle(applicant.status)}`}>
+                                {applicant.status || "pending"}
+                              </span>
+                            </td>
+                            <td className="p-4 pr-6 text-right space-x-2 shrink-0">
+                              <button
+                                onClick={() => {
+                                  console.log("[ApplicantsTab] Clicking details for:", applicant);
+                                  setSelectedApplicant(applicant);
+                                }}
+                                className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-orbitron font-bold rounded tracking-wider border border-slate-700 transition-colors"
+                              >
+                                DETAILS
+                              </button>
+                              {applicant.status !== "accepted" && (
+                                <button
+                                  onClick={() => handleUpdateStatus(applicant, "accepted")}
+                                  disabled={actionLoading}
+                                  className="px-2.5 py-1.5 bg-green-950/20 hover:bg-green-600 border border-green-500/30 text-green-400 hover:text-white text-[10px] font-orbitron font-bold rounded tracking-wider transition-colors disabled:opacity-50"
+                                >
+                                  ACCEPT
+                                </button>
+                              )}
+                              {applicant.status !== "rejected" && (
+                                <button
+                                  onClick={() => handleUpdateStatus(applicant, "rejected")}
+                                  disabled={actionLoading}
+                                  className="px-2.5 py-1.5 bg-red-950/20 hover:bg-red-600 border border-red-500/30 text-red-400 hover:text-white text-[10px] font-orbitron font-bold rounded tracking-wider transition-colors disabled:opacity-50"
+                                >
+                                  REJECT
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              )
             )}
 
             {/* Section 2: General Members & Applicants */}
-            {generalList.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between border-b border-white/[0.05] pb-2 pt-2">
-                  <h3 className="font-orbitron font-bold text-xs text-cyan-400 uppercase tracking-widest">
-                    General Members & Applicants ({generalList.length})
-                  </h3>
+            {rosterView === "general" && (
+              generalList.length === 0 ? (
+                <div className="p-12 text-center text-gray-500 italic text-sm">
+                  No general members or applicants found matching current search/filter.
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-sm">
-                    <thead className="bg-black/30 border-b border-white/[0.04] text-slate-400 font-orbitron uppercase text-[10px] tracking-wider font-bold">
-                      <tr>
-                        <th className="p-4 pl-6 w-12 text-center">
-                          <input
-                            type="checkbox"
-                            checked={generalList.length > 0 && generalList.every(item => selectedIds.has(item.id))}
-                            onChange={() => toggleSelectAll(generalList)}
-                            className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-cyan-600 focus:ring-cyan-500 focus:ring-offset-slate-900 cursor-pointer"
-                          />
-                        </th>
-                        <th className="p-4">Profile</th>
-                        <th className="p-4">Year / Branch</th>
-                        <th className="p-4">Interests</th>
-                        <th className="p-4">Status</th>
-                        <th className="p-4 pr-6 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/[0.02]">
-                      {generalList.map((applicant) => (
-                        <tr key={applicant.id} className="hover:bg-white/[0.01] transition-colors">
-                          <td className="p-4 pl-6 w-12 text-center">
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b border-white/[0.05] pb-2">
+                    <h3 className="font-orbitron font-bold text-xs text-cyan-400 uppercase tracking-widest">
+                      General Members & Applicants ({generalList.length})
+                    </h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-sm">
+                      <thead className="bg-black/30 border-b border-white/[0.04] text-slate-400 font-orbitron uppercase text-[10px] tracking-wider font-bold">
+                        <tr>
+                          <th className="p-4 pl-6 w-12 text-center">
                             <input
                               type="checkbox"
-                              checked={selectedIds.has(applicant.id)}
-                              onChange={() => toggleSelectOne(applicant.id)}
+                              checked={generalList.length > 0 && generalList.every(item => selectedIds.has(item.id))}
+                              onChange={() => toggleSelectAll(generalList)}
                               className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-cyan-600 focus:ring-cyan-500 focus:ring-offset-slate-900 cursor-pointer"
                             />
-                          </td>
-                          <td className="p-4 flex items-center gap-3">
-                            <div 
-                              onClick={() => setPreviewImageUrl(applicant.photoURL)}
-                              title="Click to view fullsize profile photo"
-                              className="w-10 h-10 rounded-full border border-white/[0.1] bg-slate-800 overflow-hidden shrink-0 cursor-pointer hover:scale-110 transition-transform shadow-[0_0_10px_rgba(6,182,212,0.15)]"
-                            >
-                              {applicant.photoURL ? (
-                                <img
-                                  src={applicant.photoURL}
-                                  alt={`${applicant.name || "User"}'s avatar`}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.style.display = "none";
-                                    e.target.parentNode.innerHTML = `<div class="w-full h-full flex items-center justify-center text-cyan-400 font-orbitron font-semibold text-xs">${(applicant.name || "N")[0].toUpperCase()}</div>`;
-                                  }}
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-cyan-400 font-orbitron font-semibold text-xs">
-                                  {(applicant.name || "N")[0].toUpperCase()}
-                                </div>
-                              )}
-                            </div>
-                            <div>
-                              <div className="font-bold text-white text-sm flex items-center gap-2">
-                                {applicant.name}
-                              </div>
-                              <div className="text-xs text-gray-500 font-mono mt-0.5">{applicant.email}</div>
-                              {applicant.memberId && applicant.memberId !== "PENDING" && (
-                                <div className="text-[10px] font-mono text-cyan-500 mt-0.5 font-semibold">
-                                  {applicant.memberId}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="p-4 text-xs">
-                            <div className="text-gray-300 font-medium">{applicant.year} Year</div>
-                            <div className="text-gray-500 font-mono mt-0.5">{applicant.branch}</div>
-                          </td>
-                          <td className="p-4">
-                            <span className="px-2 py-1 rounded bg-[#18181b] border border-white/[0.04] text-[10px] font-mono text-cyan-300 uppercase tracking-wide">
-                              {applicant.interests || "General"}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <span className={`px-2.5 py-1 rounded border text-[10px] font-bold uppercase tracking-wider ${getStatusBadgeStyle(applicant.status)}`}>
-                              {applicant.status || "pending"}
-                            </span>
-                          </td>
-                          <td className="p-4 pr-6 text-right space-x-2 shrink-0">
-                            <button
-                              onClick={() => {
-                                console.log("[ApplicantsTab] Clicking details for:", applicant);
-                                setSelectedApplicant(applicant);
-                              }}
-                              className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-orbitron font-bold rounded tracking-wider border border-slate-700 transition-colors"
-                            >
-                              DETAILS
-                            </button>
-                            {applicant.status !== "accepted" && (
-                              <button
-                                onClick={() => handleUpdateStatus(applicant, "accepted")}
-                                disabled={actionLoading}
-                                className="px-2.5 py-1.5 bg-green-950/20 hover:bg-green-600 border border-green-500/30 text-green-400 hover:text-white text-[10px] font-orbitron font-bold rounded tracking-wider transition-colors disabled:opacity-50"
-                              >
-                                ACCEPT
-                              </button>
-                            )}
-                            {applicant.status !== "rejected" && (
-                              <button
-                                onClick={() => handleUpdateStatus(applicant, "rejected")}
-                                disabled={actionLoading}
-                                className="px-2.5 py-1.5 bg-red-950/20 hover:bg-red-600 border border-red-500/30 text-red-400 hover:text-white text-[10px] font-orbitron font-bold rounded tracking-wider transition-colors disabled:opacity-50"
-                              >
-                                REJECT
-                              </button>
-                            )}
-                          </td>
+                          </th>
+                          <th className="p-4">Profile</th>
+                          <th className="p-4">Year / Branch</th>
+                          <th className="p-4">Interests</th>
+                          <th className="p-4">Status</th>
+                          <th className="p-4 pr-6 text-right">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-white/[0.02]">
+                        {generalList.map((applicant) => (
+                          <tr key={applicant.id} className="hover:bg-white/[0.01] transition-colors">
+                            <td className="p-4 pl-6 w-12 text-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedIds.has(applicant.id)}
+                                onChange={() => toggleSelectOne(applicant.id)}
+                                className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-cyan-600 focus:ring-cyan-500 focus:ring-offset-slate-900 cursor-pointer"
+                              />
+                            </td>
+                            <td className="p-4 flex items-center gap-3">
+                              <div 
+                                onClick={() => setPreviewImageUrl(applicant.photoURL)}
+                                title="Click to view fullsize profile photo"
+                                className="w-10 h-10 rounded-full border border-white/[0.1] bg-slate-800 overflow-hidden shrink-0 cursor-pointer hover:scale-110 transition-transform shadow-[0_0_10px_rgba(6,182,212,0.15)]"
+                              >
+                                {applicant.photoURL ? (
+                                  <img
+                                    src={applicant.photoURL}
+                                    alt={`${applicant.name || "User"}'s avatar`}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.target.onerror = null;
+                                      e.target.style.display = "none";
+                                      e.target.parentNode.innerHTML = `<div class="w-full h-full flex items-center justify-center text-cyan-400 font-orbitron font-semibold text-xs">${(applicant.name || "N")[0].toUpperCase()}</div>`;
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-cyan-400 font-orbitron font-semibold text-xs">
+                                    {(applicant.name || "N")[0].toUpperCase()}
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <div className="font-bold text-white text-sm flex items-center gap-2">
+                                  {applicant.name}
+                                </div>
+                                <div className="text-xs text-gray-500 font-mono mt-0.5">{applicant.email}</div>
+                                {applicant.memberId && applicant.memberId !== "PENDING" && (
+                                  <div className="text-[10px] font-mono text-cyan-500 mt-0.5 font-semibold">
+                                    {applicant.memberId}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-4 text-xs">
+                              <div className="text-gray-300 font-medium">{applicant.year} Year</div>
+                              <div className="text-gray-500 font-mono mt-0.5">{applicant.branch}</div>
+                            </td>
+                            <td className="p-4">
+                              <span className="px-2 py-1 rounded bg-[#18181b] border border-white/[0.04] text-[10px] font-mono text-cyan-300 uppercase tracking-wide">
+                                {applicant.interests || "General"}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <span className={`px-2.5 py-1 rounded border text-[10px] font-bold uppercase tracking-wider ${getStatusBadgeStyle(applicant.status)}`}>
+                                {applicant.status || "pending"}
+                              </span>
+                            </td>
+                            <td className="p-4 pr-6 text-right space-x-2 shrink-0">
+                              <button
+                                onClick={() => {
+                                  console.log("[ApplicantsTab] Clicking details for:", applicant);
+                                  setSelectedApplicant(applicant);
+                                }}
+                                className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-orbitron font-bold rounded tracking-wider border border-slate-700 transition-colors"
+                              >
+                                DETAILS
+                              </button>
+                              {applicant.status !== "accepted" && (
+                                <button
+                                  onClick={() => handleUpdateStatus(applicant, "accepted")}
+                                  disabled={actionLoading}
+                                  className="px-2.5 py-1.5 bg-green-950/20 hover:bg-green-600 border border-green-500/30 text-green-400 hover:text-white text-[10px] font-orbitron font-bold rounded tracking-wider transition-colors disabled:opacity-50"
+                                >
+                                  ACCEPT
+                                </button>
+                              )}
+                              {applicant.status !== "rejected" && (
+                                <button
+                                  onClick={() => handleUpdateStatus(applicant, "rejected")}
+                                  disabled={actionLoading}
+                                  className="px-2.5 py-1.5 bg-red-950/20 hover:bg-red-600 border border-red-500/30 text-red-400 hover:text-white text-[10px] font-orbitron font-bold rounded tracking-wider transition-colors disabled:opacity-50"
+                                >
+                                  REJECT
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              )
             )}
           </>
         )}
