@@ -40,5 +40,17 @@ service cloud.firestore {
       allow read: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin());
       allow write: if isAdmin();
     }
+
+    match /core_team/{memberId} {
+      // Anyone can read team members
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /settings/{settingId} {
+      // Anyone can read settings (like is_recruiting toggle)
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }
