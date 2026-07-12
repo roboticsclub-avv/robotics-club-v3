@@ -41,6 +41,7 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
   const status = applicant.status || "pending";
   const photoURL = applicant.photoURL || null;
   const memberId = applicant.memberId || "PENDING";
+  const role = applicant.role || "member";
 
   // Timeline events helper
   const submitDateStr = applicant.createdAt ? formatDate(applicant.createdAt) : "Date Unknown";
@@ -141,9 +142,13 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
                   <span className="text-gray-500">Interests</span>
                   <span className="text-cyan-400 font-mono text-xs">{interests}</span>
                 </div>
-                <div className="flex justify-between py-1">
+                <div className="flex justify-between py-1 border-b border-white/[0.02]">
                   <span className="text-gray-500">Member ID</span>
                   <span className="text-purple-400 font-mono text-xs font-bold">{memberId}</span>
+                </div>
+                <div className="flex justify-between py-1">
+                  <span className="text-gray-500">Position / Role</span>
+                  <span className="text-cyan-400 font-mono text-xs capitalize font-bold">{role}</span>
                 </div>
               </div>
             </div>
