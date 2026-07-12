@@ -2,7 +2,8 @@ import styles from "./Team.module.css";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/firebase/firestore";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import TextAnimation from "./ui/scroll-text";
 
 
@@ -36,22 +37,23 @@ export default function Team() {
 
         const fetchTeam = async () => {
             try {
-                const { data, error } = await supabase
-                    .from('core_team')
-                    .select('*')
-                    .order('display_order', { ascending: true })
-                    .order('name', { ascending: true });
+                const q = query(
+                    collection(db, "core_team"),
+                    orderBy("display_order", "asc"),
+                    orderBy("name", "asc")
+                );
+                const querySnapshot = await getDocs(q);
+                const data = [];
+                querySnapshot.forEach((doc) => {
+                    data.push({ id: doc.id, ...doc.data() });
+                });
 
-                if (error) throw error;
-
-                if (data) {
-                    const fac = data.filter(m => m.type === 'faculty');
-                    const mem = data.filter(m => m.type === 'member');
-                    setFaculty(fac);
-                    setMembers(mem);
-                    sessionStorage.setItem('cached_faculty', JSON.stringify(fac));
-                    sessionStorage.setItem('cached_members', JSON.stringify(mem));
-                }
+                const fac = data.filter(m => m.type === 'faculty');
+                const mem = data.filter(m => m.type === 'member');
+                setFaculty(fac);
+                setMembers(mem);
+                sessionStorage.setItem('cached_faculty', JSON.stringify(fac));
+                sessionStorage.setItem('cached_members', JSON.stringify(mem));
             } catch (error) {
                 console.error("Failed to load core team:", error);
                 setErrorMsg(error.message);
