@@ -17,11 +17,6 @@ const Spline = dynamic(() => import("@splinetool/react-spline"), {
 function RobotPlaceholder() {
   return (
     <div className={styles.placeholderContainer}>
-      <img
-        src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/media/robotics-side.png`}
-        alt="Loading Robot..."
-        className={styles.placeholderImage}
-      />
       <div className={styles.placeholderGlow} />
     </div>
   );
