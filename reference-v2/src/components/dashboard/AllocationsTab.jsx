@@ -58,12 +58,12 @@ export default function AllocationsTab() {
         setSearchResult("Searching...");
 
         try {
-            const res = await fetch(`/api/members?memberId=${encodeURIComponent(memberSearch.trim())}`);
-            if (!res.ok) {
-                const errData = await res.json();
-                throw new Error(errData.error || "Failed to search member");
-            }
-            const data = await res.json();
+            const q = query(collection(db, "users"), where("memberId", "==", memberSearch.trim()));
+            const querySnapshot = await getDocs(q);
+            const data = [];
+            querySnapshot.forEach((docSnap) => {
+                data.push({ uid: docSnap.id, ...docSnap.data() });
+            });
 
             if (data && data.length > 0) {
                 const memberData = data[0];
