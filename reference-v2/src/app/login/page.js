@@ -19,7 +19,10 @@ export default function LoginPage() {
   // Redirect rules for authenticated users
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      if (isAdmin) {
+      const validDashboardRoles = ["admin", "technical", "ops", "data", "secretary"];
+      const isStaff = profile && validDashboardRoles.includes(profile.role);
+
+      if (isStaff) {
         router.replace("/dashboard");
       } else if (profile?.status === "accepted") {
         router.replace("/member");
@@ -35,7 +38,7 @@ export default function LoginPage() {
         router.replace("/");
       }
     }
-  }, [isAuthenticated, isAdmin, profile, loading, router, logout]);
+  }, [isAuthenticated, profile, loading, router, logout]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
