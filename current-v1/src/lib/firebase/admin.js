@@ -1,11 +1,15 @@
 import admin from "firebase-admin";
+import { env, validateEnvironment } from "../env";
+
+// Validate environment configurations
+validateEnvironment();
 
 const credential = {
-  projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
-  clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+  projectId: env.firebase.admin.projectId,
+  clientEmail: env.firebase.admin.clientEmail,
   // Parse literal line breaks back into actual newlines
-  privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY
-    ? process.env.FIREBASE_ADMIN_PRIVATE_KEY.replace(/\\n/g, "\n")
+  privateKey: env.firebase.admin.privateKey
+    ? env.firebase.admin.privateKey.replace(/\\n/g, "\n")
     : undefined,
 };
 
@@ -22,7 +26,7 @@ if (!admin.apps.length) {
     } else {
       // Fallback initialization if environment variables are not fully configured yet during builds
       admin.initializeApp({
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        projectId: env.firebase.client.projectId,
       });
       console.log("[FIREBASE ADMIN] Initialized with project ID fallback.");
     }

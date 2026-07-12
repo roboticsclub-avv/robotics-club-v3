@@ -1,10 +1,11 @@
 import emailjs from "@emailjs/browser";
+import { env } from "./env";
 
 export const MAIL_CONFIG = {
-  SERVICE_ID: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_eqt49es",
-  ACCEPTANCE_TEMPLATE_ID: process.env.NEXT_PUBLIC_EMAILJS_ACCEPTANCE_TEMPLATE_ID || "template_gbinztp",
-  REJECTION_TEMPLATE_ID: process.env.NEXT_PUBLIC_EMAILJS_REJECTION_TEMPLATE_ID || "template_tj1pez3",
-  PUBLIC_KEY: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "py4w749i8WQem0P6c",
+  SERVICE_ID: env.emailjs.serviceId || "service_eqt49es",
+  ACCEPTANCE_TEMPLATE_ID: env.emailjs.acceptanceTemplateId || "template_gbinztp",
+  REJECTION_TEMPLATE_ID: env.emailjs.rejectionTemplateId || "template_tj1pez3",
+  PUBLIC_KEY: env.emailjs.publicKey || "py4w749i8WQem0P6c",
 };
 
 /**

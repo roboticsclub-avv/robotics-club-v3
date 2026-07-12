@@ -1,12 +1,16 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
+import { env, validateEnvironment } from "../env";
+
+// Validate environment configurations
+validateEnvironment();
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "mock-api-key-for-build-purposes",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "mock-auth-domain-for-build",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "mock-project-id-for-build",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "mock-storage-bucket-for-build",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "mock-sender-id-for-build",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "mock-app-id-for-build",
+  apiKey: env.firebase.client.apiKey || "mock-api-key-for-build-purposes",
+  authDomain: env.firebase.client.authDomain || "mock-auth-domain-for-build",
+  projectId: env.firebase.client.projectId || "mock-project-id-for-build",
+  storageBucket: env.firebase.client.storageBucket || "mock-storage-bucket-for-build",
+  messagingSenderId: env.firebase.client.messagingSenderId || "mock-sender-id-for-build",
+  appId: env.firebase.client.appId || "mock-app-id-for-build",
 };
 
 // Initialize Firebase client instance
