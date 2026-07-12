@@ -41,6 +41,65 @@
   --radius-pill: 100px;
 }
 
+/* ===== THEMES ===== */
+
+/* 1. Cosmic (Default Dark/Purple/Orange) */
+.theme-cosmic {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111111;
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-card-hover: rgba(255, 255, 255, 0.06);
+  --text-primary: #f5f5f5;
+  --text-secondary: #a0a0a0;
+  --text-muted: #666666;
+  --accent-orange: #ff6b35;
+  --accent-purple: #7c3aed;
+  --accent-teal: #06b6d4;
+  --accent-orange-glow: rgba(255, 107, 53, 0.15);
+  --accent-purple-glow: rgba(124, 58, 237, 0.15);
+  --accent-teal-glow: rgba(6, 182, 212, 0.12);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.08);
+}
+
+/* 2. Aurora (Cyber Light Theme) */
+.theme-aurora {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card: rgba(15, 23, 42, 0.03);
+  --bg-card-hover: rgba(15, 23, 42, 0.06);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --accent-orange: #10b981; /* Aurora Emerald */
+  --accent-purple: #06b6d4; /* Aurora Cyber Teal */
+  --accent-teal: #3b82f6;
+  --accent-orange-glow: rgba(16, 185, 129, 0.12);
+  --accent-purple-glow: rgba(6, 182, 212, 0.12);
+  --accent-teal-glow: rgba(59, 130, 246, 0.1);
+  --border-subtle: rgba(15, 23, 42, 0.06);
+  --border-card: rgba(15, 23, 42, 0.08);
+}
+
+/* 3. Deep Space (Monochrome Dark Chrome) */
+.theme-deepspace {
+  --bg-primary: #05070a;
+  --bg-secondary: #0b0f17;
+  --bg-card: rgba(255, 255, 255, 0.01);
+  --bg-card-hover: rgba(255, 255, 255, 0.03);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  --accent-orange: #ffffff; /* Slate White */
+  --accent-purple: #334155; /* Dark Chrome */
+  --accent-teal: #475569;
+  --accent-orange-glow: rgba(255, 255, 255, 0.1);
+  --accent-purple-glow: rgba(51, 65, 85, 0.15);
+  --accent-teal-glow: rgba(71, 85, 105, 0.1);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-card: rgba(255, 255, 255, 0.06);
+}
+
 /* ===== RESET & BASE ===== */
 *,
 *::before,
