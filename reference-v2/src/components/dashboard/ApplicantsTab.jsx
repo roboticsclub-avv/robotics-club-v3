@@ -421,7 +421,11 @@ export default function ApplicantsTab() {
                       <td className="p-4 pr-6 text-right space-x-2 shrink-0">
                         {/* Detail Modal Trigger */}
                         <button
-                          onClick={() => setSelectedApplicant(applicant)}
+                          onClick={() => {
+                            console.log("[ApplicantsTab] Clicking details for:", applicant);
+                            alert("Details clicked for: " + applicant.name);
+                            setSelectedApplicant(applicant);
+                          }}
                           className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-orbitron font-bold rounded tracking-wider border border-slate-700 transition-colors"
                         >
                           DETAILS
@@ -473,9 +477,9 @@ export default function ApplicantsTab() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div 
             onClick={() => setPreviewImageUrl(null)}
-            className="fixed inset-0 bg-black/90 backdrop-blur-md"
+            className="absolute inset-0 bg-black/90 backdrop-blur-md"
           />
-          <div className="relative bg-[#111115] border border-white/[0.08] max-w-3xl max-h-[85vh] rounded-xl overflow-hidden shadow-2xl flex flex-col items-center animate-in fade-in zoom-in duration-200 z-10">
+          <div className="relative z-10 bg-[#111115] border border-white/[0.08] max-w-3xl max-h-[85vh] rounded-xl overflow-hidden shadow-2xl flex flex-col items-center animate-in fade-in zoom-in duration-200">
             <button
               onClick={() => setPreviewImageUrl(null)}
               className="absolute top-4 right-4 bg-black/60 backdrop-blur-md hover:bg-black/90 text-white p-2 rounded-full border border-white/10 transition-colors z-20"
