@@ -38,23 +38,14 @@ export default function MeetingsTab() {
             setMails(dbData.mails || []);
             setPoints(dbData.points || {});
 
-            // 2. Fetch Club Members from Firestore
-            const q = query(collection(db, "users"), where("status", "==", "accepted"));
-            const querySnapshot = await getDocs(q);
-            const dbMembers = [];
-            querySnapshot.forEach((docSnap) => {
-                const docData = docSnap.data();
-                dbMembers.push({ 
-                    uid: docSnap.id, 
-                    name: docData.name, 
-                    role: docData.role, 
-                    email: docData.email, 
-                    status: docData.status 
-                });
-            });
-            // Sort by name ascending
-            dbMembers.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-            setMembers(dbMembers);
+            // 2. Fetch Club Members from backend API (bypasses client permissions limitations)
+            const memRes = await fetch("/api/members");
+            if (!memRes.ok) {
+                const errData = await memRes.json();
+                throw new Error(errData.error || "Failed to load members roster");
+            }
+            const dbMembers = await memRes.json();
+            setMembers(dbMembers || []);
             
             // Initialize point forms for each member
             const initialPointChanges = {};
