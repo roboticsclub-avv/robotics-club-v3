@@ -203,7 +203,7 @@ export default function TeamTab() {
             onClick={() => setPreviewImageUrl(null)}
             className="absolute inset-0 bg-black/90 backdrop-blur-md"
           />
-          <div className="relative z-10 bg-[#111115] border border-white/[0.08] max-w-3xl max-h-[85vh] rounded-xl overflow-hidden shadow-2xl flex flex-col items-center animate-in fade-in zoom-in duration-200">
+          <div className="relative z-10 bg-[#111115] border border-white/10 max-w-3xl max-h-[85vh] rounded-xl overflow-hidden shadow-2xl flex flex-col items-center">
             <button
               onClick={() => setPreviewImageUrl(null)}
               className="absolute top-4 right-4 bg-black/60 backdrop-blur-md hover:bg-black/90 text-white p-2 rounded-full border border-white/10 transition-colors z-20"

@@ -71,7 +71,7 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
       />
 
       {/* Modal Content - Glassmorphic, Animated */}
-      <div className="relative z-10 bg-[#111115]/95 border border-white/[0.08] w-full max-w-3xl rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-300">
+      <div className="relative z-10 bg-[#111115] border border-white/10 w-full max-w-3xl rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
         
         {/* Header/Banner */}
         <div className="relative h-32 bg-gradient-to-r from-cyan-950/40 via-purple-950/40 to-slate-950/40 p-6 flex items-end border-b border-white/[0.05]">
@@ -276,7 +276,7 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
             onClick={() => setShowImagePreview(false)}
             className="absolute inset-0 bg-black/90 backdrop-blur-md"
           />
-          <div className="relative z-10 bg-[#111115] border border-white/[0.08] max-w-3xl max-h-[85vh] rounded-xl overflow-hidden shadow-2xl flex flex-col items-center animate-in fade-in zoom-in duration-200">
+          <div className="relative z-10 bg-[#111115] border border-white/10 max-w-3xl max-h-[85vh] rounded-xl overflow-hidden shadow-2xl flex flex-col items-center">
             <button
               onClick={() => setShowImagePreview(false)}
               className="absolute top-4 right-4 bg-black/60 backdrop-blur-md hover:bg-black/90 text-white p-2 rounded-full border border-white/10 transition-colors z-20"
