@@ -12,6 +12,17 @@ service cloud.firestore {
       return request.auth != null && getUserRole() == 'admin';
     }
 
+    // Any staff member (admin, technical, ops, data, secretary)
+    function isStaff() {
+      return request.auth != null && (
+        getUserRole() == 'admin' || 
+        getUserRole() == 'technical' || 
+        getUserRole() == 'ops' || 
+        getUserRole() == 'data' || 
+        getUserRole() == 'secretary'
+      );
+    }
+
     function isOps() {
       return request.auth != null && (getUserRole() == 'admin' || getUserRole() == 'ops');
     }
@@ -27,8 +38,8 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Users can read their own profile, admins can read all
-      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      // Users can read their own profile, staff can read all users
+      allow read: if request.auth != null && (request.auth.uid == userId || isStaff());
       
       // Users can create their own profile upon registration
       // Enforce default fields: role must be 'member' and status 'pending'
