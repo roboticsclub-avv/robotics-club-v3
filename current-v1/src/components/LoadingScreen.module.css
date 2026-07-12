@@ -1,84 +1,103 @@
 .loadingOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: #030303;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    overflow: hidden;
+    /* Fast fade out at the very end to reveal content */
+    transition: opacity 0.4s ease;
 }
 
 .loadingOverlayHidden {
-  opacity: 0;
-  pointer-events: none;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .revealBox {
-  width: 100%;
-  max-width: 500px;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+    position: relative;
+    width: 100%;
+    height: 0;
+    background: #0a0a0a;
+    /* Same as homepage background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
 
-.brandingContainer {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.revealBoxActive {
+    animation: continuousGrow 4s cubic-bezier(0.1, 0, 0.2, 1) forwards;
 }
 
-.clubTitle {
-  font-family: var(--font-orbitron), sans-serif;
-  font-size: clamp(1.8rem, 4vw, 2.5rem);
-  font-weight: 900;
-  letter-spacing: 0.15em;
-  color: var(--text-primary);
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
-  margin: 0;
+.revealBoxFull {
+    height: 100vh;
 }
 
-.subTextContainer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
+@keyframes continuousGrow {
+    0% {
+        height: 0;
+    }
+
+    25% {
+        height: 45vh;
+    }
+
+    /* More gradual initial growth to fit large text */
+    100% {
+        height: 100vh;
+    }
+
+    /* Gradual continuous growth until the end */
 }
 
-.loaderStatus {
-  margin: 0;
-  font-weight: 500;
-  letter-spacing: 0.05em;
+.wordContainer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
 
-.progressPercent {
-  font-family: monospace;
-  font-weight: 700;
-  color: var(--accent-orange);
+.word {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(3rem, 10vw, 7rem);
+    /* Increased from 3.5rem */
+    font-weight: 900;
+    /* Heavier weight */
+    color: #ffffff;
+    letter-spacing: -0.04em;
+    /* Tighter tracking for premium feel */
+    text-transform: uppercase;
+    position: absolute;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.progressBarWrapper {
-  width: 100%;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: var(--radius-pill);
-  overflow: hidden;
-  position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.02);
+.wordActive {
+    opacity: 1;
+    transform: translateY(0);
 }
 
-.progressBarFill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent-purple) 0%, var(--accent-orange) 100%);
-  box-shadow: 0 0 8px var(--accent-orange);
-  border-radius: var(--radius-pill);
+.wordExit {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+@media (max-width: 768px) {
+    .revealBoxActive {
+        height: 30vh;
+    }
+
+    .word {
+        font-size: clamp(2rem, 12vw, 4rem);
+    }
 }
