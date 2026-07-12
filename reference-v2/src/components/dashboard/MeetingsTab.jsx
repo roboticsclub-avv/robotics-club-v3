@@ -38,15 +38,23 @@ export default function MeetingsTab() {
             setMails(dbData.mails || []);
             setPoints(dbData.points || {});
 
-            // 2. Fetch Club Members from Supabase
-            const { data: dbMembers, error: memError } = await supabase
-                .from("users")
-                .select("uid, name, role, email, status")
-                .eq("status", "accepted")
-                .order("name", { ascending: true });
-
-            if (memError) throw memError;
-            setMembers(dbMembers || []);
+            // 2. Fetch Club Members from Firestore
+            const q = query(collection(db, "users"), where("status", "==", "accepted"));
+            const querySnapshot = await getDocs(q);
+            const dbMembers = [];
+            querySnapshot.forEach((docSnap) => {
+                const docData = docSnap.data();
+                dbMembers.push({ 
+                    uid: docSnap.id, 
+                    name: docData.name, 
+                    role: docData.role, 
+                    email: docData.email, 
+                    status: docData.status 
+                });
+            });
+            // Sort by name ascending
+            dbMembers.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+            setMembers(dbMembers);
             
             // Initialize point forms for each member
             const initialPointChanges = {};
