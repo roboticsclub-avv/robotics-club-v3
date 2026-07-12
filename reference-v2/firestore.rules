@@ -86,5 +86,10 @@ service cloud.firestore {
       // Only admins can write settings
       allow write: if isAdmin();
     }
+
+    // Catch-all: deny everything not explicitly covered
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }
