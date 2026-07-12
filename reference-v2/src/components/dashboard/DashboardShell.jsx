@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import DashboardSidebar from "./DashboardSidebar";
 import DashboardHeader from "./DashboardHeader";
 
-export default function DashboardShell({ activeTab, setActiveTab, adminEmail, onLogout, children }) {
+export default function DashboardShell({ activeTab, setActiveTab, adminEmail, onLogout, userRole = "admin", children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -20,6 +20,7 @@ export default function DashboardShell({ activeTab, setActiveTab, adminEmail, on
           setActiveTab={setActiveTab}
           isOpen={isSidebarOpen}
           toggleSidebar={toggleSidebar}
+          userRole={userRole}
         />
 
         {/* Main Content Area */}
