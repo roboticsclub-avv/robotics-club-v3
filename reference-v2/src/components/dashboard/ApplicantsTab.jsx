@@ -190,15 +190,48 @@ export default function ApplicantsTab() {
   const teamStaffList = filteredApplicants.filter(a => ["admin", "technical", "ops", "data", "secretary"].includes(a.role));
   const generalList = filteredApplicants.filter(a => !["admin", "technical", "ops", "data", "secretary"].includes(a.role));
 
-  // Standardized Status Badge Colors Helper
-  const getStatusBadgeStyle = (statusVal) => {
-    if (statusVal === "accepted") {
-      return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+  // Role badge helper with tailored styling per staff assignment
+  const getRoleBadge = (roleVal) => {
+    const role = (roleVal || "member").toLowerCase();
+    let style = "bg-gray-500/10 text-gray-400 border-gray-500/25";
+    if (role === "admin") style = "bg-purple-500/10 text-purple-400 border-purple-500/25";
+    else if (role === "technical") style = "bg-blue-500/10 text-blue-400 border-blue-500/25";
+    else if (role === "ops") style = "bg-orange-500/10 text-orange-400 border-orange-500/25";
+    else if (role === "data") style = "bg-teal-500/10 text-teal-400 border-teal-500/25";
+    else if (role === "secretary") style = "bg-pink-500/10 text-pink-400 border-pink-500/25";
+    
+    return (
+      <span className={`px-1.5 py-0.5 rounded border text-[8px] font-mono font-extrabold uppercase tracking-wider ${style}`}>
+        ${role}
+      </span>
+    );
+  };
+
+  // Standardized Status Badge Component with Dot Indicators
+  const renderStatusBadge = (statusVal) => {
+    const statusLower = (statusVal || "pending").toLowerCase();
+    if (statusLower === "accepted") {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          ACCEPTED
+        </span>
+      );
     }
-    if (statusVal === "rejected") {
-      return "bg-rose-500/10 text-rose-400 border border-rose-500/20";
+    if (statusLower === "rejected") {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider bg-rose-500/10 text-rose-400 border-rose-500/20">
+          <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+          REJECTED
+        </span>
+      );
     }
-    return "bg-amber-500/10 text-amber-400 border border-amber-500/20";
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border-amber-500/20">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+        PENDING
+      </span>
+    );
   };
 
   return (
@@ -311,26 +344,40 @@ export default function ApplicantsTab() {
       </div>
 
       {/* Roster View Buttons */}
-      <div className="flex gap-4 border-b border-white/[0.04] pb-4">
+      <div className="bg-black/50 border border-white/[0.05] p-1.5 rounded-xl flex gap-2 w-fit mb-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
         <button
           onClick={() => setRosterView("general")}
-          className={`px-4 py-2 rounded-lg font-orbitron font-bold text-xs tracking-wider transition-all border cursor-pointer ${
+          className={`px-4 py-2 rounded-lg font-orbitron font-bold text-[10px] tracking-wider transition-all duration-200 border cursor-pointer flex items-center gap-2 ${
             rosterView === "general"
-              ? "bg-cyan-950/20 text-cyan-400 border-cyan-500/20 shadow-[0_0_15px_rgba(8,145,178,0.1)]"
+              ? "bg-[#16161a] text-cyan-400 border-cyan-500/20 shadow-[0_4px_12px_rgba(6,182,212,0.15)] scale-[1.02]"
               : "text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/[0.02]"
           }`}
         >
-          GENERAL MEMBERS & APPLICANTS ({generalList.length})
+          GENERAL ROSTER
+          <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold ${
+            rosterView === "general"
+              ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/25"
+              : "bg-white/[0.04] text-gray-500"
+          }`}>
+            {generalList.length}
+          </span>
         </button>
         <button
           onClick={() => setRosterView("team")}
-          className={`px-4 py-2 rounded-lg font-orbitron font-bold text-xs tracking-wider transition-all border cursor-pointer ${
+          className={`px-4 py-2 rounded-lg font-orbitron font-bold text-[10px] tracking-wider transition-all duration-200 border cursor-pointer flex items-center gap-2 ${
             rosterView === "team"
-              ? "bg-cyan-950/20 text-cyan-400 border-cyan-500/20 shadow-[0_0_15px_rgba(8,145,178,0.1)]"
+              ? "bg-[#16161a] text-cyan-400 border-cyan-500/20 shadow-[0_4px_12px_rgba(6,182,212,0.15)] scale-[1.02]"
               : "text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/[0.02]"
           }`}
         >
-          TEAM & STAFF ({teamStaffList.length})
+          TEAM & STAFF
+          <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold ${
+            rosterView === "team"
+              ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/25"
+              : "bg-white/[0.04] text-gray-500"
+          }`}>
+            {teamStaffList.length}
+          </span>
         </button>
       </div>
 
@@ -384,7 +431,7 @@ export default function ApplicantsTab() {
                       </thead>
                       <tbody className="divide-y divide-white/[0.02]">
                         {teamStaffList.map((applicant) => (
-                          <tr key={applicant.id} className="hover:bg-white/[0.01] transition-colors">
+                          <tr key={applicant.id} className="hover:bg-white/[0.015] hover:shadow-[inset_4px_0_0_0_#06b6d4] border-l border-l-transparent transition-all duration-150">
                             <td className="p-4 pl-6 w-12 text-center">
                               <input
                                 type="checkbox"
@@ -419,9 +466,7 @@ export default function ApplicantsTab() {
                               <div>
                                 <div className="font-bold text-white text-sm flex items-center gap-2">
                                   {applicant.name}
-                                  <span className="bg-purple-500/20 text-purple-400 border border-purple-500/30 text-[8px] font-mono font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-wider">
-                                    {applicant.role || "MEMBER"}
-                                  </span>
+                                  {getRoleBadge(applicant.role)}
                                 </div>
                                 <div className="text-xs text-gray-500 font-mono mt-0.5">{applicant.email}</div>
                                 {applicant.memberId && applicant.memberId !== "PENDING" && (
@@ -441,9 +486,7 @@ export default function ApplicantsTab() {
                               </span>
                             </td>
                             <td className="p-4">
-                              <span className={`px-2.5 py-1 rounded border text-[10px] font-bold uppercase tracking-wider ${getStatusBadgeStyle(applicant.status)}`}>
-                                {applicant.status || "pending"}
-                              </span>
+                              {renderStatusBadge(applicant.status)}
                             </td>
                             <td className="p-4 pr-6 text-right space-x-2 shrink-0">
                               <button
@@ -517,7 +560,7 @@ export default function ApplicantsTab() {
                       </thead>
                       <tbody className="divide-y divide-white/[0.02]">
                         {generalList.map((applicant) => (
-                          <tr key={applicant.id} className="hover:bg-white/[0.01] transition-colors">
+                          <tr key={applicant.id} className="hover:bg-white/[0.015] hover:shadow-[inset_4px_0_0_0_#06b6d4] border-l border-l-transparent transition-all duration-150">
                             <td className="p-4 pl-6 w-12 text-center">
                               <input
                                 type="checkbox"
@@ -571,9 +614,7 @@ export default function ApplicantsTab() {
                               </span>
                             </td>
                             <td className="p-4">
-                              <span className={`px-2.5 py-1 rounded border text-[10px] font-bold uppercase tracking-wider ${getStatusBadgeStyle(applicant.status)}`}>
-                                {applicant.status || "pending"}
-                              </span>
+                              {renderStatusBadge(applicant.status)}
                             </td>
                             <td className="p-4 pr-6 text-right space-x-2 shrink-0">
                               <button
