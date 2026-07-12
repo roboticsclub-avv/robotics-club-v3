@@ -1,36 +1,234 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { fetchEvents } from "@/lib/firebase/dashboardService";
+import React, { useState, useEffect, useRef } from "react";
+import { db } from "@/lib/firebase/firestore";
+import { storage } from "@/lib/firebase/storage";
+import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { showAlert, showConfirm } from "@/lib/alert-store";
 import { formatDate } from "@/utils/formatters";
 
 export default function EventsTab() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  async function loadEvents() {
+  const [formData, setFormData] = useState({
+    title: "",
+    date: "",
+    comingSoon: false,
+    description: "",
+    link: ""
+  });
+
+  const [imageFile, setImageFile] = useState(null);
+  const [currentImageUrl, setCurrentImageUrl] = useState("");
+  const fileInputRef = useRef(null);
+
+  const [editingId, setEditingId] = useState(null);
+
+  const fetchEventsData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const data = await fetchEvents();
-      setEvents(data);
-      setError(null);
-    } catch (err) {
-      console.error("Error loading events:", err);
-      setError("Failed to fetch events from Firestore.");
+      const querySnapshot = await getDocs(collection(db, "events"));
+      const evts = [];
+      querySnapshot.forEach((docSnap) => {
+        evts.push({ id: docSnap.id, ...docSnap.data() });
+      });
+
+      // Sort by comingSoon first, then date
+      evts.sort((a, b) => {
+        if (a.comingSoon === b.comingSoon) {
+          return new Date(a.date || 0) - new Date(b.date || 0);
+        }
+        return a.comingSoon ? -1 : 1;
+      });
+      setEvents(evts);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      await showAlert("Error loading events: " + error.message, "Load Error");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadEvents();
-  }, []);;
+    fetchEventsData();
+  }, []);
+
+  const handleChange = (e) => {
+    const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+    setFormData({ ...formData, [e.target.name]: value });
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
+  const uploadImage = async (file) => {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 9)}.${fileExt}`;
+    const storageRef = ref(storage, `events/${fileName}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    return downloadURL;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsUploading(true);
+
+    try {
+      let finalImageUrl = currentImageUrl;
+
+      if (imageFile) {
+        finalImageUrl = await uploadImage(imageFile);
+      }
+
+      const dataToSave = {
+        title: formData.title,
+        comingSoon: formData.comingSoon,
+        description: formData.description,
+        image: finalImageUrl || "",
+        // Save date and link empty if coming soon
+        date: formData.comingSoon ? "" : formData.date,
+        link: formData.comingSoon ? "" : formData.link
+      };
+
+      if (editingId) {
+        await updateDoc(doc(db, "events", editingId), dataToSave);
+        await showAlert("Event updated successfully!", "Success");
+      } else {
+        await addDoc(collection(db, "events"), dataToSave);
+        await showAlert("Event created successfully!", "Success");
+      }
+
+      handleCancel();
+      fetchEventsData();
+    } catch (error) {
+      console.error("Error saving event:", error);
+      await showAlert("Error saving event: " + error.message, "Save Error");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleEdit = (event) => {
+    setEditingId(event.id);
+    setFormData({
+      title: event.title || "",
+      date: event.date || "",
+      comingSoon: event.comingSoon || false,
+      description: event.description || "",
+      link: event.link || ""
+    });
+    setCurrentImageUrl(event.image || "");
+    setImageFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDelete = async (id) => {
+    const isConfirmed = await showConfirm("Are you sure you want to delete this event?", "Delete Event");
+    if (!isConfirmed) return;
+    try {
+      await deleteDoc(doc(db, "events", id));
+      await showAlert("Event deleted successfully", "Deleted");
+      fetchEventsData();
+    } catch (error) {
+      await showAlert("Error deleting event: " + error.message, "Delete Error");
+    }
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setFormData({ title: "", date: "", comingSoon: false, description: "", link: "" });
+    setCurrentImageUrl("");
+    setImageFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   return (
-    <div className="space-y-6 font-inter">
-      {/* Table grid layout for events */}
+    <div className="space-y-8 font-inter">
+      {/* Event Form */}
+      <div className="bg-[#111115] border border-white/[0.04] p-6 rounded-xl shadow-lg">
+        <h2 className="text-sm font-orbitron font-bold text-cyan-400 tracking-wider mb-6 uppercase">
+          {editingId ? "Edit Event details" : "Create New Event"}
+        </h2>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-gray-500 text-xs font-mono uppercase mb-1">Event Title</label>
+              <input type="text" name="title" value={formData.title} onChange={handleChange} required
+                className="w-full bg-black/40 border border-white/[0.06] hover:border-cyan-500/40 focus:border-cyan-400 focus:outline-none rounded-lg px-4 py-2 text-sm text-white placeholder-gray-600 transition-colors font-inter" placeholder="e.g. Robocon Workshop" />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-500 text-xs font-mono uppercase mb-1">Event Date</label>
+                <input type="date" name="date" value={formData.date} onChange={handleChange}
+                  disabled={formData.comingSoon} required={!formData.comingSoon}
+                  className="w-full bg-black/40 border border-white/[0.06] hover:border-cyan-500/40 focus:border-cyan-400 focus:outline-none rounded-lg px-4 py-1.5 text-sm text-white transition-colors disabled:opacity-40" />
+              </div>
+              <div className="flex items-center pl-2 pt-5">
+                <label className="flex items-center gap-2.5 text-xs text-gray-400 cursor-pointer font-orbitron font-semibold uppercase tracking-wider">
+                  <input type="checkbox" name="comingSoon" checked={formData.comingSoon} onChange={handleChange}
+                    className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-cyan-600 focus:ring-cyan-500 focus:ring-offset-slate-900 cursor-pointer" />
+                  COMING SOON
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-gray-500 text-xs font-mono uppercase mb-1">Registration Link</label>
+              <input type="url" name="link" value={formData.link} onChange={handleChange}
+                disabled={formData.comingSoon} placeholder="https://..."
+                className="w-full bg-black/40 border border-white/[0.06] hover:border-cyan-500/40 focus:border-cyan-400 focus:outline-none rounded-lg px-4 py-2 text-sm text-white placeholder-gray-600 transition-colors font-inter disabled:opacity-40" />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-gray-500 text-xs font-mono uppercase mb-1">Event Banner Image</label>
+              <div className="flex items-center gap-4 bg-black/30 border border-white/[0.04] rounded-lg p-4">
+                {currentImageUrl && !imageFile && (
+                  <img src={currentImageUrl} alt="Current event graphic" className="w-16 h-16 object-cover rounded shadow border border-white/[0.1]" />
+                )}
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg, image/webp"
+                  onChange={handleFileChange}
+                  ref={fileInputRef}
+                  className="text-xs text-gray-400 file:mr-4 file:py-1.5 file:px-3.5 file:rounded-lg file:border file:border-cyan-500/30 file:text-xs file:font-orbitron file:font-bold file:bg-cyan-950/20 file:text-cyan-400 hover:file:bg-cyan-600 hover:file:text-white transition-all cursor-pointer"
+                />
+                {imageFile && <span className="text-xs text-green-400 font-mono">New file selected</span>}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-gray-500 text-xs font-mono uppercase mb-1">Description</label>
+              <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Event description details..." rows="3" required
+                className="w-full bg-black/40 border border-white/[0.06] hover:border-cyan-500/40 focus:border-cyan-400 focus:outline-none rounded-lg px-4 py-2 text-sm text-white placeholder-gray-600 transition-colors font-inter" />
+            </div>
+          </div>
+
+          <div className="md:col-span-2 flex gap-4 border-t border-white/[0.04] pt-4">
+            <button type="submit" disabled={isUploading} className="flex-1 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-orbitron font-bold text-xs rounded-lg transition-colors uppercase tracking-wider disabled:opacity-50">
+              {isUploading ? "SAVING & UPLOADING..." : (editingId ? "UPDATE EVENT RECORD" : "PUBLISH EVENT NOW")}
+            </button>
+            {editingId && (
+              <button type="button" onClick={handleCancel} disabled={isUploading} className="px-6 bg-slate-800 hover:bg-slate-700 text-white font-orbitron font-bold text-xs rounded-lg transition-colors">
+                CANCEL
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+
+      {/* Event List Container */}
       <div className="bg-[#111115] border border-white/[0.04] rounded-xl overflow-hidden shadow-lg">
         <div className="p-5 border-b border-white/[0.04] bg-black/30 flex justify-between items-center">
           <h2 className="font-orbitron text-sm font-bold text-gray-400 tracking-wider">
@@ -44,10 +242,6 @@ export default function EventsTab() {
         {loading ? (
           <div className="p-12 text-center text-gray-500 font-mono text-sm">
             &gt; Syncing event log registers...
-          </div>
-        ) : error ? (
-          <div className="p-12 text-center text-red-400 font-mono text-sm">
-            &gt; ERROR: {error}
           </div>
         ) : events.length === 0 ? (
           <div className="p-12 text-center text-gray-500 italic text-sm">
@@ -123,22 +317,39 @@ export default function EventsTab() {
                       </p>
                     </div>
 
-                    {/* Action link */}
-                    {event.link && (
-                      <div className="mt-4 pt-3 border-t border-white/[0.04]">
+                    {/* Actions block */}
+                    <div className="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between">
+                      {event.link ? (
                         <a
                           href={event.link}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-[10px] font-orbitron font-bold text-cyan-400 hover:text-cyan-300 transition-colors uppercase tracking-wider"
                         >
-                          REGISTRATION LINK
+                          REG LINK
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                           </svg>
                         </a>
+                      ) : (
+                        <span className="text-[9px] text-gray-600 font-mono">NO LINK</span>
+                      )}
+
+                      <div className="space-x-2 shrink-0">
+                        <button
+                          onClick={() => handleEdit(event)}
+                          className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-white text-[9px] font-orbitron font-bold rounded tracking-wider border border-slate-700 transition-colors"
+                        >
+                          EDIT
+                        </button>
+                        <button
+                          onClick={() => handleDelete(event.id)}
+                          className="px-2 py-1 bg-red-950/20 hover:bg-red-600 border border-red-500/30 text-red-400 hover:text-white text-[9px] font-orbitron font-bold rounded tracking-wider transition-colors"
+                        >
+                          DELETE
+                        </button>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               );
