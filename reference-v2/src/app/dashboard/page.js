@@ -49,6 +49,7 @@ export default function DashboardPage() {
         adminEmail={adminEmail}
         onLogout={logout}
         userRole={userRole}
+        profile={profile}
       >
         {activeTab === "applicants" && <ApplicantsTab />}
         {activeTab === "team" && <TeamTab />}

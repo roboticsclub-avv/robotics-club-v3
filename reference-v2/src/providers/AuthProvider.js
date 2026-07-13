@@ -23,15 +23,32 @@ export default function AuthProvider({ children }) {
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
       try {
         if (currentUser) {
-          // User authenticated, fetch profile data
+          // User authenticated — fetch Firestore profile
           const docRef = doc(db, "users", currentUser.uid);
           const docSnap = await getDoc(docRef);
-          
+
           if (docSnap.exists()) {
             setProfile(docSnap.data());
           } else {
-            console.error("Firestore user profile document not found for uid:", currentUser.uid);
-            setProfile(null);
+            // No Firestore document found — this user was likely created directly
+            // in the Firebase Console (e.g. admin/staff accounts). Synthesize a
+            // minimal profile so dashboard access isn't blocked. Role defaults to
+            // 'admin' since only admins can log in without a registration document.
+            console.warn(
+              "No Firestore profile for uid:",
+              currentUser.uid,
+              "— using synthetic admin profile. Create a Firestore document to set an explicit role."
+            );
+            setProfile({
+              uid: currentUser.uid,
+              email: currentUser.email,
+              name: currentUser.displayName || currentUser.email?.split("@")[0] || "Admin",
+              role: "admin",
+              status: "accepted",
+              photoURL: currentUser.photoURL || "",
+              createdAt: new Date().toISOString(),
+              _synthetic: true, // flag so we can show a banner in the dashboard
+            });
           }
           setUser(currentUser);
         } else {
@@ -50,6 +67,7 @@ export default function AuthProvider({ children }) {
 
     return () => unsubscribe();
   }, []);
+
 
   const logout = async () => {
     try {
