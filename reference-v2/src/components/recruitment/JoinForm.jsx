@@ -230,23 +230,10 @@ export default function JoinForm() {
       return;
     }
 
-    // Step-specific server-side checking: Duplicate Email check on Step 2
-    if (currentStep === 2) {
-      try {
-        setSubmittingMsg("Checking email uniqueness...");
-        const isDuplicate = await checkDuplicateEmail(formData.email);
-        setSubmittingMsg("");
-        if (isDuplicate) {
-          setErrorMsg("This email is already registered with an application.");
-          return;
-        }
-      } catch (err) {
-        console.error("Duplicate check failed:", err);
-        setSubmittingMsg("");
-        setErrorMsg("Network error. Please try again.");
-        return;
-      }
-    }
+    // Step-specific server-side checking: Duplicate Email check is handled by Firebase Auth on submit
+    // (Firebase Auth throws auth/email-already-in-use if email is already registered)
+    // We skip the unauthenticated Firestore query here since the users collection
+    // requires authentication to read.
 
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep((prev) => prev + 1);
@@ -276,24 +263,24 @@ export default function JoinForm() {
       return;
     }
 
-    setSubmittingMsg("Uploading profile photo...");
+    setSubmittingMsg("Creating member account credentials...");
     let uploadedPhotoUrl = "";
 
     try {
-      // 1. Upload photograph to Firebase Storage
-      const storageRef = ref(storage, `applicants/${Date.now()}_${selectedPhoto.name}`);
-      const uploadResult = await uploadBytes(storageRef, selectedPhoto);
-      uploadedPhotoUrl = await getDownloadURL(uploadResult.ref);
-
-      setSubmittingMsg("Creating member account credentials...");
-      
-      // 2. Create Auth Credentials
+      // 1. Create Auth Credentials FIRST so we have a valid user token
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email.trim(),
         formData.password
       );
       const user = userCredential.user;
+
+      setSubmittingMsg("Uploading profile photo...");
+
+      // 2. Upload photograph to Firebase Storage (now authenticated)
+      const storageRef = ref(storage, `applicants/${user.uid}_${selectedPhoto.name}`);
+      const uploadResult = await uploadBytes(storageRef, selectedPhoto);
+      uploadedPhotoUrl = await getDownloadURL(uploadResult.ref);
 
       setSubmittingMsg("Saving profile details...");
 
@@ -302,7 +289,7 @@ export default function JoinForm() {
         uid: user.uid,
         email: formData.email.trim().toLowerCase(),
         name: formData.name.trim(),
-        phone: "", // Matches V1 registration schema
+        phone: "",
         branch: formData.branch,
         year: formData.year,
         section: formData.section.trim(),
@@ -324,7 +311,16 @@ export default function JoinForm() {
       setIsCompleted(true);
     } catch (err) {
       console.error("Submission failed:", err);
-      setErrorMsg(err.message || "Registration failed. Please check network settings.");
+      // Provide friendly error messages for common Firebase Auth errors
+      if (err.code === "auth/email-already-in-use") {
+        setErrorMsg("This email is already registered. Please use a different email or log in.");
+      } else if (err.code === "auth/weak-password") {
+        setErrorMsg("Password is too weak. Please use at least 6 characters.");
+      } else if (err.code === "auth/invalid-email") {
+        setErrorMsg("Invalid email address format.");
+      } else {
+        setErrorMsg(err.message || "Registration failed. Please check network settings.");
+      }
     } finally {
       setSubmittingMsg("");
     }
