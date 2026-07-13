@@ -577,6 +577,8 @@ class InfiniteGridMenu {
   #deltaTime = 0;
   #deltaFrames = 0;
   #frames = 0;
+  #destroyed = false;
+  #rafId = null;
 
   camera = {
     matrix: mat4.create(),
@@ -621,6 +623,8 @@ class InfiniteGridMenu {
   }
 
   run(time = 0) {
+    if (this.#destroyed) return;
+
     this.#deltaTime = Math.min(32, time - this.#time);
     this.#time = time;
     this.#deltaFrames = this.#deltaTime / this.TARGET_FRAME_DURATION;
@@ -629,12 +633,18 @@ class InfiniteGridMenu {
     this.#animate(this.#deltaTime);
     this.#render();
 
-    this.rafId = requestAnimationFrame(t => this.run(t));
+    this.#rafId = requestAnimationFrame(t => this.run(t));
   }
 
   destroy() {
-    if (this.rafId) {
-      cancelAnimationFrame(this.rafId);
+    this.#destroyed = true;
+    if (this.#rafId !== null) {
+      cancelAnimationFrame(this.#rafId);
+      this.#rafId = null;
+    }
+    if (this.gl) {
+      const ext = this.gl.getExtension('WEBGL_lose_context');
+      if (ext) ext.loseContext();
     }
   }
 
@@ -720,19 +730,24 @@ class InfiniteGridMenu {
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = () => resolve(img);
+            img.onerror = () => resolve(null);
             img.src = item.image;
           })
       )
     ).then(images => {
+      if (this.#destroyed) return;
       images.forEach((img, i) => {
+        if (!img) return;
         const x = (i % this.atlasSize) * cellSize;
         const y = Math.floor(i / this.atlasSize) * cellSize;
         ctx.drawImage(img, x, y, cellSize, cellSize);
       });
 
-      gl.bindTexture(gl.TEXTURE_2D, this.tex);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
-      gl.generateMipmap(gl.TEXTURE_2D);
+      if (!this.#destroyed && gl) {
+        gl.bindTexture(gl.TEXTURE_2D, this.tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+        gl.generateMipmap(gl.TEXTURE_2D);
+      }
     }).catch(err => {
       console.warn("Failed to load atlas images:", err);
     });
