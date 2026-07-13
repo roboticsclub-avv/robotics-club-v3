@@ -16,10 +16,10 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border: 1px solid rgba(168, 85, 247, 0.3);
-    box-shadow: 0 0 30px rgba(168, 85, 247, 0.15);
+    border: 1px solid var(--border-card);
+    box-shadow: 0 0 30px var(--accent-purple-glow);
     margin-bottom: 4rem;
-    background: #0f172a !important;
+    background: var(--bg-secondary) !important;
 }
 
 @media (min-width: 768px) {
@@ -49,12 +49,12 @@
 .facultyImageOverlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, #0f172a, transparent);
+    background: linear-gradient(to top, var(--bg-secondary), transparent);
 }
 
 @media (min-width: 768px) {
     .facultyImageOverlay {
-        background: linear-gradient(to right, transparent, #0f172a);
+        background: linear-gradient(to right, transparent, var(--bg-secondary));
     }
 }
 
@@ -87,7 +87,7 @@
 .facultyName {
     font-size: 1.875rem;
     font-weight: 700;
-    color: #ffffff !important;
+    color: var(--text-primary) !important;
     margin-bottom: 0.5rem;
 }
 
@@ -109,7 +109,7 @@
     padding-left: 1rem;
     margin-bottom: 1.5rem;
     font-style: italic;
-    color: #cbd5e1 !important;
+    color: var(--text-secondary) !important;
     font-size: 1.125rem;
 }
 
@@ -118,7 +118,7 @@
 }
 
 .contentLabel {
-    color: #94a3b8 !important;
+    color: var(--text-muted) !important;
     font-weight: 700;
     margin-bottom: 0.5rem;
     font-size: 0.875rem;
@@ -126,7 +126,7 @@
 }
 
 .facultyBio {
-    color: #cbd5e1 !important;
+    color: var(--text-secondary) !important;
     line-height: 1.625;
 }
 
@@ -138,10 +138,10 @@
 
 .interestTag {
     padding: 0.25rem 0.75rem;
-    background: rgba(168, 85, 247, 0.2);
-    border: 1px solid rgba(168, 85, 247, 0.4);
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
     border-radius: var(--radius-pill);
-    color: #d8b4fe;
+    color: var(--text-secondary);
     font-size: 0.75rem;
     font-family: monospace;
 }
@@ -192,18 +192,18 @@
     left: 0;
     right: 0;
     padding: 1.5rem;
-    background: linear-gradient(to top, rgba(15, 23, 42, 1) 0%, rgba(15, 23, 42, 0) 100%);
+    background: linear-gradient(to top, var(--bg-secondary) 10%, transparent 100%);
     z-index: 10;
 }
 
 .memberName {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #ffffff !important;
+    color: var(--text-primary) !important;
 }
 
 .memberRole {
-    color: #38bdf8 !important;
+    color: var(--accent-purple) !important;
     font-size: 0.875rem;
     font-family: monospace;
 }
@@ -211,13 +211,13 @@
 .teamHoverOverlay {
     position: absolute;
     inset: 0;
-    background: rgba(15, 23, 42, 0.95);
+    background: var(--bg-secondary);
+    opacity: 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 1.5rem;
-    opacity: 0;
     visibility: hidden;
     z-index: 20;
     transition: opacity 200ms ease-out, visibility 200ms ease-out;
@@ -225,12 +225,12 @@
 }
 
 .teamCard:hover .teamHoverOverlay {
-    opacity: 1;
+    opacity: 0.98;
     visibility: visible;
 }
 
 .memberQuote {
-    color: #cbd5e1 !important;
+    color: var(--text-secondary) !important;
     font-style: italic;
     text-align: center;
     margin-bottom: 1.5rem;
@@ -238,8 +238,8 @@
 
 .viewProfileBtn {
     padding: 0.5rem 1.5rem;
-    border: 1px solid #38bdf8;
-    color: #38bdf8;
+    border: 1px solid var(--accent-purple);
+    color: var(--accent-purple);
     font-weight: 700;
     border-radius: var(--radius-md);
     transition: all var(--transition-fast);
@@ -248,15 +248,15 @@
 }
 
 .viewProfileBtn:hover {
-    background: #38bdf8;
-    color: #000;
+    background: var(--accent-purple);
+    color: #ffffff;
 }
 
 /* Modal Styles */
 .modalOverlay {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.85);
+    background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(8px);
     z-index: 100;
     display: flex;
@@ -277,8 +277,8 @@
 }
 
 .modalContent {
-    background: #1e293b;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-card);
     border-radius: var(--radius-lg);
     width: 100%;
     max-width: 900px;
@@ -364,13 +364,13 @@
 .modalName {
     font-size: 2rem;
     font-weight: 700;
-    color: #ffffff !important;
+    color: var(--text-primary) !important;
     margin-bottom: 0.5rem;
     font-family: var(--font-orbitron);
 }
 
 .modalRole {
-    color: #38bdf8 !important;
+    color: var(--accent-purple) !important;
     font-family: monospace;
     font-size: 1rem;
     margin-bottom: 2rem;
@@ -382,7 +382,7 @@
 }
 
 .modalSectionTitle {
-    color: #ffffff !important;
+    color: var(--text-primary) !important;
     font-size: 0.875rem;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -391,7 +391,7 @@
 }
 
 .modalSectionText {
-    color: #cbd5e1 !important;
+    color: var(--text-secondary) !important;
     line-height: 1.6;
     white-space: pre-wrap;
 }
