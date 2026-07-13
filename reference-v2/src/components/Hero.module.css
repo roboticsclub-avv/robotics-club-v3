@@ -113,18 +113,19 @@
     border-radius: var(--radius-pill);
     font-size: 0.95rem;
     font-weight: 600;
-    color: #000;
-    background: var(--text-primary);
+    color: #ffffff;
+    background: var(--accent-purple);
     transition: all var(--transition-fast);
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    box-shadow: 0 4px 20px var(--accent-purple-glow);
 }
 
 .ctaPrimary:hover {
-    background: #ffffff;
+    filter: brightness(1.15);
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 30px var(--accent-purple-glow);
 }
 
 .ctaSecondary {
@@ -140,8 +141,8 @@
 
 .ctaSecondary:hover {
     color: var(--text-primary);
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--accent-purple);
+    background: var(--accent-purple-glow);
 }
 
 .shortcut {
@@ -180,14 +181,14 @@
     width: 100%;
     height: 500px;
     position: relative;
-    background: #0a0a0a;
+    background: var(--bg-primary);
 }
 
 .splineWrapper spline-viewer,
 .splineWrapper canvas {
     width: 100%;
     height: 100%;
-    background: #0a0a0a !important;
+    background: var(--bg-primary) !important;
 }
 
 /* CSS 3D Cube Placeholder */
