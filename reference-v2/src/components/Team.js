@@ -218,54 +218,56 @@ export default function Team() {
             </section>
 
             {/* View Profile Modal - Using createPortal to append to body so it escapes CSS transforms */}
-            {mounted && selectedMember && createPortal(
-                <div className={styles.modalOverlay} onClick={closeModal}>
+            {mounted && createPortal(
+                <div className={`${styles.modalOverlay} ${selectedMember ? styles.open : ""}`} onClick={closeModal}>
                     <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                         <button className={styles.modalCloseBtn} onClick={closeModal}>×</button>
 
-                        <div className={styles.modalBody}>
-                            <div className={styles.modalImageWrapper}>
-                                <Image
-                                    src={getImageUrl(selectedMember.image_url)}
-                                    alt={selectedMember.name}
-                                    className={styles.modalImage}
-                                    fill
-                                    style={{ objectFit: 'cover' }}
-                                    sizes="(max-width: 768px) 100vw, 40vw"
-                                />
-                            </div>
+                        {selectedMember && (
+                            <div className={styles.modalBody}>
+                                <div className={styles.modalImageWrapper}>
+                                    <Image
+                                        src={getImageUrl(selectedMember.image_url)}
+                                        alt={selectedMember.name}
+                                        className={styles.modalImage}
+                                        fill
+                                        style={{ objectFit: 'cover' }}
+                                        sizes="(max-width: 768px) 100vw, 40vw"
+                                    />
+                                </div>
 
-                            <div className={styles.modalInfo}>
-                                <h3 className={styles.modalName}>{selectedMember.name}</h3>
-                                <p className={styles.modalRole}>{selectedMember.role}</p>
+                                <div className={styles.modalInfo}>
+                                    <h3 className={styles.modalName}>{selectedMember.name}</h3>
+                                    <p className={styles.modalRole}>{selectedMember.role}</p>
 
-                                {selectedMember.quote && selectedMember.quote !== "null" && (
-                                    <blockquote className="border-l-2 border-purple-500 pl-4 py-1 italic text-slate-400 mb-6 text-lg tracking-wide">
-                                        &quot;{selectedMember.quote}&quot;
-                                    </blockquote>
-                                )}
+                                    {selectedMember.quote && selectedMember.quote !== "null" && (
+                                        <blockquote className="border-l-2 border-purple-500 pl-4 py-1 italic text-slate-400 mb-6 text-lg tracking-wide">
+                                            &quot;{selectedMember.quote}&quot;
+                                        </blockquote>
+                                    )}
 
-                                {selectedMember.bio && (
-                                    <div className={styles.modalSection}>
-                                        <h4 className={styles.modalSectionTitle}>BIO</h4>
-                                        <p className={styles.modalSectionText}>{selectedMember.bio}</p>
-                                    </div>
-                                )}
-
-                                {selectedMember.research && (
-                                    <div className={styles.modalSection}>
-                                        <h4 className={styles.modalSectionTitle}>RESEARCH INTERESTS</h4>
-                                        <div className={styles.interestsList}>
-                                            {selectedMember.research.split(',').map((interest, idx) => (
-                                                <span key={idx} className={styles.interestTag}>
-                                                    {interest.trim()}
-                                                </span>
-                                            ))}
+                                    {selectedMember.bio && (
+                                        <div className={styles.modalSection}>
+                                            <h4 className={styles.modalSectionTitle}>BIO</h4>
+                                            <p className={styles.modalSectionText}>{selectedMember.bio}</p>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+
+                                    {selectedMember.research && (
+                                        <div className={styles.modalSection}>
+                                            <h4 className={styles.modalSectionTitle}>RESEARCH INTERESTS</h4>
+                                            <div className={styles.interestsList}>
+                                                {selectedMember.research.split(',').map((interest, idx) => (
+                                                    <span key={idx} className={styles.interestTag}>
+                                                        {interest.trim()}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>,
                 document.body
