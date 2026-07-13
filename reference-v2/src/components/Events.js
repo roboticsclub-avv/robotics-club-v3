@@ -39,13 +39,9 @@ export default function Events() {
                         classname="section-title"
                         direction="down"
                     />
-                    <TextAnimation
-                        as="p"
-                        text="From workshops to hackathons, there's always something exciting on the calendar."
-                        classname="section-description"
-                        direction="down"
-                        style={{ margin: "0 auto" }}
-                    />
+                    <p className="section-description" style={{ margin: "0 auto" }}>
+                        From workshops to hackathons, there's always something exciting on the calendar.
+                    </p>
                 </div>
 
                 <div className={styles.eventsGrid}>

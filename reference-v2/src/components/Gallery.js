@@ -115,13 +115,9 @@ export default function Gallery() {
                         classname="section-title"
                         direction="down"
                     />
-                    <TextAnimation
-                        as="p"
-                        text="Explore the highlights of our workshops, tests, exhibitions, and lab milestones."
-                        classname="section-description"
-                        direction="down"
-                        style={{ margin: "0 auto" }}
-                    />
+                    <p className="section-description" style={{ margin: "0 auto" }}>
+                        Explore the highlights of our workshops, tests, exhibitions, and lab milestones.
+                    </p>
                 </div>
 
                 {/* CSS Columns Masonry Grid */}

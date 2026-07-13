@@ -82,13 +82,9 @@ export default function Projects() {
                         classname="section-title"
                         direction="down"
                     />
-                    <TextAnimation
-                        as="p"
-                        text="From concept to competition — explore the projects our members have designed, built, and deployed."
-                        classname="section-description"
-                        direction="down"
-                        style={{ margin: "0 auto" }}
-                    />
+                    <p className="section-description" style={{ margin: "0 auto" }}>
+                        From concept to competition — explore the projects our members have designed, built, and deployed.
+                    </p>
                 </div>
 
                 {/* Infinite Moving Cards Carousel containing actual Projects */}

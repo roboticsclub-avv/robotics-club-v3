@@ -214,13 +214,9 @@ export default function Hero({ isReady }) {
             <span className={`typewriter-text ${styles.typewriterText}`} />
           </h1>
 
-          <TextAnimation
-            as="p"
-            text="Join our community of makers, engineers, and dreamers who are shaping the future of automation."
-            classname={styles.heroDescription}
-            direction="down"
-            viewport={{ amount: 0.05, once: true }}
-          />
+          <p className={styles.heroDescription}>
+            Join our community of makers, engineers, and dreamers who are shaping the future of automation.
+          </p>
 
           <div className={styles.heroCta}>
             <a href="#contact" className={styles.ctaPrimary}>

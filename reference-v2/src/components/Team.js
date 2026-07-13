@@ -87,13 +87,9 @@ export default function Team() {
                             classname="section-title"
                             direction="down"
                         />
-                        <TextAnimation
-                            as="p"
-                            text="The minds behind the machines."
-                            classname="section-description"
-                            direction="down"
-                            style={{ margin: "0 auto" }}
-                        />
+                        <p className="section-description" style={{ margin: "0 auto" }}>
+                            The minds behind the machines.
+                        </p>
                     </div>
 
                     {loading ? (
