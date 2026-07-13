@@ -104,6 +104,20 @@ export async function updateAdminNotes(uid, notes) {
 }
 
 /**
+ * Update a user's role in Firestore.
+ */
+export async function updateUserRole(uid, role) {
+  try {
+    const userRef = doc(db, "users", uid);
+    await updateDoc(userRef, { role: role });
+    return true;
+  } catch (error) {
+    console.error("[dashboardService] Error updating user role:", error);
+    throw error;
+  }
+}
+
+/**
  * Fetch all events from Firestore.
  * Sorts them on the client-side by createdAt (newest first).
  */

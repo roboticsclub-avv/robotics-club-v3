@@ -1,14 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { formatDate } from "@/utils/formatters";
-import { updateAdminNotes } from "@/lib/firebase/dashboardService";
+import { updateAdminNotes, updateUserRole } from "@/lib/firebase/dashboardService";
+import useAuth from "@/hooks/useAuth";
 
 export default function ApplicantDetailModal({ applicant, onClose, onUpdateApplicant }) {
   console.log("[ApplicantDetailModal] Mounting with applicant:", applicant);
   const [notes, setNotes] = useState(applicant ? applicant.adminNotes || "" : "");
   const [savingNotes, setSavingNotes] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
+
+  const { isAdmin } = useAuth();
+  const [selectedRole, setSelectedRole] = useState(applicant ? applicant.role || "member" : "member");
+  const [savingRole, setSavingRole] = useState(false);
+
+  // Sync role state when applicant changes
+  useEffect(() => {
+    if (applicant) {
+      setSelectedRole(applicant.role || "member");
+    }
+  }, [applicant]);
 
   if (!applicant) return null;
 
@@ -60,6 +72,27 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
       alert(`Failed to save notes: ${err.message || err}`);
     } finally {
       setSavingNotes(false);
+    }
+  };
+
+  const handleRoleChange = async (newRole) => {
+    if (newRole === selectedRole) return;
+    const confirmChange = window.confirm(`Are you sure you want to change this member's role to ${newRole.toUpperCase()}?`);
+    if (!confirmChange) return;
+
+    try {
+      setSavingRole(true);
+      await updateUserRole(applicant.id, newRole);
+      setSelectedRole(newRole);
+      alert("Role updated successfully!");
+      if (onUpdateApplicant) {
+        onUpdateApplicant({ ...applicant, role: newRole });
+      }
+    } catch (err) {
+      console.error("Error updating role:", err);
+      alert(`Failed to update role: ${err.message || err}`);
+    } finally {
+      setSavingRole(false);
     }
   };
 
@@ -146,9 +179,26 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
                   <span className="text-gray-500">Member ID</span>
                   <span className="text-purple-400 font-mono text-xs font-bold">{memberId}</span>
                 </div>
-                <div className="flex justify-between py-1">
+                <div className="flex justify-between items-center py-1">
                   <span className="text-gray-500">Position / Role</span>
-                  <span className="text-cyan-400 font-mono text-xs capitalize font-bold">{role}</span>
+                  {isAdmin ? (
+                    <select
+                      value={selectedRole}
+                      disabled={savingRole}
+                      onChange={(e) => handleRoleChange(e.target.value)}
+                      className="bg-black/60 border border-white/[0.1] text-cyan-400 text-xs font-mono font-bold rounded px-2 py-1 outline-none focus:border-cyan-400 cursor-pointer"
+                    >
+                      <option value="member">Member</option>
+                      <option value="technical">Technical</option>
+                      <option value="ops">Ops</option>
+                      <option value="data">Data</option>
+                      <option value="secretary">Secretary</option>
+                      <option value="media">Media</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  ) : (
+                    <span className="text-cyan-400 font-mono text-xs capitalize font-bold">{selectedRole}</span>
+                  )}
                 </div>
               </div>
             </div>
