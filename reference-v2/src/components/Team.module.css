@@ -32,11 +32,14 @@
     width: 100%;
     position: relative;
     min-height: 300px;
+    border-bottom: 1px solid var(--border-card);
 }
 
 @media (min-width: 768px) {
     .facultyImageWrapper {
         width: 33.333333%;
+        border-bottom: none;
+        border-right: 1px solid var(--border-card);
     }
 }
 
@@ -47,15 +50,7 @@
 }
 
 .facultyImageOverlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, var(--bg-secondary), transparent);
-}
-
-@media (min-width: 768px) {
-    .facultyImageOverlay {
-        background: linear-gradient(to right, transparent, var(--bg-secondary));
-    }
+    display: none;
 }
 
 .facultyContent {
