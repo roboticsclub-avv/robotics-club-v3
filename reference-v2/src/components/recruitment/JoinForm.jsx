@@ -330,112 +330,316 @@ export default function JoinForm() {
     return <SuccessScreen />;
   }
 
+  // Shared input class
+  const inputCls = `w-full py-4 px-0 text-xl outline-none font-inter transition-all duration-300 placeholder:opacity-40`;
+  const inputStyle = {
+    background: "transparent",
+    borderBottom: "2px solid var(--border-card)",
+    color: "var(--text-primary)",
+  };
+
+  // Option card shared class
+  const optionCard = (selected) => ({
+    padding: "16px 20px",
+    borderRadius: "var(--radius-md)",
+    border: selected
+      ? "1.5px solid var(--accent-purple)"
+      : "1.5px solid var(--border-card)",
+    background: selected
+      ? "rgba(124, 58, 237, 0.10)"
+      : "var(--bg-card)",
+    color: selected ? "var(--accent-purple)" : "var(--text-secondary)",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    textAlign: "left",
+    fontFamily: "var(--font-inter, Inter, sans-serif)",
+    fontWeight: 600,
+    fontSize: "0.95rem",
+    boxShadow: selected ? "0 0 20px rgba(124,58,237,0.15)" : "none",
+  });
+
   return (
-    <div className="min-h-screen flex text-white bg-[#0a0a0a]">
-      <div className="w-full flex flex-col md:flex-row min-h-screen">
-        {/* Left Hand side: Static fall program panel */}
-        <div className="w-full md:w-5/12 bg-slate-950 p-12 flex flex-col justify-between border-r border-white/5 relative overflow-hidden min-h-[300px] md:min-h-screen">
-          <div className="absolute inset-0 bg-gradient-to-tr from-cyan-950/20 via-transparent to-purple-950/10 pointer-events-none" />
+    <div
+      className="min-h-screen flex"
+      style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}
+    >
+      {/* ── Ambient glow orbs (fixed) ── */}
+      <div
+        className="fixed top-0 left-0 w-[600px] h-[600px] rounded-full pointer-events-none"
+        style={{ background: "var(--accent-purple-glow)", filter: "blur(120px)", opacity: 0.6 }}
+      />
+      <div
+        className="fixed bottom-0 right-0 w-[400px] h-[400px] rounded-full pointer-events-none"
+        style={{ background: "var(--accent-teal-glow)", filter: "blur(100px)", opacity: 0.5 }}
+      />
+
+      <div className="w-full flex flex-col md:flex-row min-h-screen relative z-10">
+
+        {/* ══════════════════════════════
+            LEFT PANEL — Branding
+        ══════════════════════════════ */}
+        <div
+          className="w-full md:w-5/12 flex flex-col justify-between p-10 md:p-14 relative overflow-hidden min-h-[260px] md:min-h-screen"
+          style={{
+            background: "rgba(255,255,255,0.015)",
+            borderRight: "1px solid var(--border-subtle)",
+          }}
+        >
+          {/* Grid texture overlay */}
+          <div
+            className="absolute inset-0 pointer-events-none opacity-[0.03]"
+            style={{
+              backgroundImage:
+                "linear-gradient(var(--border-card) 1px, transparent 1px), linear-gradient(90deg, var(--border-card) 1px, transparent 1px)",
+              backgroundSize: "40px 40px",
+            }}
+          />
+
+          {/* Logo */}
           <div className="relative z-10">
-            <Link href="/" className="text-xl font-black font-orbitron tracking-wider text-cyan-400">
-              ROBOTICS<span className="text-white font-normal">.CLUB</span>
+            <Link
+              href="/"
+              className="font-black font-orbitron text-lg tracking-wider hover:opacity-80 transition-opacity"
+              style={{ color: "var(--accent-teal)" }}
+            >
+              ROBOTICS<span style={{ color: "var(--text-primary)", fontWeight: 300 }}>.CLUB</span>
             </Link>
           </div>
-          <div className="relative z-10 my-auto">
-            <h2 className="text-5xl md:text-6xl font-black font-orbitron leading-tight text-white mb-4">
-              FALL <br />
-              <span className="text-cyan-400">2026</span> <br />
-              PROGRAM
-            </h2>
-            <p className="text-gray-400 font-mono text-sm tracking-widest uppercase">&gt; CLUB MEMBER RECRUITMENT</p>
+
+          {/* Hero text */}
+          <div className="relative z-10 my-auto py-10">
+            {/* Chip */}
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-8 text-xs font-mono"
+              style={{
+                background: "var(--accent-purple-glow)",
+                border: "1px solid rgba(124, 58, 237, 0.3)",
+                color: "var(--accent-purple)",
+              }}
+            >
+              <span
+                className="w-1.5 h-1.5 rounded-full animate-pulse"
+                style={{ background: "var(--accent-purple)" }}
+              />
+              FALL 2026 · OPEN RECRUITMENT
+            </div>
+
+            <h1
+              className="font-black font-orbitron leading-[1.08] mb-6"
+              style={{ fontSize: "clamp(2.4rem, 5vw, 3.5rem)", color: "var(--text-primary)" }}
+            >
+              JOIN THE{" "}
+              <span
+                style={{
+                  background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
+                CORE
+              </span>
+              <br />
+              ROBOTICS
+              <br />
+              TEAM
+            </h1>
+
+            <p
+              className="font-inter text-sm leading-relaxed max-w-xs"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Build real robots, compete globally, and solve engineering
+              challenges that matter. Applications reviewed on a rolling basis.
+            </p>
+
+            {/* Stats row */}
+            <div className="flex gap-8 mt-10">
+              {[
+                { val: "50+", label: "Active Members" },
+                { val: "12+", label: "Projects Live" },
+                { val: "3×", label: "Championship" },
+              ].map(({ val, label }) => (
+                <div key={label}>
+                  <div
+                    className="font-orbitron font-black text-2xl"
+                    style={{ color: "var(--accent-teal)" }}
+                  >
+                    {val}
+                  </div>
+                  <div
+                    className="font-mono text-[10px] uppercase tracking-widest mt-0.5"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {label}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="relative z-10 text-gray-600 text-xs font-mono">
+
+          {/* Footer */}
+          <div
+            className="relative z-10 font-mono text-[10px] uppercase tracking-widest"
+            style={{ color: "var(--text-muted)" }}
+          >
             ARC // SYSTEM VER 3.0.0
           </div>
         </div>
 
-        {/* Right Hand side: Wizard layout */}
-        <div className="w-full md:w-7/12 flex flex-col bg-slate-900/20 min-h-screen">
+        {/* ══════════════════════════════
+            RIGHT PANEL — Form Wizard
+        ══════════════════════════════ */}
+        <div className="w-full md:w-7/12 flex flex-col">
           <FormProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
 
-          <div className="flex-1 flex flex-col justify-center px-6 md:px-16 py-12 max-w-2xl w-full mx-auto">
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
-              
-              {/* Step 1: Full Name */}
+          <div className="flex-1 flex flex-col justify-center px-6 md:px-16 py-14 max-w-2xl w-full mx-auto">
+            <form onSubmit={(e) => e.preventDefault()} className="space-y-10">
+
+              {/* Step label */}
+              <div
+                className="font-mono text-xs uppercase tracking-widest"
+                style={{ color: "var(--accent-teal)" }}
+              >
+                {currentStep} /{" "}
+                <span style={{ color: "var(--text-muted)" }}>{TOTAL_STEPS}</span>
+              </div>
+
+              {/* ── Step 1: Name ── */}
               {currentStep === 1 && (
-                <div className="space-y-4">
-                  <span className="text-cyan-400 font-mono font-bold text-lg">1 ➜</span>
-                  <h3 className="text-2xl font-bold font-orbitron text-white">
-                    What is your <span className="text-cyan-400">full name</span>? *
-                  </h3>
+                <div className="space-y-5">
+                  <h2
+                    className="font-black font-orbitron leading-tight"
+                    style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
+                  >
+                    What is your{" "}
+                    <span
+                      style={{
+                        background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                      }}
+                    >
+                      full name
+                    </span>
+                    ?
+                  </h2>
                   <input
                     ref={inputRef}
                     type="text"
                     placeholder="Enter your name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-transparent border-b-2 border-slate-700 focus:border-cyan-400 py-3 text-xl text-white outline-none transition-colors placeholder-slate-600"
+                    className={inputCls}
+                    style={{
+                      ...inputStyle,
+                      borderBottomColor: formData.name ? "var(--accent-teal)" : undefined,
+                    }}
                   />
-                  <p className="text-slate-500 text-xs font-mono">Example: Shashwat Mishra</p>
+                  <p className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
+                    e.g. Shashwat Mishra
+                  </p>
                 </div>
               )}
 
-              {/* Step 2: Email */}
+              {/* ── Step 2: Email ── */}
               {currentStep === 2 && (
-                <div className="space-y-4">
-                  <span className="text-cyan-400 font-mono font-bold text-lg">2 ➜</span>
-                  <h3 className="text-2xl font-bold font-orbitron text-white">
-                    What is your <span className="text-cyan-400">college email</span> address? *
-                  </h3>
+                <div className="space-y-5">
+                  <h2
+                    className="font-black font-orbitron leading-tight"
+                    style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
+                  >
+                    Your college{" "}
+                    <span
+                      style={{
+                        background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                      }}
+                    >
+                      email
+                    </span>{" "}
+                    address?
+                  </h2>
                   <input
                     ref={inputRef}
                     type="email"
                     placeholder="name@student.amrita.edu"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full bg-transparent border-b-2 border-slate-700 focus:border-cyan-400 py-3 text-xl text-white outline-none transition-colors placeholder-slate-600"
+                    className={inputCls}
+                    style={{
+                      ...inputStyle,
+                      borderBottomColor: formData.email ? "var(--accent-teal)" : undefined,
+                    }}
                   />
-                  <p className="text-slate-500 text-xs font-mono">For application status correspondence.</p>
+                  <p className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
+                    Used for application status correspondence.
+                  </p>
                 </div>
               )}
 
-              {/* Step 3: Password */}
+              {/* ── Step 3: Password ── */}
               {currentStep === 3 && (
-                <div className="space-y-4">
-                  <span className="text-cyan-400 font-mono font-bold text-lg">3 ➜</span>
-                  <h3 className="text-2xl font-bold font-orbitron text-white">
-                    Create an account <span className="text-cyan-400">password</span>. *
-                  </h3>
+                <div className="space-y-5">
+                  <h2
+                    className="font-black font-orbitron leading-tight"
+                    style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
+                  >
+                    Create a secure{" "}
+                    <span
+                      style={{
+                        background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                      }}
+                    >
+                      password
+                    </span>
+                  </h2>
                   <input
                     ref={inputRef}
                     type="password"
-                    placeholder="••••••••"
+                    placeholder="••••••••••"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full bg-transparent border-b-2 border-slate-700 focus:border-cyan-400 py-3 text-xl text-white outline-none transition-colors placeholder-slate-600"
+                    className={inputCls}
+                    style={{
+                      ...inputStyle,
+                      borderBottomColor: formData.password ? "var(--accent-teal)" : undefined,
+                    }}
                   />
-                  <p className="text-slate-500 text-xs font-mono">Minimum 6 characters. Store securely.</p>
+                  <p className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
+                    Minimum 6 characters. Store securely.
+                  </p>
                 </div>
               )}
 
-              {/* Step 4: Year Select */}
+              {/* ── Step 4: Year ── */}
               {currentStep === 4 && (
-                <div className="space-y-4">
-                  <span className="text-cyan-400 font-mono font-bold text-lg">4 ➜</span>
-                  <h3 className="text-2xl font-bold font-orbitron text-white">
-                    Which academic <span className="text-cyan-400">year</span> are you in? *
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-6">
+                  <h2
+                    className="font-black font-orbitron leading-tight"
+                    style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
+                  >
+                    Academic{" "}
+                    <span
+                      style={{
+                        background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                      }}
+                    >
+                      year
+                    </span>
+                    ?
+                  </h2>
+                  <div className="grid grid-cols-2 gap-3">
                     {["1st Year", "2nd Year", "3rd Year", "4th Year"].map((year) => (
                       <button
                         key={year}
                         type="button"
                         onClick={() => handleRadioSelect("year", year)}
-                        className={`p-4 border rounded text-left font-semibold transition-all ${
-                          formData.year === year
-                            ? "bg-cyan-500/20 border-cyan-400 text-cyan-400"
-                            : "bg-slate-900/40 border-slate-800 text-gray-400 hover:border-slate-700 hover:text-white"
-                        }`}
+                        style={optionCard(formData.year === year)}
                       >
                         {year}
                       </button>
@@ -444,111 +648,222 @@ export default function JoinForm() {
                 </div>
               )}
 
-              {/* Step 5: Branch */}
+              {/* ── Step 5: Branch ── */}
               {currentStep === 5 && (
-                <div className="space-y-4">
-                  <span className="text-cyan-400 font-mono font-bold text-lg">5 ➜</span>
-                  <h3 className="text-2xl font-bold font-orbitron text-white">
-                    Select your <span className="text-cyan-400">branch</span> of study. *
-                  </h3>
+                <div className="space-y-5">
+                  <h2
+                    className="font-black font-orbitron leading-tight"
+                    style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
+                  >
+                    Your{" "}
+                    <span
+                      style={{
+                        background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                      }}
+                    >
+                      branch
+                    </span>{" "}
+                    of study?
+                  </h2>
                   <select
                     ref={inputRef}
                     value={formData.branch}
                     onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
-                    className="w-full bg-slate-900 border-b-2 border-slate-700 focus:border-cyan-400 py-3 text-xl text-white outline-none transition-colors"
+                    className="w-full py-4 text-lg outline-none transition-all font-inter"
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      borderBottom: "2px solid var(--border-card)",
+                      color: formData.branch ? "var(--text-primary)" : "var(--text-muted)",
+                      borderBottomColor: formData.branch ? "var(--accent-teal)" : undefined,
+                    }}
                   >
-                    <option value="" disabled>Choose branch...</option>
-                    <option value="AIE">Artificial Intelligence (AIE)</option>
-                    <option value="CSE">Computer Science (CSE)</option>
-                    <option value="CCE">Computer & Communication Engineering (CCE)</option>
-                    <option value="AIDS">Artificial Intelligence and Data Science (AIDS)</option>
+                    <option value="" disabled style={{ background: "#111" }}>
+                      Choose your branch...
+                    </option>
+                    <option value="AIE" style={{ background: "#111" }}>Artificial Intelligence Engineering (AIE)</option>
+                    <option value="CSE" style={{ background: "#111" }}>Computer Science (CSE)</option>
+                    <option value="CCE" style={{ background: "#111" }}>Computer & Communication (CCE)</option>
+                    <option value="AIDS" style={{ background: "#111" }}>AI and Data Science (AIDS)</option>
                   </select>
                 </div>
               )}
 
-              {/* Step 6: Section */}
+              {/* ── Step 6: Section ── */}
               {currentStep === 6 && (
-                <div className="space-y-4">
-                  <span className="text-cyan-400 font-mono font-bold text-lg">6 ➜</span>
-                  <h3 className="text-2xl font-bold font-orbitron text-white">
-                    What is your class <span className="text-cyan-400">section</span>? *
-                  </h3>
+                <div className="space-y-5">
+                  <h2
+                    className="font-black font-orbitron leading-tight"
+                    style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
+                  >
+                    Class{" "}
+                    <span
+                      style={{
+                        background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                      }}
+                    >
+                      section
+                    </span>
+                    ?
+                  </h2>
                   <input
                     ref={inputRef}
                     type="text"
                     placeholder="e.g. A, B, C..."
                     value={formData.section}
                     onChange={(e) => setFormData({ ...formData, section: e.target.value })}
-                    className="w-full bg-transparent border-b-2 border-slate-700 focus:border-cyan-400 py-3 text-xl text-white outline-none transition-colors placeholder-slate-600"
+                    className={inputCls}
+                    style={{
+                      ...inputStyle,
+                      borderBottomColor: formData.section ? "var(--accent-teal)" : undefined,
+                    }}
                   />
                 </div>
               )}
 
-              {/* Step 7: Interest */}
+              {/* ── Step 7: Interests ── */}
               {currentStep === 7 && (
-                <div className="space-y-4">
-                  <span className="text-cyan-400 font-mono font-bold text-lg">7 ➜</span>
-                  <h3 className="text-2xl font-bold font-orbitron text-white">
-                    Which area <span className="text-cyan-400">interests</span> you the most? *
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {["Software/AI", "Hardware/IoT", "Mechanical/Design", "Management"].map((interest) => (
+                <div className="space-y-6">
+                  <h2
+                    className="font-black font-orbitron leading-tight"
+                    style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
+                  >
+                    Area of{" "}
+                    <span
+                      style={{
+                        background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                      }}
+                    >
+                      interest
+                    </span>
+                    ?
+                  </h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { label: "Software / AI", icon: "⚡" },
+                      { label: "Hardware / IoT", icon: "🔧" },
+                      { label: "Mechanical / Design", icon: "⚙️" },
+                      { label: "Management", icon: "📋" },
+                    ].map(({ label, icon }) => (
                       <button
-                        key={interest}
+                        key={label}
                         type="button"
-                        onClick={() => handleRadioSelect("interests", interest)}
-                        className={`p-4 border rounded text-left font-semibold transition-all ${
-                          formData.interests === interest
-                            ? "bg-cyan-500/20 border-cyan-400 text-cyan-400"
-                            : "bg-slate-900/40 border-slate-800 text-gray-400 hover:border-slate-700 hover:text-white"
-                        }`}
+                        onClick={() => handleRadioSelect("interests", label)}
+                        style={optionCard(formData.interests === label)}
                       >
-                        {interest}
+                        <span className="mr-2">{icon}</span>
+                        {label}
                       </button>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Step 8: Reason */}
+              {/* ── Step 8: Reason ── */}
               {currentStep === 8 && (
-                <div className="space-y-4">
-                  <span className="text-cyan-400 font-mono font-bold text-lg">8 ➜</span>
-                  <h3 className="text-2xl font-bold font-orbitron text-white">
-                    Why do you want to <span className="text-cyan-400">join us</span>? *
-                  </h3>
+                <div className="space-y-5">
+                  <h2
+                    className="font-black font-orbitron leading-tight"
+                    style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
+                  >
+                    Why do you want to{" "}
+                    <span
+                      style={{
+                        background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                      }}
+                    >
+                      join us
+                    </span>
+                    ?
+                  </h2>
                   <textarea
                     ref={inputRef}
-                    rows="3"
+                    rows={4}
                     placeholder="Tell us what drives you..."
                     value={formData.reason}
                     onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                    className="w-full bg-transparent border-b-2 border-slate-700 focus:border-cyan-400 py-2 text-lg text-white outline-none transition-colors placeholder-slate-600 resize-none"
+                    className="w-full py-4 text-lg outline-none font-inter resize-none transition-all"
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      borderBottom: "2px solid var(--border-card)",
+                      color: "var(--text-primary)",
+                      borderBottomColor: formData.reason ? "var(--accent-teal)" : undefined,
+                    }}
                   />
-                  <p className="text-slate-500 text-xs font-mono">Minimum 10 characters.</p>
+                  <p className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
+                    Minimum 10 characters.
+                  </p>
                 </div>
               )}
 
-              {/* Step 9: Photograph Upload */}
+              {/* ── Step 9: Photo ── */}
               {currentStep === 9 && (
-                <div className="space-y-4">
-                  <span className="text-cyan-400 font-mono font-bold text-lg">9 ➜</span>
-                  <h3 className="text-2xl font-bold font-orbitron text-white">
-                    Upload your <span className="text-cyan-400">profile photograph</span> *
-                  </h3>
-                  
-                  <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-slate-950/40 rounded border border-slate-800">
-                    <div className="relative w-24 h-24 bg-slate-900 border border-slate-700 rounded-full flex items-center justify-center overflow-hidden">
+                <div className="space-y-6">
+                  <h2
+                    className="font-black font-orbitron leading-tight"
+                    style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
+                  >
+                    Upload your{" "}
+                    <span
+                      style={{
+                        background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                      }}
+                    >
+                      photo
+                    </span>
+                  </h2>
+
+                  <div
+                    className="flex flex-col sm:flex-row items-center gap-8 p-8 rounded-2xl"
+                    style={{
+                      background: "var(--bg-card)",
+                      border: "1.5px solid var(--border-card)",
+                    }}
+                  >
+                    {/* Avatar preview */}
+                    <div
+                      className="relative w-28 h-28 rounded-full overflow-hidden shrink-0 flex items-center justify-center"
+                      style={{
+                        background: "rgba(124, 58, 237, 0.08)",
+                        border: "2px solid var(--border-card)",
+                        boxShadow: photoPreview ? "0 0 24px rgba(124,58,237,0.2)" : "none",
+                      }}
+                    >
                       {photoPreview ? (
-                        <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                        <img
+                          src={photoPreview}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-8 h-8 text-slate-500">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        <svg
+                          fill="none"
+                          stroke="var(--text-muted)"
+                          viewBox="0 0 24 24"
+                          className="w-10 h-10"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="1.5"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          />
                         </svg>
                       )}
                     </div>
-                    
-                    <div className="flex-1 text-center sm:text-left space-y-2">
+
+                    <div className="flex-1 text-center sm:text-left space-y-3">
                       <input
                         type="file"
                         accept="image/*"
@@ -558,41 +873,82 @@ export default function JoinForm() {
                       />
                       <label
                         htmlFor="photo-upload"
-                        className="inline-block px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold font-mono rounded cursor-pointer transition-colors"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-orbitron font-bold text-xs cursor-pointer transition-all hover:scale-[1.02]"
+                        style={{
+                          background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                          color: "#fff",
+                          boxShadow: "0 0 20px rgba(124,58,237,0.25)",
+                        }}
                       >
-                        SELECT IMAGE
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        {photoPreview ? "CHANGE PHOTO" : "SELECT IMAGE"}
                       </label>
-                      <p className="text-slate-500 text-xs font-mono">PNG, JPG or JPEG. Compressed automatically.</p>
+                      <p className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
+                        PNG, JPG · Max 5MB · Auto-compressed
+                      </p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Validation Messages */}
+              {/* ── Error message ── */}
               {errorMsg && (
-                <div className="p-3 bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-mono rounded">
+                <div
+                  className="flex items-start gap-3 p-4 rounded-xl font-mono text-xs"
+                  style={{
+                    background: "rgba(239,68,68,0.08)",
+                    border: "1px solid rgba(239,68,68,0.25)",
+                    color: "#f87171",
+                  }}
+                >
+                  <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
                   {errorMsg}
                 </div>
               )}
 
-              {/* Status Submission Loaders */}
+              {/* ── Submitting progress ── */}
               {submittingMsg && (
-                <div className="flex items-center gap-3 text-cyan-400 text-xs font-mono animate-pulse">
-                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                <div
+                  className="flex items-center gap-3 text-xs font-mono"
+                  style={{ color: "var(--accent-teal)" }}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full animate-ping shrink-0"
+                    style={{ background: "var(--accent-teal)" }}
+                  />
                   {submittingMsg}
                 </div>
               )}
 
-              {/* Navigation Actions */}
-              <div className="flex items-center gap-4 pt-6">
+              {/* ── Navigation ── */}
+              <div className="flex items-center gap-4 pt-4">
                 {currentStep > 1 && (
                   <button
                     type="button"
                     onClick={handlePrev}
                     disabled={!!submittingMsg || isUploading}
-                    className="px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 font-bold font-orbitron rounded text-xs transition-colors"
+                    className="px-6 py-3 rounded-xl font-orbitron font-bold text-xs transition-all hover:opacity-80 disabled:opacity-40"
+                    style={{
+                      background: "var(--bg-card)",
+                      border: "1.5px solid var(--border-card)",
+                      color: "var(--text-secondary)",
+                    }}
                   >
-                    BACK
+                    ← BACK
                   </button>
                 )}
 
@@ -601,7 +957,12 @@ export default function JoinForm() {
                     type="button"
                     onClick={handleNext}
                     disabled={!!submittingMsg}
-                    className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-black font-bold font-orbitron rounded text-xs transition-colors"
+                    className="px-7 py-3 rounded-xl font-orbitron font-bold text-xs transition-all hover:scale-[1.02] hover:opacity-90 disabled:opacity-40"
+                    style={{
+                      background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                      color: "#fff",
+                      boxShadow: "0 0 24px rgba(124,58,237,0.3)",
+                    }}
                   >
                     OK ✓
                   </button>
@@ -610,15 +971,20 @@ export default function JoinForm() {
                     type="button"
                     onClick={handleSubmit}
                     disabled={!!submittingMsg || isUploading}
-                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-cyan-600 hover:opacity-90 disabled:opacity-50 text-white font-bold font-orbitron rounded text-xs transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                    className="px-8 py-3.5 rounded-xl font-orbitron font-bold text-xs transition-all hover:scale-[1.02] disabled:opacity-40"
+                    style={{
+                      background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                      color: "#fff",
+                      boxShadow: "0 0 30px rgba(124,58,237,0.4)",
+                    }}
                   >
-                    SUBMIT APPLICATION
+                    SUBMIT APPLICATION →
                   </button>
                 )}
 
                 {currentStep < TOTAL_STEPS && (
-                  <span className="hidden sm:inline text-slate-600 text-xs font-mono">
-                    press <strong>Enter ↵</strong>
+                  <span className="hidden sm:inline font-mono text-xs" style={{ color: "var(--text-muted)" }}>
+                    press <strong style={{ color: "var(--text-secondary)" }}>Enter ↵</strong>
                   </span>
                 )}
               </div>
