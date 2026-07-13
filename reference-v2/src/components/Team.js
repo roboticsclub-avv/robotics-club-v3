@@ -68,6 +68,22 @@ export default function Team() {
         setSelectedMember(null);
     };
 
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") {
+                closeModal();
+            }
+        };
+        if (selectedMember) {
+            window.addEventListener("keydown", handleKeyDown);
+            document.body.style.overflow = "hidden";
+        }
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+            document.body.style.overflow = "";
+        };
+    }, [selectedMember]);
+
     return (
         <>
             <section className={`section ${styles.team}`} id="team">

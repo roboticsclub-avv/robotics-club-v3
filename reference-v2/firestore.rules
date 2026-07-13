@@ -12,15 +12,20 @@ service cloud.firestore {
       return request.auth != null && getUserRole() == 'admin';
     }
 
-    // Any staff member (admin, technical, ops, data, secretary)
+    // Any staff member (admin, technical, ops, data, secretary, media)
     function isStaff() {
       return request.auth != null && (
         getUserRole() == 'admin' || 
         getUserRole() == 'technical' || 
         getUserRole() == 'ops' || 
         getUserRole() == 'data' || 
-        getUserRole() == 'secretary'
+        getUserRole() == 'secretary' ||
+        getUserRole() == 'media'
       );
+    }
+
+    function isMedia() {
+      return request.auth != null && (getUserRole() == 'admin' || getUserRole() == 'media');
     }
 
     function isOps() {
@@ -78,6 +83,11 @@ service cloud.firestore {
       allow read: if true;
       // Admin and Technical staff can manage core team roster
       allow write: if isTechnical();
+    }
+
+    match /gallery/{imageId} {
+      allow read: if true;
+      allow write: if isMedia();
     }
 
     match /settings/{settingId} {

@@ -4,7 +4,10 @@ import { useState, useEffect } from "react";
 import styles from "./Gallery.module.css";
 import TextAnimation from "./ui/scroll-text";
 
-const GALLERY_ITEMS = [
+import { db } from "@/lib/firebase/firestore";
+import { collection, getDocs, query } from "firebase/firestore";
+
+const DEFAULT_GALLERY_ITEMS = [
     {
         id: 1,
         url: "https://images.unsplash.com/photo-1531746790733-2488c0672045?q=80&w=800&auto=format&fit=crop",
@@ -64,7 +67,27 @@ const GALLERY_ITEMS = [
 ];
 
 export default function Gallery() {
+    const [galleryItems, setGalleryItems] = useState(DEFAULT_GALLERY_ITEMS);
     const [lightboxIndex, setLightboxIndex] = useState(null);
+
+    useEffect(() => {
+        const fetchGallery = async () => {
+            try {
+                const q = query(collection(db, "gallery"));
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    const items = [];
+                    querySnapshot.forEach((doc) => {
+                        items.push({ id: doc.id, ...doc.data() });
+                    });
+                    setGalleryItems(items);
+                }
+            } catch (error) {
+                console.error("Error loading gallery from Firestore:", error);
+            }
+        };
+        fetchGallery();
+    }, []);
 
     const openLightbox = (index) => {
         setLightboxIndex(index);
@@ -79,8 +102,8 @@ export default function Gallery() {
     const navigateLightbox = (direction) => {
         if (lightboxIndex === null) return;
         let nextIndex = lightboxIndex + direction;
-        if (nextIndex < 0) nextIndex = GALLERY_ITEMS.length - 1;
-        if (nextIndex >= GALLERY_ITEMS.length) nextIndex = 0;
+        if (nextIndex < 0) nextIndex = galleryItems.length - 1;
+        if (nextIndex >= galleryItems.length) nextIndex = 0;
         setLightboxIndex(nextIndex);
     };
 
@@ -93,9 +116,9 @@ export default function Gallery() {
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [lightboxIndex]);
+    }, [lightboxIndex, galleryItems]);
 
-    const activeItem = lightboxIndex !== null ? GALLERY_ITEMS[lightboxIndex] : null;
+    const activeItem = lightboxIndex !== null ? galleryItems[lightboxIndex] : null;
 
     return (
         <section className={`section ${styles.gallery}`} id="gallery">
@@ -122,7 +145,7 @@ export default function Gallery() {
 
                 {/* CSS Columns Masonry Grid */}
                 <div className={styles.masonryGrid}>
-                    {GALLERY_ITEMS.map((item, index) => (
+                    {galleryItems.map((item, index) => (
                         <div 
                             key={item.id} 
                             className={`glass-card ${styles.galleryCard}`}
