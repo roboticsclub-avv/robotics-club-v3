@@ -12,6 +12,11 @@ export default function InventoryTab() {
     });
     const [editingId, setEditingId] = useState(null);
 
+    // Categories states
+    const [categories, setCategories] = useState(["Microcontroller", "Sensor", "Actuator", "Power", "Display", "Module", "Mechanical", "Misc"]);
+    const [newCategory, setNewCategory] = useState("");
+    const [showAddCategoryForm, setShowAddCategoryForm] = useState(false);
+
     const fetchInventory = async () => {
         setLoading(true);
         try {
@@ -26,8 +31,67 @@ export default function InventoryTab() {
         }
     };
 
+    const fetchCategories = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('categories')
+                .select('name')
+                .order('name', { ascending: true });
+            
+            if (error) {
+                console.log("No categories table found. Using default categories.");
+                return;
+            }
+
+            if (data && data.length > 0) {
+                const dbCats = data.map(c => c.name);
+                const uniqueCats = Array.from(new Set([...dbCats, "Microcontroller", "Sensor", "Actuator", "Power", "Display", "Module", "Mechanical", "Misc"]));
+                uniqueCats.sort((a, b) => a.localeCompare(b));
+                setCategories(uniqueCats);
+            }
+        } catch (err) {
+            console.error("Error fetching categories:", err);
+        }
+    };
+
+    const handleAddCategory = async (e) => {
+        e.preventDefault();
+        const name = newCategory.trim();
+        if (!name) return;
+
+        const formattedName = name.charAt(0).toUpperCase() + name.slice(1);
+
+        if (categories.includes(formattedName)) {
+            await showAlert("Category already exists!", "Error");
+            return;
+        }
+
+        try {
+            const { error } = await supabase
+                .from('categories')
+                .insert([{ name: formattedName }]);
+
+            if (error) {
+                console.warn("Could not save category to Supabase. Saving locally in memory.");
+            }
+
+            setCategories(prev => [...prev, formattedName].sort((a, b) => a.localeCompare(b)));
+            setFormData(prev => ({ ...prev, category: formattedName }));
+            setNewCategory("");
+            setShowAddCategoryForm(false);
+            await showAlert("Category added successfully!", "Success");
+        } catch (err) {
+            console.error("Error adding category:", err);
+            setCategories(prev => [...prev, formattedName].sort((a, b) => a.localeCompare(b)));
+            setFormData(prev => ({ ...prev, category: formattedName }));
+            setNewCategory("");
+            setShowAddCategoryForm(false);
+        }
+    };
+
     useEffect(() => {
         fetchInventory();
+        fetchCategories();
     }, []);
 
     const handleChange = (e) => {
@@ -114,8 +178,28 @@ export default function InventoryTab() {
                     </div>
                     <div>
                         <label className="block text-gray-500 text-xs font-mono uppercase mb-1">Category</label>
-                        <input type="text" name="category" value={formData.category} onChange={handleChange} required
-                            className="w-full bg-black/40 border border-white/[0.06] hover:border-cyan-500/40 focus:border-cyan-400 focus:outline-none rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 transition-colors font-inter" placeholder="e.g. Microcontroller" />
+                        <div className="flex gap-2 items-center">
+                            <select
+                                name="category"
+                                value={formData.category}
+                                onChange={handleChange}
+                                required
+                                className="w-full bg-black/40 border border-white/[0.06] hover:border-cyan-500/40 focus:border-cyan-400 focus:outline-none rounded-lg px-3 py-2 text-sm text-white transition-colors font-inter"
+                            >
+                                <option value="" disabled>Select Category</option>
+                                {categories.map(cat => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                            </select>
+                            <button
+                                type="button"
+                                onClick={() => setShowAddCategoryForm(true)}
+                                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-white/[0.06] text-cyan-400 hover:text-cyan-300 rounded-lg text-sm font-bold transition-colors shrink-0"
+                                title="Add New Category"
+                            >
+                                +
+                            </button>
+                        </div>
                     </div>
                     <div>
                         <label className="block text-gray-500 text-xs font-mono uppercase mb-1">Total Quantity</label>
@@ -191,6 +275,47 @@ export default function InventoryTab() {
                     </div>
                 )}
             </div>
+
+            {/* Add Category Modal */}
+            {showAddCategoryForm && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-[#111115] border border-white/[0.08] p-6 rounded-2xl max-w-sm w-full space-y-4">
+                        <div>
+                            <h3 className="text-sm font-orbitron font-bold text-white uppercase tracking-wider">
+                                Add New Category
+                            </h3>
+                            <p className="text-xs text-gray-500 mt-1">
+                                Create a custom hardware category.
+                            </p>
+                        </div>
+                        <form onSubmit={handleAddCategory} className="space-y-4">
+                            <input
+                                type="text"
+                                required
+                                placeholder="e.g. Microcontroller"
+                                value={newCategory}
+                                onChange={(e) => setNewCategory(e.target.value)}
+                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500"
+                            />
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => { setShowAddCategoryForm(false); setNewCategory(""); }}
+                                    className="flex-1 py-2 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 text-gray-300 font-orbitron text-xs rounded-lg transition-all"
+                                >
+                                    CANCEL
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-orbitron font-bold text-xs rounded-lg transition-colors"
+                                >
+                                    SAVE
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

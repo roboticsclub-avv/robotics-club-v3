@@ -169,3 +169,31 @@ drop policy if exists "Insert own profile policy" on public.users;
 create policy "Insert own profile policy" on public.users
 for insert to authenticated
 with check (auth.uid() = uid);
+
+-- =========================================================================
+-- CATEGORIES: Table and Policies Setup
+-- =========================================================================
+CREATE TABLE IF NOT EXISTS public.categories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL UNIQUE,
+    "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- Enable RLS on categories
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+
+-- Allow public read access to categories
+DROP POLICY IF EXISTS "Allow public select on categories" ON public.categories;
+CREATE POLICY "Allow public select on categories" ON public.categories
+FOR SELECT USING (true);
+
+-- Allow authenticated admins/staff to manage categories
+DROP POLICY IF EXISTS "Allow admin manage on categories" ON public.categories;
+CREATE POLICY "Allow admin manage on categories" ON public.categories
+FOR ALL TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM public.users
+    WHERE uid = auth.uid() AND role IN ('admin', 'technical', 'ops', 'data', 'secretary')
+  )
+);
