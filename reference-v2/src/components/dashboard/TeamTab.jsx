@@ -1,10 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { db } from "@/lib/firebase/firestore";
-import { storage } from "@/lib/firebase/storage";
-import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { supabase } from "@/lib/supabase";
 
 const getImageUrl = (url) => {
   if (!url) return `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/media/placeholder.jpg`;
@@ -35,17 +32,14 @@ export default function TeamTab() {
   const fetchTeam = async () => {
     setLoading(true);
     try {
-      const q = query(
-        collection(db, "core_team"),
-        orderBy("display_order", "asc"),
-        orderBy("name", "asc")
-      );
-      const querySnapshot = await getDocs(q);
-      const data = [];
-      querySnapshot.forEach((docSnap) => {
-        data.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      setTeam(data);
+      const { data, error } = await supabase
+        .from('core_team')
+        .select('*')
+        .order('display_order', { ascending: true })
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      setTeam(data || []);
     } catch (error) {
       console.error("Error fetching team:", error);
       alert("Error loading team directory: " + error.message);
@@ -70,13 +64,19 @@ export default function TeamTab() {
   };
 
   const uploadImage = async (file) => {
-    const fileExt = file.name.split('.').pop();
+    const fileExt = file.name.split('.').pop() || 'jpg';
     const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-    const storageRef = ref(storage, `core_team/${fileName}`);
     
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadUrl = await getDownloadURL(snapshot.ref);
-    return downloadUrl;
+    const { error: uploadError } = await supabase.storage
+      .from('team-images')
+      .upload(fileName, file);
+    
+    if (uploadError) throw uploadError;
+
+    const { data: publicUrlData } = supabase.storage
+      .from('team-images')
+      .getPublicUrl(fileName);
+    return publicUrlData.publicUrl;
   };
 
   const handleSubmit = async (e) => {
@@ -86,7 +86,7 @@ export default function TeamTab() {
     try {
       let finalImageUrl = currentImageUrl;
 
-      // Upload file to Firebase Storage if a new one is selected
+      // Upload file to Supabase Storage if a new one is selected
       if (imageFile) {
         finalImageUrl = await uploadImage(imageFile);
       }
@@ -104,12 +104,17 @@ export default function TeamTab() {
 
       if (editingId) {
         // Update document
-        const docRef = doc(db, "core_team", editingId);
-        await updateDoc(docRef, dataToSave);
+        const { error } = await supabase
+          .from('core_team')
+          .update(dataToSave)
+          .eq('id', editingId);
+        if (error) throw error;
       } else {
         // Create document
-        const collectionRef = collection(db, "core_team");
-        await addDoc(collectionRef, dataToSave);
+        const { error } = await supabase
+          .from('core_team')
+          .insert([dataToSave]);
+        if (error) throw error;
       }
 
       handleCancel();
@@ -144,8 +149,11 @@ export default function TeamTab() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to completely delete this team member? This cannot be undone.")) return;
     try {
-      const docRef = doc(db, "core_team", id);
-      await deleteDoc(docRef);
+      const { error } = await supabase
+        .from('core_team')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
       await fetchTeam();
       alert("Core team member removed.");
     } catch (error) {

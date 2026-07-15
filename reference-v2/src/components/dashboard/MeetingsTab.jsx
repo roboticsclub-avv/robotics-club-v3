@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase/firestore";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 import { showAlert } from "@/lib/alert-store";
 
 export default function MeetingsTab() {
@@ -38,20 +37,13 @@ export default function MeetingsTab() {
             setMails(dbData.mails || []);
             setPoints(dbData.points || {});
 
-            // 2. Fetch Club Members from Firestore
-            const q = query(collection(db, "users"), where("status", "==", "accepted"));
-            const querySnapshot = await getDocs(q);
-            const dbMembers = [];
-            querySnapshot.forEach((docSnap) => {
-                const docData = docSnap.data();
-                dbMembers.push({ 
-                    uid: docSnap.id, 
-                    name: docData.name, 
-                    role: docData.role, 
-                    email: docData.email, 
-                    status: docData.status 
-                });
-            });
+            // 2. Fetch Club Members from Supabase
+            const { data: dbMembersData, error: membersError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('status', 'accepted');
+            if (membersError) throw membersError;
+            const dbMembers = dbMembersData || [];
             // Sort by name ascending
             dbMembers.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
             setMembers(dbMembers);

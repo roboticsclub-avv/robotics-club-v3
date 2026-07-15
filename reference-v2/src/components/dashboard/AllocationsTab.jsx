@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase/firestore";
-import { collection, getDocs, doc, query, where, addDoc, updateDoc, getDoc } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 import { showAlert, showConfirm } from "@/lib/alert-store";
 
 export default function AllocationsTab() {
@@ -20,11 +19,9 @@ export default function AllocationsTab() {
         setLoading(true);
         try {
             // Fetch Allocations
-            const querySnapshot = await getDocs(collection(db, "allocations"));
-            const allocs = [];
-            querySnapshot.forEach((docSnap) => {
-                allocs.push({ id: docSnap.id, ...docSnap.data() });
-            });
+            const { data: allocsData, error: allocsError } = await supabase.from('allocations').select('*');
+            if (allocsError) throw allocsError;
+            const allocs = allocsData || [];
 
             // Sort by status, then date
             allocs.sort((a, b) => {
@@ -34,11 +31,8 @@ export default function AllocationsTab() {
             setAllocations(allocs);
 
             // Fetch Hardware for issuing
-            const hwSnapshot = await getDocs(collection(db, "hardware"));
-            const hwData = [];
-            hwSnapshot.forEach((docSnap) => {
-                hwData.push({ id: docSnap.id, ...docSnap.data() });
-            });
+            const { data: hwData, error: hwError } = await supabase.from('hardware').select('*');
+            if (hwError) throw hwError;
             setInventory(hwData || []);
 
         } catch (error) {
@@ -58,20 +52,20 @@ export default function AllocationsTab() {
         setSearchResult("Searching...");
 
         try {
-            const q = query(collection(db, "users"), where("memberId", "==", memberSearch.trim()));
-            const querySnapshot = await getDocs(q);
-            const data = [];
-            querySnapshot.forEach((docSnap) => {
-                data.push({ uid: docSnap.id, ...docSnap.data() });
-            });
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('memberId', memberSearch.trim())
+                .maybeSingle();
 
-            if (data && data.length > 0) {
-                const memberData = data[0];
-                setSelectedMember(memberData);
+            if (error) throw error;
+
+            if (data) {
+                setSelectedMember(data);
                 setSearchResult(
                     <div className="text-sm">
-                        <div className="text-green-400 font-bold">Member Found: {memberData.name}</div>
-                        <div className="text-xs text-slate-400">{memberData.email} | {memberData.branch}</div>
+                        <div className="text-green-400 font-bold">Member Found: {data.name}</div>
+                        <div className="text-xs text-slate-400">{data.email} | {data.branch}</div>
                     </div>
                 );
             } else {
@@ -97,22 +91,27 @@ export default function AllocationsTab() {
                 return;
             }
 
-            // Create Allocation in Firestore
-            await addDoc(collection(db, "allocations"), {
-                userId: selectedMember.uid,
-                userName: selectedMember.name,
-                memberId: selectedMember.memberId,
-                itemId: selectedItemId,
-                itemName: item.name,
-                expectedReturn: returnDate,
-                status: 'issued',
-                issuedAt: new Date().toISOString()
-            });
+            // Create Allocation in Supabase
+            const { error: allocError } = await supabase
+                .from('allocations')
+                .insert([{
+                    userId: selectedMember.uid,
+                    userName: selectedMember.name,
+                    memberId: selectedMember.memberId,
+                    itemId: selectedItemId,
+                    itemName: item.name,
+                    expectedReturn: returnDate,
+                    status: 'issued',
+                    issuedAt: new Date().toISOString()
+                }]);
+            if (allocError) throw allocError;
 
             // Decrease quantity
-            await updateDoc(doc(db, "hardware", selectedItemId), {
-                availableQuantity: item.availableQuantity - 1
-            });
+            const { error: hwUpdateError } = await supabase
+                .from('hardware')
+                .update({ availableQuantity: item.availableQuantity - 1 })
+                .eq('id', selectedItemId);
+            if (hwUpdateError) throw hwUpdateError;
 
             await showAlert("Item Issued Successfully!", "Issue Confirmed");
             setMemberSearch("");
@@ -130,20 +129,31 @@ export default function AllocationsTab() {
         const isConfirmed = await showConfirm("Confirm return of this item?", "Return Hardware");
         if (!isConfirmed) return;
         try {
-            // Update Allocation Status in Firestore
-            await updateDoc(doc(db, "allocations", allocId), {
-                status: 'returned',
-                returnedAt: new Date().toISOString()
-            });
+            // Update Allocation Status in Supabase
+            const { error: allocReturnError } = await supabase
+                .from('allocations')
+                .update({
+                    status: 'returned',
+                    returnedAt: new Date().toISOString()
+                })
+                .eq('id', allocId);
+            if (allocReturnError) throw allocReturnError;
 
             // Increase quantity
-            const itemRef = doc(db, "hardware", itemId);
-            const itemDoc = await getDoc(itemRef);
-            if (itemDoc.exists()) {
-                const currentQty = itemDoc.data().availableQuantity || 0;
-                await updateDoc(itemRef, {
-                    availableQuantity: currentQty + 1
-                });
+            const { data: itemDoc, error: getHwError } = await supabase
+                .from('hardware')
+                .select('availableQuantity')
+                .eq('id', itemId)
+                .single();
+            if (getHwError) throw getHwError;
+
+            if (itemDoc) {
+                const currentQty = itemDoc.availableQuantity || 0;
+                const { error: hwReturnError } = await supabase
+                    .from('hardware')
+                    .update({ availableQuantity: currentQty + 1 })
+                    .eq('id', itemId);
+                if (hwReturnError) throw hwReturnError;
             }
 
             await showAlert("Item Returned!", "Return Confirmed");

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { formatDate } from "@/utils/formatters";
-import { updateAdminNotes, updateUserRole } from "@/lib/firebase/dashboardService";
+import { updateAdminNotes, updateUserRole } from "@/lib/supabase/dashboardService";
 import useAuth from "@/hooks/useAuth";
 
 export default function ApplicantDetailModal({ applicant, onClose, onUpdateApplicant }) {

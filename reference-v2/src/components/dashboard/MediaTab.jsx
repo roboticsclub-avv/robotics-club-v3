@@ -1,10 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { db } from "@/lib/firebase/firestore";
-import { storage } from "@/lib/firebase/storage";
-import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { supabase } from "@/lib/supabase";
 
 const DEFAULT_GALLERY_ITEMS = [
   {
@@ -57,12 +54,10 @@ export default function MediaTab() {
 
   const fetchItems = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "gallery"));
-      let fetched = [];
-      querySnapshot.forEach((doc) => {
-        fetched.push({ id: doc.id, ...doc.data() });
-      });
-
+      const { data, error } = await supabase.from('gallery').select('*');
+      if (error) throw error;
+      
+      const fetched = data || [];
       if (fetched.length === 0) {
         setItems(DEFAULT_GALLERY_ITEMS);
       } else {
@@ -110,11 +105,19 @@ export default function MediaTab() {
     try {
       let finalUrl = editingItem ? editingItem.url : "";
 
-      // Upload file to storage if selected
+      // Upload file to Supabase Storage if selected
       if (file) {
-        const storageRef = ref(storage, `gallery/${Date.now()}_${file.name}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        finalUrl = await getDownloadURL(snapshot.ref);
+        const fileExt = file.name.split('.').pop() || 'jpg';
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('gallery')
+          .upload(fileName, file);
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from('gallery')
+          .getPublicUrl(fileName);
+        finalUrl = publicUrlData.publicUrl;
       }
 
       if (!finalUrl && !editingItem) {
@@ -132,14 +135,17 @@ export default function MediaTab() {
       };
 
       if (editingItem) {
-        // Update existing record
-        const docRef = doc(db, "gallery", editingItem.id);
-        await updateDoc(docRef, itemPayload);
+        const { error } = await supabase
+          .from('gallery')
+          .update(itemPayload)
+          .eq('id', editingItem.id);
+        if (error) throw error;
         console.log("Gallery item updated.");
       } else {
-        // Create new record
-        const collectionRef = collection(db, "gallery");
-        await addDoc(collectionRef, itemPayload);
+        const { error } = await supabase
+          .from('gallery')
+          .insert([itemPayload]);
+        if (error) throw error;
         console.log("Gallery item created.");
       }
 
@@ -157,8 +163,11 @@ export default function MediaTab() {
     if (!window.confirm("Are you sure you want to delete this gallery item?")) return;
 
     try {
-      const docRef = doc(db, "gallery", id);
-      await deleteDoc(docRef);
+      const { error } = await supabase
+        .from('gallery')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
       console.log("Gallery item deleted.");
       await fetchItems();
     } catch (err) {

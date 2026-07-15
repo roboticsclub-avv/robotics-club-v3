@@ -1,9 +1,7 @@
 "use client";
 
 import React, { createContext, useState, useEffect } from "react";
-import { auth } from "@/lib/firebase/auth";
-import { db } from "@/lib/firebase/firestore";
-import { doc, getDoc } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 
 export const AuthContext = createContext({
   user: null,
@@ -20,44 +18,82 @@ export default function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+    // 1. Get initial session
+    const getInitialSession = async () => {
       try {
-        if (currentUser) {
-          // User authenticated — fetch Firestore profile
-          const docRef = doc(db, "users", currentUser.uid);
-          const docSnap = await getDoc(docRef);
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const currentUser = session.user;
+          setUser(currentUser);
+          
+          // Fetch profile from Supabase 'users' table
+          const { data: profileData, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('uid', currentUser.id)
+            .maybeSingle();
 
-          if (docSnap.exists()) {
-            setProfile(docSnap.data());
+          if (profileData) {
+            setProfile(profileData);
           } else {
-            // No Firestore document found — this user was likely created directly
-            // in the Firebase Console (e.g. admin/staff accounts). Synthesize a
-            // minimal profile so dashboard access isn't blocked. Role defaults to
-            // 'admin' since only admins can log in without a registration document.
             console.warn(
-              "No Firestore profile for uid:",
-              currentUser.uid,
-              "— using synthetic admin profile. Create a Firestore document to set an explicit role."
+              "No Supabase profile for uid:",
+              currentUser.id,
+              "— using synthetic admin profile."
             );
             setProfile({
-              uid: currentUser.uid,
+              uid: currentUser.id,
               email: currentUser.email,
-              name: currentUser.displayName || currentUser.email?.split("@")[0] || "Admin",
+              name: currentUser.user_metadata?.name || currentUser.email?.split("@")[0] || "Admin",
               role: "admin",
               status: "accepted",
-              photoURL: currentUser.photoURL || "",
               createdAt: new Date().toISOString(),
-              _synthetic: true, // flag so we can show a banner in the dashboard
+              _synthetic: true,
             });
           }
+        }
+      } catch (err) {
+        console.error("Error getting initial session:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getInitialSession();
+
+    // 2. Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setLoading(true);
+      try {
+        if (session?.user) {
+          const currentUser = session.user;
           setUser(currentUser);
+
+          const { data: profileData } = await supabase
+            .from('users')
+            .select('*')
+            .eq('uid', currentUser.id)
+            .maybeSingle();
+
+          if (profileData) {
+            setProfile(profileData);
+          } else {
+            setProfile({
+              uid: currentUser.id,
+              email: currentUser.email,
+              name: currentUser.user_metadata?.name || currentUser.email?.split("@")[0] || "Admin",
+              role: "admin",
+              status: "accepted",
+              createdAt: new Date().toISOString(),
+              _synthetic: true,
+            });
+          }
         } else {
-          // User is logged out
           setUser(null);
           setProfile(null);
         }
-      } catch (error) {
-        console.error("Error loading user auth context profile:", error);
+      } catch (err) {
+        console.error("Error on auth state change:", err);
         setUser(null);
         setProfile(null);
       } finally {
@@ -65,14 +101,15 @@ export default function AuthProvider({ children }) {
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
-
 
   const logout = async () => {
     try {
       setLoading(true);
-      await auth.signOut();
+      await supabase.auth.signOut();
       setUser(null);
       setProfile(null);
     } catch (error) {

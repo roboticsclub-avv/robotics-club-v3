@@ -1,12 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { auth } from "@/lib/firebase/auth";
-import { db } from "@/lib/firebase/firestore";
-import { storage } from "@/lib/firebase/storage";
-import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
-import { doc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { supabase } from "@/lib/supabase";
 import { validateRecruitmentField } from "@/schemas/user.schema";
 import FormProgress from "./FormProgress";
 import SuccessScreen from "./SuccessScreen";
@@ -171,12 +166,18 @@ export default function JoinForm() {
 
   // Checks for registered duplicate emails
   const checkDuplicateEmail = async (emailToCheck) => {
-    const q = query(
-      collection(db, "users"),
-      where("email", "==", emailToCheck.trim().toLowerCase())
-    );
-    const querySnapshot = await getDocs(q);
-    return !querySnapshot.empty;
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('uid')
+        .eq('email', emailToCheck.trim().toLowerCase())
+        .maybeSingle();
+      if (error) throw error;
+      return !!data;
+    } catch (e) {
+      console.error("Duplicate check error:", e);
+      return false;
+    }
   };
 
   async function handleNext() {
@@ -230,15 +231,10 @@ export default function JoinForm() {
       return;
     }
 
-    // Step-specific server-side checking: Duplicate Email check is handled by Firebase Auth on submit
-    // (Firebase Auth throws auth/email-already-in-use if email is already registered)
-    // We skip the unauthenticated Firestore query here since the users collection
-    // requires authentication to read.
-
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep((prev) => prev + 1);
     }
-  };
+  }
 
   const handlePrev = () => {
     setErrorMsg("");
@@ -267,43 +263,57 @@ export default function JoinForm() {
     let uploadedPhotoUrl = "";
 
     try {
-      // 1. Create Auth Credentials FIRST so we have a valid user token
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        formData.email.trim(),
-        formData.password
-      );
-      const user = userCredential.user;
+      // 1. Create Auth Credentials
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email.trim(),
+        password: formData.password,
+      });
+      if (signUpError) throw signUpError;
+      const user = signUpData.user;
+      if (!user) throw new Error("Could not retrieve user registration metadata");
 
       setSubmittingMsg("Uploading profile photo...");
 
-      // 2. Upload photograph to Firebase Storage (now authenticated)
-      const storageRef = ref(storage, `applicants/${user.uid}_${selectedPhoto.name}`);
-      const uploadResult = await uploadBytes(storageRef, selectedPhoto);
-      uploadedPhotoUrl = await getDownloadURL(uploadResult.ref);
+      // 2. Upload photograph to Supabase Storage (applicants bucket)
+      const fileExt = selectedPhoto.name.split('.').pop() || 'jpg';
+      const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('applicants')
+        .upload(fileName, selectedPhoto);
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('applicants')
+        .getPublicUrl(fileName);
+      uploadedPhotoUrl = publicUrlData.publicUrl;
 
       setSubmittingMsg("Saving profile details...");
 
-      // 3. Write Firestore record users/{uid}
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
-        email: formData.email.trim().toLowerCase(),
-        name: formData.name.trim(),
-        phone: "",
-        branch: formData.branch,
-        year: formData.year,
-        section: formData.section.trim(),
-        interests: formData.interests,
-        reason: formData.reason.trim(),
-        photoURL: uploadedPhotoUrl,
-        role: "member",
-        status: "pending",
-        memberId: "PENDING",
-        createdAt: new Date().toISOString(),
-      });
+      // 3. Write Supabase record in 'users' table
+      const { error: dbError } = await supabase
+        .from('users')
+        .insert([{
+          uid: user.id,
+          email: formData.email.trim().toLowerCase(),
+          name: formData.name.trim(),
+          phone: "",
+          branch: formData.branch,
+          year: formData.year,
+          section: formData.section.trim(),
+          interests: formData.interests,
+          reason: formData.reason.trim(),
+          photoURL: uploadedPhotoUrl,
+          role: "member",
+          status: "pending",
+          memberId: "PENDING",
+          createdAt: new Date().toISOString(),
+        }]);
+
+      if (dbError) throw dbError;
 
       // 4. Force Sign out immediately to prevent auto-login
-      await signOut(auth);
+      await supabase.auth.signOut();
 
       // Clear draft storage
       localStorage.removeItem(DRAFT_KEY);
@@ -311,13 +321,10 @@ export default function JoinForm() {
       setIsCompleted(true);
     } catch (err) {
       console.error("Submission failed:", err);
-      // Provide friendly error messages for common Firebase Auth errors
-      if (err.code === "auth/email-already-in-use") {
+      if (err.message && err.message.toLowerCase().includes("already registered")) {
         setErrorMsg("This email is already registered. Please use a different email or log in.");
-      } else if (err.code === "auth/weak-password") {
+      } else if (err.message && err.message.toLowerCase().includes("weak-password")) {
         setErrorMsg("Password is too weak. Please use at least 6 characters.");
-      } else if (err.code === "auth/invalid-email") {
-        setErrorMsg("Invalid email address format.");
       } else {
         setErrorMsg(err.message || "Registration failed. Please check network settings.");
       }

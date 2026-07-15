@@ -2,8 +2,7 @@ import styles from "./Team.module.css";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { db } from "@/lib/firebase/firestore";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 import TextAnimation from "./ui/scroll-text";
 
 
@@ -37,19 +36,16 @@ export default function Team() {
 
         const fetchTeam = async () => {
             try {
-                const q = query(
-                    collection(db, "core_team"),
-                    orderBy("display_order", "asc"),
-                    orderBy("name", "asc")
-                );
-                const querySnapshot = await getDocs(q);
-                const data = [];
-                querySnapshot.forEach((doc) => {
-                    data.push({ id: doc.id, ...doc.data() });
-                });
+                const { data, error } = await supabase
+                    .from('core_team')
+                    .select('*')
+                    .order('display_order', { ascending: true })
+                    .order('name', { ascending: true });
 
-                const fac = data.filter(m => m.type === 'faculty');
-                const mem = data.filter(m => m.type === 'member');
+                if (error) throw error;
+
+                const fac = (data || []).filter(m => m.type === 'faculty');
+                const mem = (data || []).filter(m => m.type === 'member');
                 setFaculty(fac);
                 setMembers(mem);
                 sessionStorage.setItem('cached_faculty', JSON.stringify(fac));

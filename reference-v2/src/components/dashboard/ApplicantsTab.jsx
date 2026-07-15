@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { fetchApplicants, updateApplicantStatus, generateNextMemberId } from "@/lib/firebase/dashboardService";
+import { fetchApplicants, updateApplicantStatus, generateNextMemberId } from "@/lib/supabase/dashboardService";
 import { sendStatusNotification } from "@/lib/mail";
 import ApplicantDetailModal from "./ApplicantDetailModal";
 

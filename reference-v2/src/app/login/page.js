@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase/auth";
+import { supabase } from "@/lib/supabase";
 import useAuth from "@/hooks/useAuth";
 
 export default function LoginPage() {
@@ -46,7 +45,8 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
     } catch (err) {
       console.error("Login failure:", err);
       setErrorMsg(err.message || "Invalid email or password.");

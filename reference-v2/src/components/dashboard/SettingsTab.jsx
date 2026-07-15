@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import app from "@/lib/firebase/client";
+import { supabase } from "@/lib/supabase";
 
 export default function SettingsTab({ adminEmail }) {
   const [environment] = useState(() => {
@@ -18,8 +18,8 @@ export default function SettingsTab({ adminEmail }) {
     return "Development";
   });
 
-  const [projectId] = useState(() => {
-    return (app && app.options && app.options.projectId) || "Unknown";
+  const [supabaseUrl] = useState(() => {
+    return process.env.NEXT_PUBLIC_SUPABASE_URL || "Unknown";
   });
 
   return (
@@ -56,11 +56,11 @@ export default function SettingsTab({ adminEmail }) {
             </span>
           </div>
 
-          {/* Firebase Project ID */}
+          {/* Supabase URL */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between py-3 border-b border-white/[0.02]">
-            <span className="text-sm text-gray-500 font-medium">Firebase Project ID</span>
+            <span className="text-sm text-gray-500 font-medium">Supabase Project URL</span>
             <span className="text-sm font-mono text-cyan-300 mt-1 sm:mt-0 bg-white/[0.02] border border-white/[0.05] px-3 py-1 rounded">
-              {projectId}
+              {supabaseUrl}
             </span>
           </div>
 
@@ -83,8 +83,8 @@ export default function SettingsTab({ adminEmail }) {
         <p className="text-xs text-gray-500 leading-relaxed font-mono">
           React version: 19.2.3 <br />
           Next.js version: 16.1.6 <br />
-          Database Provider: Google Cloud Firestore (Client SDK mode) <br />
-          Security Protocols: Firebase Auth Guard (AdminRoute Level 1 Auth)
+          Database Provider: PostgreSQL / Supabase Client SDK <br />
+          Security Protocols: Supabase Auth Guard (AdminRoute Level 1 Auth)
         </p>
       </div>
     </div>

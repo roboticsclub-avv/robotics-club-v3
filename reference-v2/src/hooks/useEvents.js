@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { collection, getDocs, query } from "firebase/firestore";
-import { db } from "@/lib/firebase/firestore";
+import { supabase } from "@/lib/supabase";
 
 export default function useEvents(options = {}) {
   const [events, setEvents] = useState([]);
@@ -13,12 +12,9 @@ export default function useEvents(options = {}) {
     setLoading(true);
     setError(null);
     try {
-      const q = query(collection(db, "events"));
-      const querySnapshot = await getDocs(q);
-      const evts = [];
-      querySnapshot.forEach((doc) => {
-        evts.push({ id: doc.id, ...doc.data() });
-      });
+      const { data, error } = await supabase.from('events').select('*');
+      if (error) throw error;
+      const evts = data || [];
 
       // Sort by comingSoon first, then date
       evts.sort((a, b) => {

@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import styles from "./Gallery.module.css";
 import TextAnimation from "./ui/scroll-text";
 
-import { db } from "@/lib/firebase/firestore";
-import { collection, getDocs, query } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 
 const DEFAULT_GALLERY_ITEMS = [
     {
@@ -73,17 +72,13 @@ export default function Gallery() {
     useEffect(() => {
         const fetchGallery = async () => {
             try {
-                const q = query(collection(db, "gallery"));
-                const querySnapshot = await getDocs(q);
-                if (!querySnapshot.empty) {
-                    const items = [];
-                    querySnapshot.forEach((doc) => {
-                        items.push({ id: doc.id, ...doc.data() });
-                    });
-                    setGalleryItems(items);
+                const { data, error } = await supabase.from('gallery').select('*');
+                if (error) throw error;
+                if (data && data.length > 0) {
+                    setGalleryItems(data);
                 }
             } catch (error) {
-                console.error("Error loading gallery from Firestore:", error);
+                console.error("Error loading gallery from Supabase:", error);
             }
         };
         fetchGallery();

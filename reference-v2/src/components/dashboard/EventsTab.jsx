@@ -1,10 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { db } from "@/lib/firebase/firestore";
-import { storage } from "@/lib/firebase/storage";
-import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { supabase } from "@/lib/supabase";
 import { showAlert, showConfirm } from "@/lib/alert-store";
 import { formatDate } from "@/utils/formatters";
 
@@ -30,12 +27,10 @@ export default function EventsTab() {
   const fetchEventsData = async () => {
     setLoading(true);
     try {
-      const querySnapshot = await getDocs(collection(db, "events"));
-      const evts = [];
-      querySnapshot.forEach((docSnap) => {
-        evts.push({ id: docSnap.id, ...docSnap.data() });
-      });
+      const { data, error } = await supabase.from('events').select('*');
+      if (error) throw error;
 
+      const evts = data || [];
       // Sort by comingSoon first, then date
       evts.sort((a, b) => {
         if (a.comingSoon === b.comingSoon) {
@@ -68,12 +63,18 @@ export default function EventsTab() {
   };
 
   const uploadImage = async (file) => {
-    const fileExt = file.name.split(".").pop();
+    const fileExt = file.name.split(".").pop() || 'jpg';
     const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 9)}.${fileExt}`;
-    const storageRef = ref(storage, `events/${fileName}`);
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    return downloadURL;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('events')
+      .upload(fileName, file);
+    if (uploadError) throw uploadError;
+
+    const { data: publicUrlData } = supabase.storage
+      .from('events')
+      .getPublicUrl(fileName);
+    return publicUrlData.publicUrl;
   };
 
   const handleSubmit = async (e) => {
@@ -92,16 +93,22 @@ export default function EventsTab() {
         comingSoon: formData.comingSoon,
         description: formData.description,
         image: finalImageUrl || "",
-        // Save date and link empty if coming soon
         date: formData.comingSoon ? "" : formData.date,
         link: formData.comingSoon ? "" : formData.link
       };
 
       if (editingId) {
-        await updateDoc(doc(db, "events", editingId), dataToSave);
+        const { error } = await supabase
+          .from('events')
+          .update(dataToSave)
+          .eq('id', editingId);
+        if (error) throw error;
         await showAlert("Event updated successfully!", "Success");
       } else {
-        await addDoc(collection(db, "events"), dataToSave);
+        const { error } = await supabase
+          .from('events')
+          .insert([dataToSave]);
+        if (error) throw error;
         await showAlert("Event created successfully!", "Success");
       }
 
@@ -135,7 +142,11 @@ export default function EventsTab() {
     const isConfirmed = await showConfirm("Are you sure you want to delete this event?", "Delete Event");
     if (!isConfirmed) return;
     try {
-      await deleteDoc(doc(db, "events", id));
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
       await showAlert("Event deleted successfully", "Deleted");
       fetchEventsData();
     } catch (error) {

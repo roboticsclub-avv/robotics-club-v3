@@ -1,0 +1,103 @@
+.loadingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    overflow: hidden;
+    /* Fast fade out at the very end to reveal content */
+    transition: opacity 0.4s ease;
+}
+
+.loadingOverlayHidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.revealBox {
+    position: relative;
+    width: 100%;
+    height: 0;
+    background: #0a0a0a;
+    /* Same as homepage background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.revealBoxActive {
+    animation: continuousGrow 4s cubic-bezier(0.1, 0, 0.2, 1) forwards;
+}
+
+.revealBoxFull {
+    height: 100vh;
+}
+
+@keyframes continuousGrow {
+    0% {
+        height: 0;
+    }
+
+    25% {
+        height: 45vh;
+    }
+
+    /* More gradual initial growth to fit large text */
+    100% {
+        height: 100vh;
+    }
+
+    /* Gradual continuous growth until the end */
+}
+
+.wordContainer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.word {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(3rem, 10vw, 7rem);
+    /* Increased from 3.5rem */
+    font-weight: 900;
+    /* Heavier weight */
+    color: #ffffff;
+    letter-spacing: -0.04em;
+    /* Tighter tracking for premium feel */
+    text-transform: uppercase;
+    position: absolute;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.wordActive {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.wordExit {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+@media (max-width: 768px) {
+    .revealBoxActive {
+        height: 30vh;
+    }
+
+    .word {
+        font-size: clamp(2rem, 12vw, 4rem);
+    }
+}

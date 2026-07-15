@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase/firestore";
-import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 import { showAlert, showConfirm } from "@/lib/alert-store";
 
 export default function InventoryTab() {
@@ -16,11 +15,8 @@ export default function InventoryTab() {
     const fetchInventory = async () => {
         setLoading(true);
         try {
-            const querySnapshot = await getDocs(collection(db, "hardware"));
-            const data = [];
-            querySnapshot.forEach((docSnap) => {
-                data.push({ id: docSnap.id, ...docSnap.data() });
-            });
+            const { data, error } = await supabase.from('hardware').select('*');
+            if (error) throw error;
             setInventory(data || []);
         } catch (error) {
             console.error("Error fetching hardware:", error);
@@ -55,13 +51,19 @@ export default function InventoryTab() {
             };
 
             if (editingId) {
-                // For editing, set availableQuantity to totalQuantity (simple V2 logic)
                 dataToSave.availableQuantity = totalQty;
-                await updateDoc(doc(db, "hardware", editingId), dataToSave);
+                const { error } = await supabase
+                    .from('hardware')
+                    .update(dataToSave)
+                    .eq('id', editingId);
+                if (error) throw error;
                 setEditingId(null);
             } else {
                 dataToSave.availableQuantity = totalQty;
-                await addDoc(collection(db, "hardware"), dataToSave);
+                const { error } = await supabase
+                    .from('hardware')
+                    .insert([dataToSave]);
+                if (error) throw error;
             }
             setFormData({ name: "", category: "", totalQuantity: "", image: "" });
             fetchInventory();
@@ -85,7 +87,11 @@ export default function InventoryTab() {
         const isConfirmed = await showConfirm("Are you sure you want to delete this hardware item?", "Delete Hardware");
         if (!isConfirmed) return;
         try {
-            await deleteDoc(doc(db, "hardware", id));
+            const { error } = await supabase
+                .from('hardware')
+                .delete()
+                .eq('id', id);
+            if (error) throw error;
             fetchInventory();
             await showAlert("Item deleted successfully", "Deleted");
         } catch (error) {
