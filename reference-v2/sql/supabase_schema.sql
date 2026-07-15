@@ -11,6 +11,7 @@ CREATE TABLE users (
     section TEXT,
     interests TEXT,
     reason TEXT,
+    "photoURL" TEXT,
     status TEXT DEFAULT 'pending',
     "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );

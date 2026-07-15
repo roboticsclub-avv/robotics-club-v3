@@ -421,7 +421,6 @@ export default function JoinForm() {
           section: "A",
           interests: "Hardware Requisition Access",
           reason: "Accessing the lab hardware stocks.",
-          photoURL: "",
           role: "member",
           status: "accepted", // Auto-accepted for student requisitions!
           memberId: "STUDENT",
