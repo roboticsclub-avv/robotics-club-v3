@@ -340,6 +340,12 @@ class DiscGeometry extends Geometry {
 }
 
 function createShader(gl, type, source) {
+  // Strip carriage returns (\r) from shader source.
+  // Windows CRLF line endings inside JS template literals pass \r\n
+  // to gl.shaderSource(), which makes some GPU drivers silently fail
+  // the #version directive, returning null from getShaderInfoLog.
+  source = source.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
   const shader = gl.createShader(type);
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
@@ -349,7 +355,7 @@ function createShader(gl, type, source) {
     return shader;
   }
 
-  console.error(gl.getShaderInfoLog(shader));
+  console.error('[InfiniteMenu] Shader compile failed:', gl.getShaderInfoLog(shader));
   gl.deleteShader(shader);
   return null;
 }
