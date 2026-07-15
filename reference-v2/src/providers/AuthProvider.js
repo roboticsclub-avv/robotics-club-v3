@@ -39,14 +39,15 @@ export default function AuthProvider({ children }) {
             console.warn(
               "No Supabase profile for uid:",
               currentUser.id,
-              "— using synthetic admin profile."
+              "— assigning default fallback role."
             );
+            const isAllowedAdmin = currentUser.email === 'your-admin-email@example.com' || currentUser.email === 'superuser@example.com';
             setProfile({
               uid: currentUser.id,
               email: currentUser.email,
-              name: currentUser.user_metadata?.name || currentUser.email?.split("@")[0] || "Admin",
-              role: "admin",
-              status: "accepted",
+              name: currentUser.user_metadata?.name || currentUser.email?.split("@")[0] || "Guest",
+              role: isAllowedAdmin ? "admin" : "member",
+              status: isAllowedAdmin ? "accepted" : "pending",
               createdAt: new Date().toISOString(),
               _synthetic: true,
             });
@@ -78,12 +79,13 @@ export default function AuthProvider({ children }) {
           if (profileData) {
             setProfile(profileData);
           } else {
+            const isAllowedAdmin = currentUser.email === 'your-admin-email@example.com' || currentUser.email === 'superuser@example.com';
             setProfile({
               uid: currentUser.id,
               email: currentUser.email,
-              name: currentUser.user_metadata?.name || currentUser.email?.split("@")[0] || "Admin",
-              role: "admin",
-              status: "accepted",
+              name: currentUser.user_metadata?.name || currentUser.email?.split("@")[0] || "Guest",
+              role: isAllowedAdmin ? "admin" : "member",
+              status: isAllowedAdmin ? "accepted" : "pending",
               createdAt: new Date().toISOString(),
               _synthetic: true,
             });
