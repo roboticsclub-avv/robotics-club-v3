@@ -27,6 +27,13 @@ export default function JoinForm() {
   const [reqSubmitting, setReqSubmitting] = useState(false);
   const [reqSuccess, setReqSuccess] = useState(false);
 
+  // OTP Verification States
+  const [showOtpVerify, setShowOtpVerify] = useState(false);
+  const [otpToken, setOtpToken] = useState("");
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [targetEmail, setTargetEmail] = useState("");
+  const [signupPendingPayload, setSignupPendingPayload] = useState(null);
+
   // Form Field States (Core Team Recruitment)
   const [formData, setFormData] = useState({
     name: "",
@@ -305,37 +312,28 @@ export default function JoinForm() {
         .getPublicUrl(fileName);
       uploadedPhotoUrl = publicUrlData.publicUrl;
 
-      setSubmittingMsg("Saving profile details...");
+      setSubmittingMsg("Awaiting email verification...");
 
-      // 3. Write Supabase record in 'users' table
-      const { error: dbError } = await supabase
-        .from('users')
-        .insert([{
-          uid: user.id,
-          email: formData.email.trim().toLowerCase(),
-          name: formData.name.trim(),
-          phone: "",
-          branch: formData.branch,
-          year: formData.year,
-          section: formData.section.trim(),
-          interests: formData.interests,
-          reason: formData.reason.trim(),
-          photoURL: uploadedPhotoUrl,
-          role: "member",
-          status: "pending",
-          memberId: "PENDING",
-          createdAt: new Date().toISOString(),
-        }]);
+      // Save payload for post-OTP insert
+      setSignupPendingPayload({
+        uid: user.id,
+        email: formData.email.trim().toLowerCase(),
+        name: formData.name.trim(),
+        phone: "",
+        branch: formData.branch,
+        year: formData.year,
+        section: formData.section.trim(),
+        interests: formData.interests,
+        reason: formData.reason.trim(),
+        photoURL: uploadedPhotoUrl,
+        role: "member",
+        status: "pending",
+        memberId: "PENDING",
+        createdAt: new Date().toISOString(),
+      });
 
-      if (dbError) throw dbError;
-
-      // 4. Force Sign out immediately to prevent auto-login
-      await supabase.auth.signOut();
-
-      // Clear draft storage
-      localStorage.removeItem(DRAFT_KEY);
-      
-      setIsCompleted(true);
+      setTargetEmail(formData.email.trim().toLowerCase());
+      setShowOtpVerify(true);
     } catch (err) {
       console.error("Submission failed:", err);
       if (err.message && err.message.toLowerCase().includes("already registered")) {
@@ -408,36 +406,97 @@ export default function JoinForm() {
         joiningYear = "20" + rollPart.substring(5, 7); // e.g. 23 -> 2023
       }
 
-      // 2. Insert record in 'users' table (auto-accepted status for student members requesting hardware)
-      const { error: dbError } = await supabase
-        .from("users")
-        .insert([{
-          uid: user.id,
-          email: reqFormData.email.trim().toLowerCase(),
-          name: reqFormData.name.trim(),
-          phone: "",
-          branch: branchName,
-          year: joiningYear,
-          section: "A",
-          interests: "Hardware Requisition Access",
-          reason: "Accessing the lab hardware stocks.",
-          role: "member",
-          status: "accepted", // Auto-accepted for student requisitions!
-          memberId: "STUDENT",
-          createdAt: new Date().toISOString()
-        }]);
+      // Save payload for post-OTP insert
+      setSignupPendingPayload({
+        uid: user.id,
+        email: reqFormData.email.trim().toLowerCase(),
+        name: reqFormData.name.trim(),
+        phone: "",
+        branch: branchName,
+        year: joiningYear,
+        section: "A",
+        interests: "Hardware Requisition Access",
+        reason: "Accessing the lab hardware stocks.",
+        role: "member",
+        status: "accepted", // Auto-accepted for student requisitions!
+        memberId: "STUDENT",
+        createdAt: new Date().toISOString()
+      });
 
-      if (dbError) throw dbError;
-
-      // 3. Force Sign out immediately to clear local session
-      await supabase.auth.signOut();
-
-      setReqSuccess(true);
+      setTargetEmail(reqFormData.email.trim().toLowerCase());
+      setShowOtpVerify(true);
     } catch (err) {
       console.error("Hardware Requisition signup failed:", err);
       setErrorMsg(err.message || "Sign up failed. Please check network settings.");
     } finally {
       setReqSubmitting(false);
+    }
+  };
+
+  const handleOtpVerify = async (e) => {
+    e.preventDefault();
+    setErrorMsg("");
+    setOtpVerifying(true);
+
+    try {
+      if (otpToken.trim().length !== 6) {
+        throw new Error("Please enter a valid 6-digit verification code.");
+      }
+
+      // 1. Verify OTP with Supabase
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email: targetEmail,
+        token: otpToken.trim(),
+        type: 'signup'
+      });
+
+      if (verifyError) throw verifyError;
+
+      // 2. Insert user profile details
+      if (signupPendingPayload) {
+        const { error: dbError } = await supabase
+          .from('users')
+          .insert([signupPendingPayload]);
+
+        if (dbError) throw dbError;
+      }
+
+      // 3. Clear auth session to log out
+      await supabase.auth.signOut();
+
+      // 4. Trigger correct success screen depending on signup flow path
+      if (flowMode === 'recruitment') {
+        localStorage.removeItem(DRAFT_KEY);
+        setIsCompleted(true);
+      } else {
+        setReqSuccess(true);
+      }
+
+      setShowOtpVerify(false);
+      setOtpToken("");
+    } catch (err) {
+      console.error("Verification failed:", err);
+      setErrorMsg(err.message || "Invalid or expired verification code.");
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setErrorMsg("");
+    setSubmittingMsg("Resending verification code...");
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: targetEmail,
+      });
+      if (error) throw error;
+      alert("A new verification code has been sent to your email!");
+    } catch (err) {
+      console.error("Resending OTP failed:", err);
+      setErrorMsg(err.message || "Failed to resend code. Please try again.");
+    } finally {
+      setSubmittingMsg("");
     }
   };
 
@@ -529,6 +588,86 @@ export default function JoinForm() {
       </div>
     </div>
   );
+
+  const otpVerifyJSX = (
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-6 relative overflow-hidden font-inter">
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-cyan-600/5 filter blur-[100px] pointer-events-none" />
+      
+      <div className="max-w-md w-full relative z-10 glass-card border border-white/[0.05] p-8 rounded-3xl space-y-6 shadow-2xl">
+        <div className="text-center">
+          <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest bg-cyan-500/5 border border-cyan-500/20 px-3 py-1 rounded-full">
+            EMAIL VERIFICATION
+          </span>
+          <h2 className="text-2xl font-bold font-orbitron text-white mt-4 uppercase tracking-wider">
+            Enter OTP Code
+          </h2>
+          <p className="text-xs text-gray-500 mt-1">
+            We sent a 6-digit code to <strong className="text-gray-300 font-mono">{targetEmail}</strong>.
+          </p>
+        </div>
+
+        {errorMsg && (
+          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-mono text-center">
+            {errorMsg}
+          </div>
+        )}
+
+        {submittingMsg && (
+          <div className="p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl text-cyan-400 text-xs font-mono text-center">
+            {submittingMsg}
+          </div>
+        )}
+
+        <form onSubmit={handleOtpVerify} className="space-y-6">
+          <div>
+            <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2 text-center">
+              6-Digit Code
+            </label>
+            <input
+              type="text"
+              maxLength={6}
+              required
+              placeholder="000000"
+              value={otpToken}
+              onChange={(e) => setOtpToken(e.target.value.replace(/\D/g, ''))}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-2xl font-mono text-center tracking-[1em] pl-[1.5em] text-white focus:outline-none focus:border-cyan-500 placeholder:opacity-20"
+            />
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => { setErrorMsg(""); setShowOtpVerify(false); }}
+              className="flex-1 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 text-gray-300 font-orbitron text-xs rounded-xl transition-all"
+            >
+              CANCEL
+            </button>
+            <button
+              type="submit"
+              disabled={otpVerifying}
+              className="flex-1 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-orbitron font-bold text-xs rounded-xl tracking-wider transition-colors shadow-[0_0_15px_rgba(6,182,212,0.2)] disabled:opacity-50"
+            >
+              {otpVerifying ? "VERIFYING..." : "VERIFY CODE"}
+            </button>
+          </div>
+        </form>
+
+        <div className="text-center pt-2">
+          <button
+            type="button"
+            onClick={handleResendOtp}
+            className="text-xs text-cyan-400 hover:text-cyan-300 font-mono underline transition-colors"
+          >
+            Didn&apos;t receive code? Resend OTP
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (showOtpVerify) {
+    return otpVerifyJSX;
+  }
 
   const reqSuccessScreenJSX = (
     <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-6 relative overflow-hidden font-inter">
