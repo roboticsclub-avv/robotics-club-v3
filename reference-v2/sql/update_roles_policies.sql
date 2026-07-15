@@ -89,13 +89,13 @@ create policy "Manage allocations policy" on public.allocations
 for all to authenticated
 using (public.is_data_or_tech_or_admin(auth.uid()));
 
--- USERS (Applicants): Deletions managed by Secretary and Admin, but blocking deletion of staff/admin roles
+-- USERS (Applicants): Deletions managed by Secretary and Admin (cannot delete self)
 drop policy if exists "Delete users policy" on public.users;
 create policy "Delete users policy" on public.users
 for delete to authenticated
 using (
   public.is_secretary_or_admin(auth.uid()) AND 
-  (role not in ('admin', 'technical', 'ops', 'data', 'secretary'))
+  (auth.uid() <> uid)
 );
 
 -- USERS (Applicants): Status updates managed by Secretary and Admin
