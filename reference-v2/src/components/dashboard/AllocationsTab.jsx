@@ -13,6 +13,7 @@ export default function AllocationsTab() {
     const [selectedMember, setSelectedMember] = useState(null);
     const [selectedItemId, setSelectedItemId] = useState("");
     const [returnDate, setReturnDate] = useState("");
+    const [issueQuantity, setIssueQuantity] = useState(1);
     const [searchResult, setSearchResult] = useState(null);
 
     const fetchData = async () => {
@@ -86,8 +87,13 @@ export default function AllocationsTab() {
 
         try {
             const item = inventory.find(i => i.id === selectedItemId);
-            if (!item || item.availableQuantity <= 0) {
-                await showAlert("Item not available in stock.", "Stock Error");
+            const requestQty = parseInt(issueQuantity, 10);
+            if (isNaN(requestQty) || requestQty <= 0) {
+                await showAlert("Please enter a valid quantity.", "Validation Error");
+                return;
+            }
+            if (!item || item.availableQuantity < requestQty) {
+                await showAlert(`Item not available in stock. Only ${item?.availableQuantity || 0} available.`, "Stock Error");
                 return;
             }
 
@@ -101,6 +107,7 @@ export default function AllocationsTab() {
                     itemId: selectedItemId,
                     itemName: item.name,
                     expectedReturn: returnDate,
+                    quantity: requestQty,
                     status: 'issued',
                     issuedAt: new Date().toISOString()
                 }]);
@@ -191,10 +198,17 @@ export default function AllocationsTab() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 items-end justify-between border-t border-white/[0.04] pt-4">
-                    <div className="w-full sm:w-auto">
-                        <label className="block text-gray-500 text-xs font-mono uppercase mb-1">Expected Return Date</label>
-                        <input type="date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)}
-                            className="bg-black/40 border border-white/[0.06] hover:border-cyan-500/40 focus:border-cyan-400 focus:outline-none rounded-lg px-4 py-1.5 text-sm text-white transition-colors" />
+                    <div className="flex gap-4">
+                        <div className="w-full sm:w-auto">
+                            <label className="block text-gray-500 text-xs font-mono uppercase mb-1">Quantity</label>
+                            <input type="number" min="1" value={issueQuantity} onChange={(e) => setIssueQuantity(e.target.value)}
+                                className="bg-black/40 border border-white/[0.06] hover:border-cyan-500/40 focus:border-cyan-400 focus:outline-none rounded-lg px-4 py-1.5 text-sm text-white transition-colors w-24" />
+                        </div>
+                        <div className="w-full sm:w-auto">
+                            <label className="block text-gray-500 text-xs font-mono uppercase mb-1">Expected Return Date</label>
+                            <input type="date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)}
+                                className="bg-black/40 border border-white/[0.06] hover:border-cyan-500/40 focus:border-cyan-400 focus:outline-none rounded-lg px-4 py-1.5 text-sm text-white transition-colors" />
+                        </div>
                     </div>
                     <button onClick={handleIssue} disabled={!selectedMember || !selectedItemId || !returnDate}
                         className="w-full sm:w-auto px-6 py-2.5 bg-cyan-600 hover:bg-cyan-500 disabled:bg-cyan-900 disabled:opacity-50 text-white text-xs font-orbitron font-bold rounded-lg transition-colors uppercase tracking-wider">
@@ -221,6 +235,7 @@ export default function AllocationsTab() {
                                     <th className="p-4 pl-6">Member ID</th>
                                     <th className="p-4">Name</th>
                                     <th className="p-4">Item Allocated</th>
+                                    <th className="p-4">Qty</th>
                                     <th className="p-4">Expected Return</th>
                                     <th className="p-4">Status</th>
                                     <th className="p-4 pr-6 text-right">Action</th>
@@ -232,6 +247,7 @@ export default function AllocationsTab() {
                                         <td className="p-4 pl-6 font-mono text-cyan-400 text-xs font-bold">{alloc.memberId}</td>
                                         <td className="p-4 text-white font-medium">{alloc.userName}</td>
                                         <td className="p-4 text-gray-300 font-mono text-xs">{alloc.itemName}</td>
+                                        <td className="p-4 text-gray-300 font-mono text-xs">{alloc.quantity || 1}</td>
                                         <td className="p-4 text-gray-400 font-mono text-xs">
                                             {alloc.expectedReturn ? new Date(alloc.expectedReturn).toLocaleDateString() : "-"}
                                         </td>

@@ -114,28 +114,28 @@ with check (
   (auth.uid() = "userId")
 );
 
--- ALLOCATIONS TRIGGER: Automatically manages hardware availableQuantity counts on insert/return/issue transitions
+-- ALLOCATIONS TRIGGER: Automatically manages hardware availableQuantity counts on insert/return/issue transitions, accounting for allocation quantity
 create or replace function public.handle_allocation_stock_change()
 returns trigger as $$
 begin
   if (TG_OP = 'INSERT') then
-    -- Decrement availableQuantity only if status starts directly as 'issued'
+    -- Decrement availableQuantity by NEW.quantity only if status starts directly as 'issued'
     if (NEW.status = 'issued') then
       update public.hardware
-      set "availableQuantity" = "availableQuantity" - 1
+      set "availableQuantity" = "availableQuantity" - coalesce(NEW.quantity, 1)
       where id = NEW."itemId";
     end if;
     return NEW;
   elsif (TG_OP = 'UPDATE') then
-    -- If status changes from 'pending' to 'issued', decrement availableQuantity
+    -- If status changes from 'pending' to 'issued', decrement availableQuantity by NEW.quantity
     if (OLD.status = 'pending' and NEW.status = 'issued') then
       update public.hardware
-      set "availableQuantity" = "availableQuantity" - 1
+      set "availableQuantity" = "availableQuantity" - coalesce(NEW.quantity, 1)
       where id = NEW."itemId";
-    -- If status changes from 'issued' to 'returned', increment availableQuantity
+    -- If status changes from 'issued' to 'returned', increment availableQuantity by OLD.quantity
     elsif (OLD.status = 'issued' and NEW.status = 'returned') then
       update public.hardware
-      set "availableQuantity" = "availableQuantity" + 1
+      set "availableQuantity" = "availableQuantity" + coalesce(OLD.quantity, 1)
       where id = NEW."itemId";
     end if;
     return NEW;

@@ -22,6 +22,7 @@ export default function MemberPage() {
   // Requisition Modal State
   const [selectedItem, setSelectedItem] = useState(null);
   const [expectedReturn, setExpectedReturn] = useState("");
+  const [quantity, setQuantity] = useState(1);
   const [modalSubmitting, setModalSubmitting] = useState(false);
   const [modalError, setModalError] = useState("");
 
@@ -70,12 +71,14 @@ export default function MemberPage() {
   const handleOpenRequestModal = (item) => {
     setSelectedItem(item);
     setExpectedReturn("");
+    setQuantity(1);
     setModalError("");
   };
 
   const handleCloseRequestModal = () => {
     setSelectedItem(null);
     setExpectedReturn("");
+    setQuantity(1);
     setModalError("");
   };
 
@@ -90,6 +93,11 @@ export default function MemberPage() {
     setModalError("");
 
     try {
+      const requestQty = parseInt(quantity, 10);
+      if (isNaN(requestQty) || requestQty <= 0) {
+        throw new Error("Please enter a valid quantity.");
+      }
+
       // Double check availability
       const { data: freshItem, error: getHwError } = await supabase
         .from("hardware")
@@ -99,8 +107,8 @@ export default function MemberPage() {
       
       if (getHwError) throw getHwError;
 
-      if (!freshItem || freshItem.availableQuantity <= 0) {
-        throw new Error("This item is currently out of stock.");
+      if (!freshItem || freshItem.availableQuantity < requestQty) {
+        throw new Error(`Insufficient stock. Only ${freshItem?.availableQuantity || 0} available.`);
       }
 
       // 1. Insert allocation record
@@ -113,6 +121,7 @@ export default function MemberPage() {
           itemId: selectedItem.id,
           itemName: freshItem.name,
           expectedReturn: expectedReturn,
+          quantity: requestQty,
           status: "pending",
           issuedAt: null
         }]);
@@ -390,6 +399,24 @@ export default function MemberPage() {
               )}
 
               <form onSubmit={handleSubmitRequisition} className="space-y-5">
+                <div>
+                  <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">
+                    Quantity
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    max={selectedItem.availableQuantity || 1}
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
+                  />
+                  <p className="text-[10px] text-gray-500 mt-1">
+                    Available stock: {selectedItem.availableQuantity || 0}
+                  </p>
+                </div>
+
                 <div>
                   <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">
                     Expected Return Date
