@@ -442,7 +442,7 @@ export default function JoinForm() {
     }
   };
 
-  const SelectionScreen = () => (
+  const selectionScreenJSX = (
     <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-6 relative overflow-hidden font-inter">
       <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-purple-600/5 filter blur-[100px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-cyan-600/5 filter blur-[100px] pointer-events-none" />
@@ -531,7 +531,7 @@ export default function JoinForm() {
     </div>
   );
 
-  const ReqSuccessScreen = () => (
+  const reqSuccessScreenJSX = (
     <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-6 relative overflow-hidden font-inter">
       <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-cyan-600/5 filter blur-[100px] pointer-events-none" />
       <div className="relative z-10 flex flex-col items-center text-center p-8 max-w-md w-full mx-auto glass-card border border-white/[0.05] rounded-3xl">
@@ -559,7 +559,7 @@ export default function JoinForm() {
     </div>
   );
 
-  const RequisitionForm = () => (
+  const requisitionFormJSX = (
     <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-6 relative overflow-hidden font-inter">
       <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-cyan-600/5 filter blur-[100px] pointer-events-none" />
       
@@ -661,15 +661,15 @@ export default function JoinForm() {
   );
 
   if (reqSuccess) {
-    return <ReqSuccessScreen />;
+    return reqSuccessScreenJSX;
   }
 
   if (flowMode === null) {
-    return <SelectionScreen />;
+    return selectionScreenJSX;
   }
 
   if (flowMode === 'requisition') {
-    return <RequisitionForm />;
+    return requisitionFormJSX;
   }
 
   if (isCompleted) {
