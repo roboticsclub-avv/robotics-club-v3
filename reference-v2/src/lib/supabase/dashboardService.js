@@ -12,7 +12,10 @@ export async function fetchApplicants() {
       .order('createdAt', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map(row => ({
+      id: row.uid,
+      ...row
+    }));
   } catch (error) {
     console.error("[supabase/dashboardService] Error fetching applicants:", error);
     throw error;
