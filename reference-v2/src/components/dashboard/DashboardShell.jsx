@@ -20,8 +20,8 @@ export default function DashboardShell({ activeTab, setActiveTab, adminEmail, on
       {isSynthetic && (
         <div className="bg-amber-900/40 border-b border-amber-500/30 px-4 py-2.5 flex items-center justify-between gap-4 text-xs font-mono">
           <span className="text-amber-300">
-            ⚠ <strong>No Firestore profile found</strong> for your account. You are using a temporary admin profile.
-            Create a document in <code className="bg-black/30 px-1 py-0.5 rounded">Firestore → users → {profile?.uid}</code> with your <code className="bg-black/30 px-1 py-0.5 rounded">role</code> field to persist access.
+            ⚠ <strong>No Supabase profile found</strong> for your account. You are using a temporary admin profile.
+            Create a row in the <code className="bg-black/30 px-1 py-0.5 rounded">users</code> table with <code className="bg-black/30 px-1 py-0.5 rounded">uid = {profile?.uid}</code> and set your <code className="bg-black/30 px-1 py-0.5 rounded">role</code> to persist access.
           </span>
           <button
             onClick={() => setBannerDismissed(true)}
