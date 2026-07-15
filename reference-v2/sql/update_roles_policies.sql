@@ -107,3 +107,9 @@ with check (
   (auth.uid() = uid and (role is null or role = 'applicant')) OR 
   public.is_secretary_or_admin(auth.uid())
 );
+
+-- USERS (Applicants): Profile creation allowed for self-signup
+drop policy if exists "Insert own profile policy" on public.users;
+create policy "Insert own profile policy" on public.users
+for insert to authenticated
+with check (auth.uid() = uid);
