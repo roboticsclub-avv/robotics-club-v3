@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS gallery (
     date TEXT,
     category TEXT,
     aspect TEXT DEFAULT 'square',
+    hyperlink TEXT,
     "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 

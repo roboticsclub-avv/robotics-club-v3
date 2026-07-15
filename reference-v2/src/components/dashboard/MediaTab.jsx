@@ -49,6 +49,7 @@ export default function MediaTab() {
   const [category, setCategory] = useState("Workshop");
   const [date, setDate] = useState("");
   const [aspect, setAspect] = useState("square");
+  const [hyperlink, setHyperlink] = useState("");
   const [file, setFile] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -80,6 +81,7 @@ export default function MediaTab() {
     setCategory("Workshop");
     setDate("");
     setAspect("square");
+    setHyperlink("");
     setFile(null);
     setEditingItem(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -91,6 +93,7 @@ export default function MediaTab() {
     setCategory(item.category);
     setDate(item.date);
     setAspect(item.aspect || "square");
+    setHyperlink(item.hyperlink || "");
   };
 
   const handleSubmit = async (e) => {
@@ -131,7 +134,8 @@ export default function MediaTab() {
         category,
         date,
         aspect,
-        url: finalUrl
+        url: finalUrl,
+        hyperlink: hyperlink.trim() || null
       };
 
       if (editingItem) {
@@ -323,6 +327,19 @@ export default function MediaTab() {
                   required
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-1.5">
+                  Google Photos Shared Folder Link (Optional)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://photos.app.goo.gl/..."
+                  value={hyperlink}
+                  onChange={(e) => setHyperlink(e.target.value)}
                   className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
                 />
               </div>

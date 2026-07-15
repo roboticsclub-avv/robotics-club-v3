@@ -144,7 +144,14 @@ export default function Gallery() {
                         <div 
                             key={item.id} 
                             className={`glass-card ${styles.galleryCard}`}
-                            onClick={() => openLightbox(index)}
+                            onClick={() => {
+                                if (item.hyperlink) {
+                                    window.open(item.hyperlink, "_blank", "noopener,noreferrer");
+                                } else {
+                                    openLightbox(index);
+                                }
+                            }}
+                            style={{ cursor: "pointer" }}
                         >
                             <div className={styles.imageContainer}>
                                 <img 
