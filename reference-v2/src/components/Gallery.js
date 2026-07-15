@@ -78,7 +78,7 @@ export default function Gallery() {
                     setGalleryItems(data);
                 }
             } catch (error) {
-                console.error("Error loading gallery from Supabase:", error);
+                console.error("Error loading gallery from Supabase:", error.message || error);
             }
         };
         fetchGallery();
