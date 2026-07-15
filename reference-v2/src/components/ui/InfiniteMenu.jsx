@@ -15,7 +15,10 @@ uniform vec4 uRotationAxisVelocity;
 in vec3 aModelPosition;
 in vec3 aModelNormal;
 in vec2 aModelUvs;
-in mat4 aInstanceMatrix;
+in vec4 aInstanceMatrix0;
+in vec4 aInstanceMatrix1;
+in vec4 aInstanceMatrix2;
+in vec4 aInstanceMatrix3;
 
 out vec2 vUvs;
 out float vAlpha;
@@ -24,6 +27,7 @@ flat out int vInstanceId;
 #define PI 3.141593
 
 void main() {
+    mat4 aInstanceMatrix = mat4(aInstanceMatrix0, aInstanceMatrix1, aInstanceMatrix2, aInstanceMatrix3);
     vec4 worldPosition = uWorldMatrix * aInstanceMatrix * vec4(aModelPosition, 1.);
 
     vec3 centerPos = (uWorldMatrix * aInstanceMatrix * vec4(0., 0., 0., 1.)).xyz;
@@ -662,13 +666,16 @@ class InfiniteGridMenu {
       aModelPosition: 0,
       aModelNormal: 1,
       aModelUvs: 2,
-      aInstanceMatrix: 3
+      aInstanceMatrix0: 3,
+      aInstanceMatrix1: 4,
+      aInstanceMatrix2: 5,
+      aInstanceMatrix3: 6
     });
 
     this.discLocations = {
       aModelPosition: gl.getAttribLocation(this.discProgram, 'aModelPosition'),
       aModelUvs: gl.getAttribLocation(this.discProgram, 'aModelUvs'),
-      aInstanceMatrix: gl.getAttribLocation(this.discProgram, 'aInstanceMatrix'),
+      aInstanceMatrix: gl.getAttribLocation(this.discProgram, 'aInstanceMatrix0'),
       uWorldMatrix: gl.getUniformLocation(this.discProgram, 'uWorldMatrix'),
       uViewMatrix: gl.getUniformLocation(this.discProgram, 'uViewMatrix'),
       uProjectionMatrix: gl.getUniformLocation(this.discProgram, 'uProjectionMatrix'),
