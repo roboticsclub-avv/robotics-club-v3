@@ -138,7 +138,9 @@ export default function MediaTab() {
         hyperlink: hyperlink.trim() || null
       };
 
-      if (editingItem) {
+      const isDefaultItem = editingItem && ['1', '2', '3', '4'].includes(String(editingItem.id));
+
+      if (editingItem && !isDefaultItem) {
         const { error } = await supabase
           .from('gallery')
           .update(itemPayload)
@@ -165,6 +167,12 @@ export default function MediaTab() {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this gallery item?")) return;
+
+    const isDefaultItem = ['1', '2', '3', '4'].includes(String(id));
+    if (isDefaultItem) {
+      setItems(prev => prev.filter(item => String(item.id) !== String(id)));
+      return;
+    }
 
     try {
       const { error } = await supabase
