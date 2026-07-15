@@ -5,6 +5,19 @@ import { supabase } from "@/lib/supabase";
 import { showAlert } from "@/lib/alert-store";
 
 export default function MeetingsTab() {
+    // secureFetch helper for JWT authentication headers
+    const secureFetch = async (url, options = {}) => {
+        const sessionData = await supabase.auth.getSession();
+        const token = sessionData.data.session?.access_token;
+        return fetch(url, {
+            ...options,
+            headers: {
+                ...options.headers,
+                "Authorization": token ? `Bearer ${token}` : ""
+            }
+        });
+    };
+
     // DB states
     const [meetings, setMeetings] = useState([]);
     const [mails, setMails] = useState([]);
@@ -31,7 +44,7 @@ export default function MeetingsTab() {
         setLoading(true);
         try {
             // 1. Fetch JSON DB
-            const dbRes = await fetch("/api/secretary/db");
+            const dbRes = await secureFetch("/api/secretary/db");
             const dbData = await dbRes.json();
             setMeetings(dbData.meetings || []);
             setMails(dbData.mails || []);
@@ -75,7 +88,7 @@ export default function MeetingsTab() {
         }
         setActionLoading(true);
         try {
-            const res = await fetch("/api/secretary/db", {
+            const res = await secureFetch("/api/secretary/db", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -101,7 +114,7 @@ export default function MeetingsTab() {
         if (!confirm("Are you sure you want to delete this meeting?")) return;
         setActionLoading(true);
         try {
-            const res = await fetch("/api/secretary/db", {
+            const res = await secureFetch("/api/secretary/db", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -129,7 +142,7 @@ export default function MeetingsTab() {
         }
         setActionLoading(true);
         try {
-            const res = await fetch("/api/secretary/db", {
+            const res = await secureFetch("/api/secretary/db", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -155,7 +168,7 @@ export default function MeetingsTab() {
         if (!confirm("Delete this announcement?")) return;
         setActionLoading(true);
         try {
-            const res = await fetch("/api/secretary/db", {
+            const res = await secureFetch("/api/secretary/db", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -191,7 +204,7 @@ export default function MeetingsTab() {
         setMeetings(prev => prev.map(m => m.id === selectedMeeting.id ? updatedMeeting : m));
 
         try {
-            await fetch("/api/secretary/db", {
+            await secureFetch("/api/secretary/db", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -216,7 +229,7 @@ export default function MeetingsTab() {
         }
         setActionLoading(true);
         try {
-            const res = await fetch("/api/secretary/db", {
+            const res = await secureFetch("/api/secretary/db", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
