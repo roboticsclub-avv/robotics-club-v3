@@ -4,95 +4,93 @@ import { useEffect, useRef, useState } from 'react';
 import { mat4, quat, vec2, vec3 } from 'gl-matrix';
 import './InfiniteMenu.css';
 
-const discVertShaderSource = `#version 300 es
+const discVertShaderSource = [
+  '#version 300 es',
+  '',
+  'uniform mat4 uWorldMatrix;',
+  'uniform mat4 uViewMatrix;',
+  'uniform mat4 uProjectionMatrix;',
+  'uniform vec3 uCameraPosition;',
+  'uniform vec4 uRotationAxisVelocity;',
+  '',
+  'in vec3 aModelPosition;',
+  'in vec3 aModelNormal;',
+  'in vec2 aModelUvs;',
+  'in mat4 aInstanceMatrix;',
+  '',
+  'out vec2 vUvs;',
+  'out float vAlpha;',
+  'flat out int vInstanceId;',
+  '',
+  '#define PI 3.141593',
+  '',
+  'void main() {',
+  '    vec4 worldPosition = uWorldMatrix * aInstanceMatrix * vec4(aModelPosition, 1.);',
+  '',
+  '    vec3 centerPos = (uWorldMatrix * aInstanceMatrix * vec4(0., 0., 0., 1.)).xyz;',
+  '    float radius = length(centerPos.xyz);',
+  '',
+  '    if (gl_VertexID > 0) {',
+  '        vec3 rotationAxis = uRotationAxisVelocity.xyz;',
+  '        float rotationVelocity = min(.15, uRotationAxisVelocity.w * 15.);',
+  '        vec3 stretchDir = normalize(cross(centerPos, rotationAxis));',
+  '        vec3 relativeVertexPos = normalize(worldPosition.xyz - centerPos);',
+  '        float strength = dot(stretchDir, relativeVertexPos);',
+  '        float invAbsStrength = min(0., abs(strength) - 1.);',
+  '        strength = rotationVelocity * sign(strength) * abs(invAbsStrength * invAbsStrength * invAbsStrength + 1.);',
+  '        worldPosition.xyz += stretchDir * strength;',
+  '    }',
+  '',
+  '    worldPosition.xyz = radius * normalize(worldPosition.xyz);',
+  '',
+  '    gl_Position = uProjectionMatrix * uViewMatrix * worldPosition;',
+  '',
+  '    vAlpha = smoothstep(0.5, 1., normalize(worldPosition.xyz).z) * .9 + .1;',
+  '    vUvs = aModelUvs;',
+  '    vInstanceId = gl_InstanceID;',
+  '}'
+].join('\n');
 
-uniform mat4 uWorldMatrix;
-uniform mat4 uViewMatrix;
-uniform mat4 uProjectionMatrix;
-uniform vec3 uCameraPosition;
-uniform vec4 uRotationAxisVelocity;
-
-in vec3 aModelPosition;
-in vec3 aModelNormal;
-in vec2 aModelUvs;
-in vec4 aInstanceMatrix0;
-in vec4 aInstanceMatrix1;
-in vec4 aInstanceMatrix2;
-in vec4 aInstanceMatrix3;
-
-out vec2 vUvs;
-out float vAlpha;
-flat out int vInstanceId;
-
-#define PI 3.141593
-
-void main() {
-    mat4 aInstanceMatrix = mat4(aInstanceMatrix0, aInstanceMatrix1, aInstanceMatrix2, aInstanceMatrix3);
-    vec4 worldPosition = uWorldMatrix * aInstanceMatrix * vec4(aModelPosition, 1.);
-
-    vec3 centerPos = (uWorldMatrix * aInstanceMatrix * vec4(0., 0., 0., 1.)).xyz;
-    float radius = length(centerPos.xyz);
-
-    if (gl_VertexID > 0) {
-        vec3 rotationAxis = uRotationAxisVelocity.xyz;
-        float rotationVelocity = min(.15, uRotationAxisVelocity.w * 15.);
-        vec3 stretchDir = normalize(cross(centerPos, rotationAxis));
-        vec3 relativeVertexPos = normalize(worldPosition.xyz - centerPos);
-        float strength = dot(stretchDir, relativeVertexPos);
-        float invAbsStrength = min(0., abs(strength) - 1.);
-        strength = rotationVelocity * sign(strength) * abs(invAbsStrength * invAbsStrength * invAbsStrength + 1.);
-        worldPosition.xyz += stretchDir * strength;
-    }
-
-    worldPosition.xyz = radius * normalize(worldPosition.xyz);
-
-    gl_Position = uProjectionMatrix * uViewMatrix * worldPosition;
-
-    vAlpha = smoothstep(0.5, 1., normalize(worldPosition.xyz).z) * .9 + .1;
-    vUvs = aModelUvs;
-    vInstanceId = gl_InstanceID;
-}
-`;
-
-const discFragShaderSource = `#version 300 es
-precision highp float;
-
-uniform sampler2D uTex;
-uniform int uItemCount;
-uniform int uAtlasSize;
-
-out vec4 outColor;
-
-in vec2 vUvs;
-in float vAlpha;
-flat in int vInstanceId;
-
-void main() {
-    int itemIndex = vInstanceId % uItemCount;
-    int cellsPerRow = uAtlasSize;
-    int cellX = itemIndex % cellsPerRow;
-    int cellY = itemIndex / cellsPerRow;
-    vec2 cellSize = vec2(1.0) / vec2(float(cellsPerRow));
-    vec2 cellOffset = vec2(float(cellX), float(cellY)) * cellSize;
-
-    ivec2 texSize = textureSize(uTex, 0);
-    float imageAspect = float(texSize.x) / float(texSize.y);
-    float containerAspect = 1.0;
-    
-    float scale = max(imageAspect / containerAspect, 
-                     containerAspect / imageAspect);
-    
-    vec2 st = vec2(vUvs.x, 1.0 - vUvs.y);
-    st = (st - 0.5) * scale + 0.5;
-    
-    st = clamp(st, 0.0, 1.0);
-    
-    st = st * cellSize + cellOffset;
-    
-    outColor = texture(uTex, st);
-    outColor.a *= vAlpha;
-}
-`;
+const discFragShaderSource = [
+  '#version 300 es',
+  'precision highp float;',
+  '',
+  'uniform sampler2D uTex;',
+  'uniform int uItemCount;',
+  'uniform int uAtlasSize;',
+  '',
+  'out vec4 outColor;',
+  '',
+  'in vec2 vUvs;',
+  'in float vAlpha;',
+  'flat in int vInstanceId;',
+  '',
+  'void main() {',
+  '    int itemIndex = vInstanceId % uItemCount;',
+  '    int cellsPerRow = uAtlasSize;',
+  '    int cellX = itemIndex % cellsPerRow;',
+  '    int cellY = itemIndex / cellsPerRow;',
+  '    vec2 cellSize = vec2(1.0) / vec2(float(cellsPerRow));',
+  '    vec2 cellOffset = vec2(float(cellX), float(cellY)) * cellSize;',
+  '',
+  '    ivec2 texSize = textureSize(uTex, 0);',
+  '    float imageAspect = float(texSize.x) / float(texSize.y);',
+  '    float containerAspect = 1.0;',
+  '',
+  '    float scale = max(imageAspect / containerAspect,',
+  '                     containerAspect / imageAspect);',
+  '',
+  '    vec2 st = vec2(vUvs.x, 1.0 - vUvs.y);',
+  '    st = (st - 0.5) * scale + 0.5;',
+  '',
+  '    st = clamp(st, 0.0, 1.0);',
+  '',
+  '    st = st * cellSize + cellOffset;',
+  '',
+  '    outColor = texture(uTex, st);',
+  '    outColor.a *= vAlpha;',
+  '}'
+].join('\n');
 
 class Face {
   constructor(a, b, c) {
@@ -340,12 +338,6 @@ class DiscGeometry extends Geometry {
 }
 
 function createShader(gl, type, source) {
-  // Strip carriage returns (\r) from shader source.
-  // Windows CRLF line endings inside JS template literals pass \r\n
-  // to gl.shaderSource(), which makes some GPU drivers silently fail
-  // the #version directive, returning null from getShaderInfoLog.
-  source = source.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-
   const shader = gl.createShader(type);
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
@@ -355,7 +347,10 @@ function createShader(gl, type, source) {
     return shader;
   }
 
-  console.error('[InfiniteMenu] Shader compile failed:', gl.getShaderInfoLog(shader));
+  const typeName = type === gl.VERTEX_SHADER ? 'VERTEX' : 'FRAGMENT';
+  const infoLog = gl.getShaderInfoLog(shader);
+  console.error(`[InfiniteMenu] ${typeName} shader compile failed:`, infoLog);
+  console.error(`[InfiniteMenu] ${typeName} shader source (first 200 chars):`, source.substring(0, 200));
   gl.deleteShader(shader);
   return null;
 }
@@ -609,6 +604,7 @@ class InfiniteGridMenu {
   smoothRotationVelocity = 0;
   scaleFactor = 1.0;
   movementActive = false;
+  #initFailed = false;
 
   constructor(canvas, items, onActiveItemChange, onMovementChange, onInit = null, scale = 1.0) {
     this.canvas = canvas;
@@ -620,6 +616,10 @@ class InfiniteGridMenu {
     this.#init(onInit);
   }
 
+  get initFailed() {
+    return this.#initFailed;
+  }
+
   resize() {
     this.viewportSize = vec2.set(this.viewportSize || vec2.create(), this.canvas.clientWidth, this.canvas.clientHeight);
 
@@ -629,11 +629,12 @@ class InfiniteGridMenu {
       gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     }
 
+    if (this.#initFailed) return;
     this.#updateProjectionMatrix(gl);
   }
 
   run(time = 0) {
-    if (this.#destroyed) return;
+    if (this.#destroyed || this.#initFailed) return;
 
     this.#deltaTime = Math.min(32, time - this.#time);
     this.#time = time;
@@ -672,16 +673,20 @@ class InfiniteGridMenu {
       aModelPosition: 0,
       aModelNormal: 1,
       aModelUvs: 2,
-      aInstanceMatrix0: 3,
-      aInstanceMatrix1: 4,
-      aInstanceMatrix2: 5,
-      aInstanceMatrix3: 6
+      aInstanceMatrix: 3
     });
+
+    // Guard: if shaders failed to compile, abort gracefully
+    if (!this.discProgram) {
+      console.error('[InfiniteMenu] WebGL program creation failed. GPU may not support WebGL2 shaders.');
+      this.#initFailed = true;
+      return;
+    }
 
     this.discLocations = {
       aModelPosition: gl.getAttribLocation(this.discProgram, 'aModelPosition'),
       aModelUvs: gl.getAttribLocation(this.discProgram, 'aModelUvs'),
-      aInstanceMatrix: gl.getAttribLocation(this.discProgram, 'aInstanceMatrix0'),
+      aInstanceMatrix: gl.getAttribLocation(this.discProgram, 'aInstanceMatrix'),
       uWorldMatrix: gl.getUniformLocation(this.discProgram, 'uWorldMatrix'),
       uViewMatrix: gl.getUniformLocation(this.discProgram, 'uViewMatrix'),
       uProjectionMatrix: gl.getUniformLocation(this.discProgram, 'uProjectionMatrix'),
@@ -953,6 +958,8 @@ export default function InfiniteMenu({ items = [], scale = 1.0 }) {
   const [activeItem, setActiveItem] = useState(null);
   const [isMoving, setIsMoving] = useState(false);
 
+  const [webglFailed, setWebglFailed] = useState(false);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     let sketch;
@@ -963,14 +970,25 @@ export default function InfiniteMenu({ items = [], scale = 1.0 }) {
     };
 
     if (canvas) {
-      sketch = new InfiniteGridMenu(
-        canvas,
-        items.length ? items : defaultItems,
-        handleActiveItem,
-        setIsMoving,
-        sk => sk.run(),
-        scale
-      );
+      try {
+        sketch = new InfiniteGridMenu(
+          canvas,
+          items.length ? items : defaultItems,
+          handleActiveItem,
+          setIsMoving,
+          sk => {
+            if (sk.initFailed) {
+              setWebglFailed(true);
+              return;
+            }
+            sk.run();
+          },
+          scale
+        );
+      } catch (e) {
+        console.error('[InfiniteMenu] Failed to initialize:', e);
+        setWebglFailed(true);
+      }
     }
 
     const handleResize = () => {
@@ -998,6 +1016,45 @@ export default function InfiniteMenu({ items = [], scale = 1.0 }) {
       console.log('Internal route:', activeItem.link);
     }
   };
+
+  if (webglFailed) {
+    const displayItems = items.length ? items : defaultItems;
+    return (
+      <div style={{
+        position: 'relative', width: '100%', height: '100%',
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+        gap: '12px', padding: '20px', overflowY: 'auto',
+        background: 'rgba(0,0,0,0.3)', borderRadius: '12px'
+      }}>
+        <div style={{
+          gridColumn: '1 / -1', textAlign: 'center', padding: '12px 0',
+          color: '#94a3b8', fontFamily: 'monospace', fontSize: '11px'
+        }}>
+          ⚠ WebGL2 shaders unavailable on this device. Showing flat grid preview.
+        </div>
+        {displayItems.map((item, i) => (
+          <div key={i} style={{
+            borderRadius: '8px', overflow: 'hidden', aspectRatio: '1',
+            border: '1px solid rgba(255,255,255,0.06)', position: 'relative'
+          }}>
+            <img
+              src={item.image}
+              alt={item.title}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={e => { e.target.style.display = 'none'; }}
+            />
+            <div style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0,
+              padding: '6px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
+              fontSize: '10px', color: '#e2e8f0', fontFamily: 'monospace'
+            }}>
+              {item.title}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
