@@ -27,6 +27,13 @@ export default function Hero({ isReady }) {
   const [inView, setInView] = useState(true);
   const [deviceType, setDeviceType] = useState("desktop"); // "desktop" | "tablet" | "mobile"
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [hasBeenViewed, setHasBeenViewed] = useState(false);
+
+  useEffect(() => {
+    if (inView) {
+      setHasBeenViewed(true);
+    }
+  }, [inView]);
 
   // 1. Detect Viewport resizing & match device type
   useEffect(() => {
@@ -242,7 +249,7 @@ export default function Hero({ isReady }) {
                 className={styles.staticRobotImage}
               />
             </div>
-          ) : isReady && inView ? (
+          ) : isReady && hasBeenViewed ? (
             // Desktop & Tablet: Spline 3D Scene
             <div
               className={styles.splineWrapper}
@@ -250,8 +257,9 @@ export default function Hero({ isReady }) {
                 // Scaled down on tablet, pointer events disabled to stop tracking
                 transform: deviceType === "tablet" ? "scale(0.85)" : "scale(1)",
                 pointerEvents:
-                  deviceType === "tablet" || prefersReducedMotion ? "none" : "auto",
-                transition: "transform 0.3s ease",
+                  !inView || deviceType === "tablet" || prefersReducedMotion ? "none" : "auto",
+                transition: "transform 0.3s ease, opacity 0.5s ease",
+                opacity: inView ? 1 : 0,
               }}
             >
               <Spline scene={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/scene.splinecode`} />
