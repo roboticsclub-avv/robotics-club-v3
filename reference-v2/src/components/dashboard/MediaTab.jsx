@@ -5,7 +5,6 @@ import { db } from "@/lib/firebase/firestore";
 import { storage } from "@/lib/firebase/storage";
 import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import InfiniteMenu from "@/components/ui/InfiniteMenu";
 
 const DEFAULT_GALLERY_ITEMS = [
   {
@@ -47,7 +46,6 @@ export default function MediaTab() {
   const [loading, setLoading] = useState(true);
   const [editingItem, setEditingItem] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [previewMode, setPreviewMode] = useState(true);
 
   // Form states
   const [title, setTitle] = useState("");
@@ -98,7 +96,6 @@ export default function MediaTab() {
     setCategory(item.category);
     setDate(item.date);
     setAspect(item.aspect || "square");
-    setPreviewMode(false);
   };
 
   const handleSubmit = async (e) => {
@@ -170,73 +167,22 @@ export default function MediaTab() {
     }
   };
 
-  // Convert items array format to match React Bits usage
-  const menuItems = items.map(item => ({
-    image: item.url,
-    link: "#",
-    title: item.title,
-    description: `${item.category} — ${item.date}`
-  }));
-
   return (
     <div className="space-y-8">
-      {/* Tab Header with Segmented Switch */}
+      {/* Tab Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.05]">
         <div>
           <h1 className="text-xl font-bold font-orbitron text-white tracking-wider">
             GALLERY & MEDIA MANAGER
           </h1>
           <p className="text-xs text-gray-400 mt-1 font-inter">
-            Publish custom high-resolution club snapshots, and interact with the spherical gallery.
+            Publish custom high-resolution club snapshots and manage the image gallery.
           </p>
-        </div>
-
-        {/* Preview / Edit segment controls */}
-        <div className="inline-flex bg-black/50 p-1 rounded-xl border border-white/[0.05] self-start sm:self-auto">
-          <button
-            onClick={() => setPreviewMode(true)}
-            className={`px-4 py-2 rounded-lg font-orbitron font-semibold text-xs tracking-wider transition-all ${
-              previewMode
-                ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                : "text-gray-500 hover:text-gray-300 border border-transparent"
-            }`}
-          >
-            SPHERICAL PREVIEW
-          </button>
-          <button
-            onClick={() => setPreviewMode(false)}
-            className={`px-4 py-2 rounded-lg font-orbitron font-semibold text-xs tracking-wider transition-all ${
-              !previewMode
-                ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                : "text-gray-500 hover:text-gray-300 border border-transparent"
-            }`}
-          >
-            EDIT IMAGES
-          </button>
         </div>
       </div>
 
-      {previewMode ? (
-        /* React Bits InfiniteMenu spherical preview */
-        <div className="relative border border-white/[0.05] bg-[#0c0c0e] rounded-2xl overflow-hidden h-[600px] flex flex-col items-center justify-center">
-          {loading ? (
-            <div className="text-cyan-400 font-orbitron animate-pulse">LOADING CYBER SYSTEM PREVIEW...</div>
-          ) : items.length > 0 ? (
-            <div className="w-full h-full relative">
-              <InfiniteMenu items={menuItems} scale={1.2} />
-              <div className="absolute bottom-6 left-6 pointer-events-none">
-                <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest bg-black/40 px-3 py-1.5 rounded-lg border border-white/5">
-                  🕹️ DRAG CANVAS TO ROTATE SPHERE
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className="text-gray-500 text-center font-mono">No gallery items loaded. Go to &apos;Edit Images&apos; tab.</div>
-          )}
-        </div>
-      ) : (
-        /* Management UI */
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Management UI */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* List of current items */}
           <div className="lg:col-span-2 space-y-4">
             <h2 className="text-sm font-bold font-orbitron text-gray-400 tracking-wider">
@@ -412,7 +358,6 @@ export default function MediaTab() {
             </form>
           </div>
         </div>
-      )}
-    </div>
+      </div>
   );
 }
