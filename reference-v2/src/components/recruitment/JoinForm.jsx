@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { validateRecruitmentField } from "@/schemas/user.schema";
 import FormProgress from "./FormProgress";
@@ -11,7 +12,22 @@ const DRAFT_KEY = "robotics_recruitment_draft";
 const TOTAL_STEPS = 9;
 
 export default function JoinForm() {
-  // Form Field States
+  const router = useRouter();
+
+  // Flow Mode selection (null: Selection Screen, 'requisition': Hardware Requisition, 'recruitment': Core Team recruitment)
+  const [flowMode, setFlowMode] = useState(null);
+
+  // Hardware Requisition Form States
+  const [reqFormData, setReqFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: ""
+  });
+  const [reqSubmitting, setReqSubmitting] = useState(false);
+  const [reqSuccess, setReqSuccess] = useState(false);
+
+  // Form Field States (Core Team Recruitment)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -68,6 +84,7 @@ export default function JoinForm() {
   // 4. Keyboard Navigation Handler (Enter Key)
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (flowMode !== 'recruitment') return;
       if (e.key === "Enter") {
         e.preventDefault();
         // If textarea is focused, let Enter insert newline unless Ctrl/Cmd is held
@@ -84,7 +101,7 @@ export default function JoinForm() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentStep, formData, selectedPhoto]);
+  }, [currentStep, formData, selectedPhoto, flowMode]);
 
   // 5. Image Compression Utility
   const compressImage = async (file) => {
@@ -332,6 +349,328 @@ export default function JoinForm() {
       setSubmittingMsg("");
     }
   };
+
+  const validateCollegeEmail = (emailStr) => {
+    const trimmed = emailStr.trim().toLowerCase();
+    // Validate format: av.[department].[year/seq/branch]@*.amrita.edu
+    // Examples: av.sc.u4aie23002@av.students.amrita.edu
+    const regex = /^av\.[a-z]{2}\.u4[a-z]{3,4}\d{5}@(?:[a-z0-9.]*\.)?amrita\.edu$/i;
+    return regex.test(trimmed);
+  };
+
+  const handleReqSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMsg("");
+
+    if (!reqFormData.name.trim()) {
+      setErrorMsg("Full Name is required.");
+      return;
+    }
+
+    if (!validateCollegeEmail(reqFormData.email)) {
+      setErrorMsg(
+        "Invalid college email format. Must follow standard college pattern, e.g. av.sc.u4aie23002@av.students.amrita.edu"
+      );
+      return;
+    }
+
+    if (reqFormData.password.length < 6) {
+      setErrorMsg("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (reqFormData.password !== reqFormData.confirmPassword) {
+      setErrorMsg("Passwords do not match.");
+      return;
+    }
+
+    setReqSubmitting(true);
+    try {
+      // 1. Create Auth Credentials
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: reqFormData.email.trim(),
+        password: reqFormData.password,
+      });
+
+      if (signUpError) throw signUpError;
+      const user = signUpData.user;
+      if (!user) throw new Error("Could not retrieve user registration metadata");
+
+      // Extract branch and year from email local part
+      const localPart = reqFormData.email.split('@')[0];
+      const parts = localPart.split('.');
+      const rollPart = parts[2] || ""; // e.g. u4aie23002
+      let branchName = "GEN";
+      let joiningYear = "2023";
+
+      if (rollPart.startsWith("u4")) {
+        branchName = rollPart.substring(2, 5).toUpperCase(); // e.g. AIE
+        joiningYear = "20" + rollPart.substring(5, 7); // e.g. 23 -> 2023
+      }
+
+      // 2. Insert record in 'users' table (auto-accepted status for student members requesting hardware)
+      const { error: dbError } = await supabase
+        .from("users")
+        .insert([{
+          uid: user.id,
+          email: reqFormData.email.trim().toLowerCase(),
+          name: reqFormData.name.trim(),
+          phone: "",
+          branch: branchName,
+          year: joiningYear,
+          section: "A",
+          interests: "Hardware Requisition Access",
+          reason: "Accessing the lab hardware stocks.",
+          photoURL: "",
+          role: "member",
+          status: "accepted", // Auto-accepted for student requisitions!
+          memberId: "STUDENT",
+          createdAt: new Date().toISOString()
+        }]);
+
+      if (dbError) throw dbError;
+
+      // 3. Force Sign out immediately to clear local session
+      await supabase.auth.signOut();
+
+      setReqSuccess(true);
+    } catch (err) {
+      console.error("Hardware Requisition signup failed:", err);
+      setErrorMsg(err.message || "Sign up failed. Please check network settings.");
+    } finally {
+      setReqSubmitting(false);
+    }
+  };
+
+  const SelectionScreen = () => (
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-6 relative overflow-hidden font-inter">
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-purple-600/5 filter blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-cyan-600/5 filter blur-[100px] pointer-events-none" />
+
+      <div className="max-w-4xl w-full relative z-10 text-center space-y-12">
+        <div>
+          <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest bg-cyan-500/5 border border-cyan-500/20 px-3.5 py-1 rounded-full">
+            AMRITA ROBOTICS CLUB
+          </span>
+          <h1 className="text-4xl md:text-5xl font-black font-orbitron mt-6 tracking-wider text-white">
+            JOIN OUR ECOSYSTEM
+          </h1>
+          <p className="text-sm text-gray-400 mt-3 max-w-md mx-auto leading-relaxed">
+            Select the path that matches your requirements.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div 
+            onClick={() => { setErrorMsg(""); setFlowMode("requisition"); }}
+            className="glass-card p-8 rounded-3xl border border-white/[0.05] hover:border-cyan-500/30 transition-all text-left flex flex-col justify-between hover:scale-[1.02] cursor-pointer group"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-6 group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold font-orbitron text-white tracking-wide">
+                Hardware Requisition
+              </h2>
+              <p className="text-xs text-gray-400 mt-2 font-mono uppercase tracking-widest">
+                Student Account
+              </p>
+              <ul className="text-sm text-gray-400 mt-6 space-y-3 font-inter">
+                <li className="flex items-center gap-2">
+                  <span className="text-cyan-400">✓</span> Borrow microcontrollers, sensors, & parts
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-cyan-400">✓</span> Real-time borrowed history log
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-cyan-400">✓</span> Requires college email verification
+                </li>
+              </ul>
+            </div>
+            <button className="w-full mt-8 py-3 bg-cyan-950/40 hover:bg-cyan-600 text-cyan-400 hover:text-white font-orbitron font-bold text-xs rounded-xl tracking-wider transition-all border border-cyan-500/20">
+              CREATE ACCOUNT →
+            </button>
+          </div>
+
+          <div 
+            onClick={() => { setErrorMsg(""); setFlowMode("recruitment"); }}
+            className="glass-card p-8 rounded-3xl border border-white/[0.05] hover:border-purple-500/30 transition-all text-left flex flex-col justify-between hover:scale-[1.02] cursor-pointer group"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-6 group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold font-orbitron text-white tracking-wide">
+                Join the Core Team
+              </h2>
+              <p className="text-xs text-purple-400 mt-2 font-mono uppercase tracking-widest">
+                Official Recruitment
+              </p>
+              <ul className="text-sm text-gray-400 mt-6 space-y-3 font-inter">
+                <li className="flex items-center gap-2">
+                  <span className="text-purple-400">✓</span> Build state-of-the-art club projects
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-purple-400">✓</span> National & international competitions
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-purple-400">✓</span> Structured multi-step application
+                </li>
+              </ul>
+            </div>
+            <button className="w-full mt-8 py-3 bg-purple-950/40 hover:bg-purple-600 text-purple-400 hover:text-white font-orbitron font-bold text-xs rounded-xl tracking-wider transition-all border border-purple-500/20">
+              START APPLICATION →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const ReqSuccessScreen = () => (
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-6 relative overflow-hidden font-inter">
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-cyan-600/5 filter blur-[100px] pointer-events-none" />
+      <div className="relative z-10 flex flex-col items-center text-center p-8 max-w-md w-full mx-auto glass-card border border-white/[0.05] rounded-3xl">
+        <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6 shadow-[0_0_30px_rgba(16,185,129,0.15)]">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-10 h-10">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest bg-emerald-500/5 border border-emerald-500/20 px-3 py-1 rounded-full mb-4">
+          REGISTRATION COMPLETE
+        </span>
+        <h2 className="text-2xl font-bold font-orbitron text-white tracking-wide mb-3 animate-pulse">
+          ACCOUNT ACTIVE
+        </h2>
+        <p className="text-sm text-gray-400 leading-relaxed mb-8 max-w-xs font-inter">
+          Your hardware requisition student account is fully active. You can now proceed to log in to request resources.
+        </p>
+        <button
+          onClick={() => router.push("/login")}
+          className="w-full max-w-xs py-3.5 bg-cyan-600 hover:bg-cyan-500 text-white font-orbitron font-bold text-xs rounded-xl tracking-wider transition-colors shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+        >
+          PROCEED TO LOGIN
+        </button>
+      </div>
+    </div>
+  );
+
+  const RequisitionForm = () => (
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-6 relative overflow-hidden font-inter">
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-cyan-600/5 filter blur-[100px] pointer-events-none" />
+      
+      <div className="max-w-md w-full relative z-10 glass-card border border-white/[0.05] p-8 rounded-3xl space-y-6 shadow-2xl">
+        <div className="text-center">
+          <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest bg-cyan-500/5 border border-cyan-500/20 px-3 py-1 rounded-full">
+            REQUISITION REGISTRATION
+          </span>
+          <h2 className="text-2xl font-bold font-orbitron text-white mt-4 uppercase tracking-wider">
+            Create Account
+          </h2>
+          <p className="text-xs text-gray-500 mt-1">
+            Specify credentials to access student requisition portal.
+          </p>
+        </div>
+
+        {errorMsg && (
+          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-mono text-center">
+            {errorMsg}
+          </div>
+        )}
+
+        <form onSubmit={handleReqSubmit} className="space-y-4">
+          <div>
+            <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1.5">
+              Full Name
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="Your Full Name"
+              value={reqFormData.name}
+              onChange={(e) => setReqFormData({ ...reqFormData, name: e.target.value })}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 font-inter"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1.5">
+              College Email
+            </label>
+            <input
+              type="email"
+              required
+              placeholder="e.g. av.sc.u4aie23002@av.students.amrita.edu"
+              value={reqFormData.email}
+              onChange={(e) => setReqFormData({ ...reqFormData, email: e.target.value })}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1.5">
+              Password
+            </label>
+            <input
+              type="password"
+              required
+              placeholder="Min 6 characters"
+              value={reqFormData.password}
+              onChange={(e) => setReqFormData({ ...reqFormData, password: e.target.value })}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1.5">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              required
+              placeholder="Re-enter password"
+              value={reqFormData.confirmPassword}
+              onChange={(e) => setReqFormData({ ...reqFormData, confirmPassword: e.target.value })}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-3">
+            <button
+              type="button"
+              onClick={() => { setErrorMsg(""); setFlowMode(null); }}
+              className="flex-1 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 text-gray-300 font-orbitron text-xs rounded-xl transition-all"
+            >
+              ← BACK
+            </button>
+            <button
+              type="submit"
+              disabled={reqSubmitting}
+              className="flex-1 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-orbitron font-bold text-xs rounded-xl tracking-wider transition-colors shadow-[0_0_15px_rgba(6,182,212,0.2)] disabled:opacity-50"
+            >
+              {reqSubmitting ? "CREATING..." : "REGISTER"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+
+  if (reqSuccess) {
+    return <ReqSuccessScreen />;
+  }
+
+  if (flowMode === null) {
+    return <SelectionScreen />;
+  }
+
+  if (flowMode === 'requisition') {
+    return <RequisitionForm />;
+  }
 
   if (isCompleted) {
     return <SuccessScreen />;
