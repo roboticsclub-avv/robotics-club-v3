@@ -10,8 +10,24 @@ CREATE TABLE IF NOT EXISTS gallery (
     "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
--- 2. Disable Row Level Security (consistent with other schema files in the project)
-ALTER TABLE gallery DISABLE ROW LEVEL SECURITY;
+-- 2. Enable Row Level Security and Define Policies
+ALTER TABLE public.gallery ENABLE ROW LEVEL SECURITY;
+
+-- Allow public read access to everyone
+DROP POLICY IF EXISTS "Allow public select on gallery" ON public.gallery;
+CREATE POLICY "Allow public select on gallery" ON public.gallery
+FOR SELECT USING (true);
+
+-- Allow authenticated admins and staff members to insert, update, and delete rows
+DROP POLICY IF EXISTS "Allow admin manage on gallery" ON public.gallery;
+CREATE POLICY "Allow admin manage on gallery" ON public.gallery
+FOR ALL TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM public.users
+    WHERE uid = auth.uid() AND role IN ('admin', 'technical', 'ops', 'data', 'secretary', 'media')
+  )
+);
 
 -- 3. Storage Policies for the 'gallery' bucket
 -- (Make sure you manually create the 'gallery' bucket in your Supabase storage dashboard and set it to PUBLIC)
