@@ -113,8 +113,8 @@ export default function MemberPage() {
           itemId: selectedItem.id,
           itemName: freshItem.name,
           expectedReturn: expectedReturn,
-          status: "issued",
-          issuedAt: new Date().toISOString()
+          status: "pending",
+          issuedAt: null
         }]);
 
       if (allocError) throw allocError;

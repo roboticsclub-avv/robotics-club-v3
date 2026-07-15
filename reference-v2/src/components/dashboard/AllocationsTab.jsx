@@ -106,13 +106,6 @@ export default function AllocationsTab() {
                 }]);
             if (allocError) throw allocError;
 
-            // Decrease quantity
-            const { error: hwUpdateError } = await supabase
-                .from('hardware')
-                .update({ availableQuantity: item.availableQuantity - 1 })
-                .eq('id', selectedItemId);
-            if (hwUpdateError) throw hwUpdateError;
-
             await showAlert("Item Issued Successfully!", "Issue Confirmed");
             setMemberSearch("");
             setSelectedMember(null);
@@ -139,27 +132,30 @@ export default function AllocationsTab() {
                 .eq('id', allocId);
             if (allocReturnError) throw allocReturnError;
 
-            // Increase quantity
-            const { data: itemDoc, error: getHwError } = await supabase
-                .from('hardware')
-                .select('availableQuantity')
-                .eq('id', itemId)
-                .single();
-            if (getHwError) throw getHwError;
-
-            if (itemDoc) {
-                const currentQty = itemDoc.availableQuantity || 0;
-                const { error: hwReturnError } = await supabase
-                    .from('hardware')
-                    .update({ availableQuantity: currentQty + 1 })
-                    .eq('id', itemId);
-                if (hwReturnError) throw hwReturnError;
-            }
-
             await showAlert("Item Returned!", "Return Confirmed");
             fetchData();
         } catch (error) {
             await showAlert("Error returning item: " + error.message, "Return Error");
+        }
+    };
+
+    const handleApproveIssue = async (allocId) => {
+        const isConfirmed = await showConfirm("Approve this requisition and issue hardware?", "Issue Hardware");
+        if (!isConfirmed) return;
+        try {
+            const { error } = await supabase
+                .from('allocations')
+                .update({
+                    status: 'issued',
+                    issuedAt: new Date().toISOString()
+                })
+                .eq('id', allocId);
+            
+            if (error) throw error;
+            await showAlert("Requisition approved and item issued!", "Approved");
+            fetchData();
+        } catch (error) {
+            await showAlert("Error approving item: " + error.message, "Approval Error");
         }
     };
 
@@ -243,13 +239,20 @@ export default function AllocationsTab() {
                                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
                                                 alloc.status === 'issued'
                                                     ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                                                    : alloc.status === 'pending'
+                                                    ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
                                                     : 'bg-green-500/10 text-green-400 border border-green-500/20'
                                             }`}>
                                                 {alloc.status}
                                             </span>
                                         </td>
                                         <td className="p-4 pr-6 text-right">
-                                            {alloc.status === 'issued' ? (
+                                            {alloc.status === 'pending' ? (
+                                                <button onClick={() => handleApproveIssue(alloc.id)}
+                                                    className="px-2.5 py-1.5 bg-cyan-950/20 hover:bg-cyan-600 border border-cyan-500/30 text-cyan-400 hover:text-white text-[10px] font-orbitron font-bold rounded tracking-wider transition-colors">
+                                                    APPROVE / ISSUE
+                                                </button>
+                                            ) : alloc.status === 'issued' ? (
                                                 <button onClick={() => handleReturn(alloc.id, alloc.itemId)}
                                                     className="px-2.5 py-1.5 bg-green-950/20 hover:bg-green-600 border border-green-500/30 text-green-400 hover:text-white text-[10px] font-orbitron font-bold rounded tracking-wider transition-colors">
                                                     MARK RETURNED
