@@ -439,8 +439,8 @@ export default function JoinForm() {
     setOtpVerifying(true);
 
     try {
-      if (otpToken.trim().length !== 6) {
-        throw new Error("Please enter a valid 6-digit verification code.");
+      if (otpToken.trim().length !== 8) {
+        throw new Error("Please enter a valid 8-digit verification code.");
       }
 
       // 1. Verify OTP with Supabase
@@ -602,7 +602,7 @@ export default function JoinForm() {
             Enter OTP Code
           </h2>
           <p className="text-xs text-gray-500 mt-1">
-            We sent a 6-digit code to <strong className="text-gray-300 font-mono">{targetEmail}</strong>.
+            We sent an 8-digit code to <strong className="text-gray-300 font-mono">{targetEmail}</strong>.
           </p>
         </div>
 
@@ -621,16 +621,16 @@ export default function JoinForm() {
         <form onSubmit={handleOtpVerify} className="space-y-6">
           <div>
             <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2 text-center">
-              6-Digit Code
+              8-Digit Code
             </label>
             <input
               type="text"
-              maxLength={6}
+              maxLength={8}
               required
-              placeholder="000000"
+              placeholder="00000000"
               value={otpToken}
               onChange={(e) => setOtpToken(e.target.value.replace(/\D/g, ''))}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-2xl font-mono text-center tracking-[1em] pl-[1.5em] text-white focus:outline-none focus:border-cyan-500 placeholder:opacity-20"
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xl font-mono text-center tracking-[0.6em] pl-[0.8em] text-white focus:outline-none focus:border-cyan-500 placeholder:opacity-20"
             />
           </div>
 
