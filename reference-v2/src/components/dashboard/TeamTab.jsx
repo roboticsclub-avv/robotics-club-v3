@@ -1,233 +1,446 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { fetchApplicants } from "@/lib/firebase/dashboardService";
-import ApplicantDetailModal from "./ApplicantDetailModal";
+import React, { useState, useEffect, useRef } from "react";
+import { db } from "@/lib/firebase/firestore";
+import { storage } from "@/lib/firebase/storage";
+import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
+const getImageUrl = (url) => {
+  if (!url) return `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/media/placeholder.jpg`;
+  if (url.startsWith('/')) return `${process.env.NEXT_PUBLIC_BASE_PATH || ''}${url}`;
+  return url;
+};
 
 export default function TeamTab() {
-  const [members, setMembers] = useState([]);
+  const [team, setTeam] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
-  // Search state
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedMember, setSelectedMember] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  // Image preview state
-  const [previewImageUrl, setPreviewImageUrl] = useState(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    role: "",
+    quote: "",
+    bio: "",
+    research: "",
+    type: "member",
+    display_order: 0
+  });
 
-  async function loadMembers() {
+  const [imageFile, setImageFile] = useState(null);
+  const [currentImageUrl, setCurrentImageUrl] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const fetchTeam = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const data = await fetchApplicants();
-      // Filter for accepted members only
-      const acceptedMembers = data.filter((u) => u.status === "accepted");
-      setMembers(acceptedMembers);
-      setError(null);
-    } catch (err) {
-      console.error("Error loading team members:", err);
-      setError("Failed to load team list.");
+      const q = query(
+        collection(db, "core_team"),
+        orderBy("display_order", "asc"),
+        orderBy("name", "asc")
+      );
+      const querySnapshot = await getDocs(q);
+      const data = [];
+      querySnapshot.forEach((docSnap) => {
+        data.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      setTeam(data);
+    } catch (error) {
+      console.error("Error fetching team:", error);
+      alert("Error loading team directory: " + error.message);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadMembers();
+    fetchTeam();
   }, []);
 
-  // Filter & Search logic
-  const filteredMembers = members.filter((m) => {
-    const query = searchTerm.toLowerCase().trim();
-    if (!query) return true;
+  const handleChange = (e) => {
+    const value = e.target.type === 'number' ? parseInt(e.target.value, 10) : e.target.value;
+    setFormData({ ...formData, [e.target.name]: value });
+  };
 
-    const nameMatch = m.name ? m.name.toLowerCase().includes(query) : false;
-    const emailMatch = m.email ? m.email.toLowerCase().includes(query) : false;
-    const branchMatch = m.branch ? m.branch.toLowerCase().includes(query) : false;
-    const memberIdMatch = m.memberId ? m.memberId.toLowerCase().includes(query) : false;
-
-    // Improved Search: automatically fill RC-year (RC-26-)
-    const currentYear2Digit = new Date().getFullYear().toString().slice(-2); // "26"
-    let searchId = query;
-    if (/^\d+$/.test(query)) {
-      // e.g. search "5" -> fills "rc-26-0005"
-      searchId = `rc-${currentYear2Digit}-${query.padStart(4, "0")}`;
-    } else if (/^\d{2}-\d+$/.test(query)) {
-      // e.g. search "26-0005" -> fills "rc-26-0005"
-      searchId = `rc-${query}`;
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
     }
-    const smartIdMatch = m.memberId ? m.memberId.toLowerCase().includes(searchId) : false;
+  };
 
-    return nameMatch || emailMatch || branchMatch || memberIdMatch || smartIdMatch;
-  });
+  const uploadImage = async (file) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+    const storageRef = ref(storage, `core_team/${fileName}`);
+    
+    const snapshot = await uploadBytes(storageRef, file);
+    const downloadUrl = await getDownloadURL(snapshot.ref);
+    return downloadUrl;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsUploading(true);
+
+    try {
+      let finalImageUrl = currentImageUrl;
+
+      // Upload file to Firebase Storage if a new one is selected
+      if (imageFile) {
+        finalImageUrl = await uploadImage(imageFile);
+      }
+
+      const dataToSave = {
+        name: formData.name.trim(),
+        role: formData.role.trim().toUpperCase(),
+        quote: formData.quote.trim(),
+        bio: formData.bio.trim(),
+        research: formData.research.trim(),
+        type: formData.type,
+        display_order: Number(formData.display_order),
+        image_url: finalImageUrl
+      };
+
+      if (editingId) {
+        // Update document
+        const docRef = doc(db, "core_team", editingId);
+        await updateDoc(docRef, dataToSave);
+      } else {
+        // Create document
+        const collectionRef = collection(db, "core_team");
+        await addDoc(collectionRef, dataToSave);
+      }
+
+      handleCancel();
+      await fetchTeam();
+      alert("Core team member successfully saved.");
+    } catch (error) {
+      console.error("Error saving core team member:", error);
+      alert("Error saving member: " + error.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleEdit = (member) => {
+    setEditingId(member.id);
+    setFormData({
+      name: member.name || "",
+      role: member.role || "",
+      quote: member.quote || "",
+      bio: member.bio || "",
+      research: member.research || "",
+      type: member.type || "member",
+      display_order: member.display_order || 0
+    });
+    setCurrentImageUrl(member.image_url || "");
+    setImageFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to completely delete this team member? This cannot be undone.")) return;
+    try {
+      const docRef = doc(db, "core_team", id);
+      await deleteDoc(docRef);
+      await fetchTeam();
+      alert("Core team member removed.");
+    } catch (error) {
+      console.error("Error deleting member:", error);
+      alert("Error deleting member: " + error.message);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setFormData({
+      name: "",
+      role: "",
+      quote: "",
+      bio: "",
+      research: "",
+      type: "member",
+      display_order: 0
+    });
+    setCurrentImageUrl("");
+    setImageFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   return (
-    <div className="space-y-6 font-inter">
-      {/* Header bar / Search */}
-      <div className="bg-[#111115] border border-white/[0.04] p-4 rounded-xl flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <h2 className="font-orbitron text-sm font-bold text-gray-400 tracking-wider">
-          MEMBERS COUNT: {members.length}
-        </h2>
-        
-        {/* Search */}
-        <div className="w-full sm:w-80 relative">
-          <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </span>
-          <input
-            type="text"
-            placeholder="Search name, email, branch, or memberId..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-black/40 border border-white/[0.06] hover:border-cyan-500/40 focus:border-cyan-400 focus:outline-none rounded-lg text-white font-inter placeholder-gray-500 transition-colors"
-          />
-        </div>
+    <div className="space-y-8 font-inter">
+      {/* Header Info */}
+      <div className="pb-4 border-b border-white/[0.05]">
+        <h1 className="text-xl font-bold font-orbitron text-white tracking-wider">
+          CORE TEAM DIRECTORY MANAGER
+        </h1>
+        <p className="text-xs text-gray-400 mt-1 font-inter">
+          Manage faculty advisors and student leads featured on the homepage core team roster.
+        </p>
       </div>
 
-      {/* Members Grid / Table */}
-      <div className="bg-[#111115] border border-white/[0.04] rounded-xl overflow-hidden shadow-lg">
-        {loading ? (
-          <div className="p-12 text-center text-gray-500 font-mono text-sm">
-            &gt; Syncing roster...
-          </div>
-        ) : error ? (
-          <div className="p-12 text-center text-red-400 font-mono text-sm">
-            &gt; ERROR: {error}
-          </div>
-        ) : filteredMembers.length === 0 ? (
-          <div className="p-12 text-center text-gray-500 italic text-sm">
-            No accepted members matching current search.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-black/30 border-b border-white/[0.04] text-slate-400 font-orbitron uppercase text-[10px] tracking-wider font-bold">
-                <tr>
-                  <th className="p-4 pl-6">Member ID</th>
-                  <th className="p-4">Profile</th>
-                  <th className="p-4">Year / Branch</th>
-                  <th className="p-4">Primary Interest</th>
-                  <th className="p-4 pr-6 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/[0.02]">
-                {filteredMembers.map((member) => (
-                  <tr 
-                    key={member.id}
-                    className="hover:bg-white/[0.01] transition-colors"
-                  >
-                    {/* ID */}
-                    <td className="p-4 pl-6 font-mono text-cyan-400 text-xs font-bold">
-                      {member.memberId || "PENDING"}
-                    </td>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        {/* Editor Form */}
+        <div className="bg-[#111115] border border-white/[0.04] p-6 rounded-xl space-y-4 lg:col-span-1">
+          <h2 className="text-sm font-bold font-orbitron text-cyan-400 uppercase tracking-widest pb-2 border-b border-white/[0.05]">
+            {editingId ? "Edit Team Member" : "Add Core Team Member"}
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-1.5">
+                Full Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                required
+                placeholder="e.g. SHASHWAT MISHRA"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors"
+              />
+            </div>
 
-                    {/* Name + Email + Photo */}
-                    <td className="p-4 flex items-center gap-3">
-                      <div 
-                        onClick={() => setPreviewImageUrl(member.photoURL)}
-                        title="Click to view full size photo"
-                        className="w-10 h-10 rounded-full border border-white/[0.1] bg-slate-800 overflow-hidden shrink-0 cursor-pointer hover:scale-110 transition-transform shadow-[0_0_10px_rgba(6,182,212,0.15)]"
-                      >
-                        {member.photoURL ? (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-1.5">
+                  Role
+                </label>
+                <input
+                  type="text"
+                  name="role"
+                  required
+                  placeholder="e.g. PRESIDENT"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 uppercase transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-1.5">
+                  Member Type
+                </label>
+                <select
+                  name="type"
+                  value={formData.type}
+                  onChange={handleChange}
+                  className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 cursor-pointer"
+                >
+                  <option value="member">Student Member</option>
+                  <option value="faculty">Faculty Advisor</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-1.5">
+                Profile Photo
+              </label>
+              <div className="bg-black/20 border border-white/10 rounded-lg p-4 space-y-3">
+                {currentImageUrl && !imageFile && (
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={getImageUrl(currentImageUrl)}
+                      alt="Current preview"
+                      className="w-12 h-12 rounded-full object-cover border border-white/10 shadow-lg"
+                    />
+                    <span className="text-[10px] text-gray-500 font-mono truncate max-w-[150px]">
+                      Active Image
+                    </span>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg, image/webp"
+                  onChange={handleFileChange}
+                  ref={fileInputRef}
+                  className="w-full text-xs text-gray-400 bg-black/40 border border-white/10 rounded-lg p-2.5 file:mr-3 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-cyan-500/10 file:text-cyan-400 file:cursor-pointer hover:file:bg-cyan-500/20 transition-all"
+                />
+                {imageFile && (
+                  <p className="text-[10px] text-green-400 font-mono">
+                    ✓ New image queued for upload
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-1.5">
+                Hover Quote
+              </label>
+              <input
+                type="text"
+                name="quote"
+                placeholder="e.g. 'Execution is everything.'"
+                value={formData.quote}
+                onChange={handleChange}
+                className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 italic transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-1.5">
+                Biography / Experience
+              </label>
+              <textarea
+                name="bio"
+                required
+                placeholder="Describe details, roles and achievements..."
+                value={formData.bio}
+                onChange={handleChange}
+                rows="3"
+                className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors resize-y"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-1.5">
+                Research / Focus Interests
+              </label>
+              <textarea
+                name="research"
+                required
+                placeholder="Comma separated: e.g. ROS, Machine Learning, UAVs"
+                value={formData.research}
+                onChange={handleChange}
+                rows="2"
+                className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors resize-y"
+              />
+            </div>
+
+            <div className="flex items-center justify-between border-t border-white/[0.05] pt-4">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">
+                  Sort Order:
+                </span>
+                <input
+                  type="number"
+                  name="display_order"
+                  value={formData.display_order}
+                  onChange={handleChange}
+                  className="w-16 bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:border-cyan-500 text-center font-mono"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                {editingId && (
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={isUploading}
+                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-gray-300 font-orbitron text-[10px] font-bold rounded tracking-wider border border-slate-700 transition-colors"
+                  >
+                    CANCEL
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  disabled={isUploading}
+                  className="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white font-orbitron text-[10px] font-bold rounded tracking-wider transition-colors disabled:opacity-50"
+                >
+                  {isUploading ? "UPLOADING..." : editingId ? "SAVE" : "ADD"}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        {/* Core Roster Table List */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="bg-[#111115] border border-white/[0.04] rounded-xl overflow-hidden shadow-lg">
+            <div className="p-4 border-b border-white/[0.04] bg-black/30 flex justify-between items-center">
+              <h2 className="text-xs font-bold font-orbitron text-gray-400 tracking-wider">
+                CURRENT CORE TEAM DIRECTORY (COUNT: {team.length})
+              </h2>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-black/30 border-b border-white/[0.04] text-slate-400 font-orbitron uppercase text-[10px] tracking-wider font-bold">
+                  <tr>
+                    <th className="p-4 pl-6 w-16">Sort</th>
+                    <th className="p-4">Member</th>
+                    <th className="p-4">Quote & Interests</th>
+                    <th className="p-4 pr-6 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/[0.02]">
+                  {loading ? (
+                    <tr>
+                      <td colSpan="4" className="p-12 text-center text-gray-500 font-mono text-xs">
+                        &gt; Accessing core team database archives...
+                      </td>
+                    </tr>
+                  ) : team.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="p-12 text-center text-gray-500 italic text-sm">
+                        No core team members added yet. Add one using the panel on the left.
+                      </td>
+                    </tr>
+                  ) : (
+                    team.map((member) => (
+                      <tr key={member.id} className="hover:bg-white/[0.01] transition-colors">
+                        <td className="p-4 pl-6">
+                          <span className="font-mono text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded text-xs border border-cyan-500/10">
+                            {member.display_order}
+                          </span>
+                        </td>
+                        <td className="p-4 flex gap-4 items-center">
                           <img
-                            src={member.photoURL}
-                            alt={`${member.name}'s photo`}
-                            className="w-full h-full object-cover"
+                            src={getImageUrl(member.image_url)}
+                            alt={member.name}
+                            className="w-10 h-10 rounded-full object-cover border border-white/10 shadow-lg shrink-0"
                             onError={(e) => {
                               e.target.onerror = null;
-                              e.target.style.display = "none";
-                              e.target.parentNode.innerHTML = `<div class="w-full h-full flex items-center justify-center text-cyan-400 font-orbitron font-semibold text-xs">${(member.name || "M")[0].toUpperCase()}</div>`;
+                              e.target.src = "/media/placeholder.jpg";
                             }}
                           />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-cyan-400 font-orbitron font-semibold text-xs">
-                            {(member.name || "M")[0].toUpperCase()}
+                          <div>
+                            <div className="font-bold text-white uppercase text-xs">
+                              {member.name}
+                            </div>
+                            <div className={`text-[10px] font-mono mt-0.5 ${member.type === 'faculty' ? 'text-purple-400 font-bold' : 'text-gray-500'}`}>
+                              {member.role} {member.type === 'faculty' && " (Faculty)"}
+                            </div>
                           </div>
-                        )}
-                      </div>
-                      <div>
-                        <div className="font-bold text-white text-sm">{member.name}</div>
-                        <div className="text-xs text-gray-500 font-mono mt-0.5">{member.email}</div>
-                      </div>
-                    </td>
-
-                    {/* Year/Branch */}
-                    <td className="p-4 text-xs">
-                      <div className="text-gray-300 font-medium">{member.year} Year</div>
-                      <div className="text-gray-500 font-mono mt-0.5">{member.branch}</div>
-                    </td>
-
-                    {/* Interest */}
-                    <td className="p-4">
-                      <span className="px-2 py-1 rounded bg-[#18181b] border border-white/[0.04] text-[10px] font-mono text-cyan-300 uppercase tracking-wide">
-                        {member.interests || "General"}
-                      </span>
-                    </td>
-
-                    {/* Action */}
-                    <td className="p-4 pr-6 text-right">
-                      <button
-                        onClick={() => setSelectedMember(member)}
-                        className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-orbitron font-bold rounded tracking-wider border border-slate-700 transition-colors"
-                      >
-                        VIEW PROFILE
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Member Profile Modal */}
-      {selectedMember && (
-        <ApplicantDetailModal
-          applicant={selectedMember}
-          onClose={() => setSelectedMember(null)}
-          onUpdateApplicant={(updatedMember) => {
-            setMembers(prev => prev.map(m => m.id === updatedMember.id ? updatedMember : m));
-            setSelectedMember(updatedMember);
-          }}
-        />
-      )}
-
-      {/* Image Preview Overlay Modal */}
-      {previewImageUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            onClick={() => setPreviewImageUrl(null)}
-            className="absolute inset-0 bg-black/90 backdrop-blur-md"
-          />
-          <div className="relative z-10 bg-[#111115] border border-white/10 max-w-3xl max-h-[85vh] rounded-xl overflow-hidden shadow-2xl flex flex-col items-center">
-            <button
-              onClick={() => setPreviewImageUrl(null)}
-              className="absolute top-4 right-4 bg-black/60 backdrop-blur-md hover:bg-black/90 text-white p-2 rounded-full border border-white/10 transition-colors z-20"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <img
-              src={previewImageUrl}
-              alt="Profile full size preview"
-              className="max-w-full max-h-[70vh] object-contain"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.style.display = "none";
-                e.target.parentNode.innerHTML = `<div class="p-12 text-center text-gray-500 font-mono text-sm">Image failed to load.</div>`;
-              }}
-            />
-            <div className="p-4 bg-black/40 text-center text-xs font-mono text-cyan-400 w-full border-t border-white/[0.05]">
-              PROFILE PHOTO FULL-SIZE PREVIEW
+                        </td>
+                        <td className="p-4 max-w-xs">
+                          {member.quote && (
+                            <div className="text-xs text-gray-400 italic truncate">
+                              &ldquo;{member.quote}&rdquo;
+                            </div>
+                          )}
+                          <div className="text-[10px] text-gray-500 font-mono truncate mt-0.5">
+                            {member.research}
+                          </div>
+                        </td>
+                        <td className="p-4 pr-6 text-right space-x-2 whitespace-nowrap">
+                          <button
+                            onClick={() => handleEdit(member)}
+                            className="px-2 py-1 bg-white/[0.03] hover:bg-white/[0.08] text-gray-300 font-orbitron text-[10px] rounded transition-all"
+                          >
+                            EDIT
+                          </button>
+                          <button
+                            onClick={() => handleDelete(member.id)}
+                            className="px-2 py-1 bg-red-950/20 hover:bg-red-900/30 text-red-400 font-orbitron text-[10px] rounded transition-all border border-red-500/10"
+                          >
+                            DELETE
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
