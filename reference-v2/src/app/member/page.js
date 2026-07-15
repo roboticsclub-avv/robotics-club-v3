@@ -119,14 +119,6 @@ export default function MemberPage() {
 
       if (allocError) throw allocError;
 
-      // 2. Decrement hardware available count
-      const { error: hwUpdateError } = await supabase
-        .from("hardware")
-        .update({ availableQuantity: freshItem.availableQuantity - 1 })
-        .eq("id", selectedItem.id);
-
-      if (hwUpdateError) throw hwUpdateError;
-
       // Reset and reload
       handleCloseRequestModal();
       await fetchData();
@@ -157,25 +149,6 @@ export default function MemberPage() {
         .eq("id", allocation.id);
 
       if (allocError) throw allocError;
-
-      // 2. Fetch current hardware quantity
-      const { data: hwItem, error: getHwError } = await supabase
-        .from("hardware")
-        .select("availableQuantity")
-        .eq("id", allocation.itemId)
-        .single();
-
-      if (getHwError) throw getHwError;
-
-      if (hwItem) {
-        // 3. Increment hardware available count
-        const { error: hwUpdateError } = await supabase
-          .from("hardware")
-          .update({ availableQuantity: (hwItem.availableQuantity || 0) + 1 })
-          .eq("id", allocation.itemId);
-
-        if (hwUpdateError) throw hwUpdateError;
-      }
 
       await fetchData();
       alert("Hardware return updated successfully.");

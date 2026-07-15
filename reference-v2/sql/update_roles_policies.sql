@@ -83,11 +83,64 @@ create policy "Manage hardware policy" on public.hardware
 for all to authenticated
 using (public.is_data_or_tech_or_admin(auth.uid()));
 
--- ALLOCATIONS: Managed by Admin, Technical, and Data teams
+-- ALLOCATIONS: Read access for staff/admins or the user who owns the allocation
 drop policy if exists "Manage allocations policy" on public.allocations;
-create policy "Manage allocations policy" on public.allocations
-for all to authenticated
-using (public.is_data_or_tech_or_admin(auth.uid()));
+drop policy if exists "Select allocations policy" on public.allocations;
+create policy "Select allocations policy" on public.allocations
+for select to authenticated
+using (
+  public.is_data_or_tech_or_admin(auth.uid()) OR 
+  (auth.uid() = "userId")
+);
+
+-- ALLOCATIONS: Insert allowed for self-requisition
+drop policy if exists "Insert allocations policy" on public.allocations;
+create policy "Insert allocations policy" on public.allocations
+for insert to authenticated
+with check (
+  (auth.uid() = "userId")
+);
+
+-- ALLOCATIONS: Update allowed for staff or self-return status update
+drop policy if exists "Update allocations policy" on public.allocations;
+create policy "Update allocations policy" on public.allocations
+for update to authenticated
+using (
+  public.is_data_or_tech_or_admin(auth.uid()) OR 
+  (auth.uid() = "userId")
+)
+with check (
+  public.is_data_or_tech_or_admin(auth.uid()) OR 
+  (auth.uid() = "userId")
+);
+
+-- ALLOCATIONS TRIGGER: Automatically manages hardware availableQuantity counts on insert/return
+create or replace function public.handle_allocation_stock_change()
+returns trigger as $$
+begin
+  if (TG_OP = 'INSERT') then
+    -- Decrement availableQuantity when a new allocation is created
+    update public.hardware
+    set "availableQuantity" = "availableQuantity" - 1
+    where id = NEW."itemId";
+    return NEW;
+  elsif (TG_OP = 'UPDATE') then
+    -- If status changes from 'issued' to 'returned', increment availableQuantity
+    if (OLD.status = 'issued' and NEW.status = 'returned') then
+      update public.hardware
+      set "availableQuantity" = "availableQuantity" + 1
+      where id = NEW."itemId";
+    end if;
+    return NEW;
+  end if;
+  return null;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+drop trigger if exists on_allocation_change on public.allocations;
+create trigger on_allocation_change
+after insert or update on public.allocations
+for each row execute function public.handle_allocation_stock_change();
 
 -- USERS (Applicants): Deletions managed by Secretary and Admin (cannot delete self)
 drop policy if exists "Delete users policy" on public.users;
