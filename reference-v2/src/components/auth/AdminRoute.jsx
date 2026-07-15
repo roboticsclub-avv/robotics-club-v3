@@ -16,7 +16,11 @@ export default function AdminRoute({ children }) {
       if (!isAuthenticated) {
         router.replace("/login");
       } else if (!isAuthorized) {
-        router.replace("/");
+        if (profile?.role === "member" && profile?.status === "accepted") {
+          router.replace("/member");
+        } else {
+          router.replace("/");
+        }
       }
     }
   }, [loading, isAuthenticated, isAuthorized, router]);
