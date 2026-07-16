@@ -5,19 +5,6 @@ import { supabase } from "@/lib/supabase";
 import { showAlert } from "@/lib/alert-store";
 
 export default function MeetingsTab() {
-    // secureFetch helper for JWT authentication headers
-    const secureFetch = async (url, options = {}) => {
-        const sessionData = await supabase.auth.getSession();
-        const token = sessionData.data.session?.access_token;
-        return fetch(url, {
-            ...options,
-            headers: {
-                ...options.headers,
-                "Authorization": token ? `Bearer ${token}` : ""
-            }
-        });
-    };
-
     // DB states
     const [meetings, setMeetings] = useState([]);
     const [mails, setMails] = useState([]);
@@ -39,25 +26,46 @@ export default function MeetingsTab() {
     // Points edit state for attendance logs
     const [pointChangeStates, setPointChangeStates] = useState({}); // { [userId]: { change: 5, reason: "" } }
 
-    // Fetch initial DB and members
+    // Fetch initial DB and members from Supabase
     const fetchData = async () => {
         setLoading(true);
         try {
-            // 1. Fetch JSON DB
-            const dbRes = await secureFetch("/api/secretary/db");
-            const dbData = await dbRes.json();
-            setMeetings(dbData.meetings || []);
-            setMails(dbData.mails || []);
-            setPoints(dbData.points || {});
+            // 1. Fetch meetings
+            const { data: meetingsData, error: meetingsErr } = await supabase
+                .from('meetings')
+                .select('*')
+                .order('createdAt', { ascending: false });
+            if (meetingsErr) throw meetingsErr;
 
-            // 2. Fetch Club Members from Supabase
+            // 2. Fetch announcements (mails)
+            const { data: announcementsData, error: announcementsErr } = await supabase
+                .from('announcements')
+                .select('*')
+                .order('createdAt', { ascending: false });
+            if (announcementsErr) throw announcementsErr;
+
+            // 3. Fetch member_points
+            const { data: pointsData, error: pointsErr } = await supabase
+                .from('member_points')
+                .select('*');
+            if (pointsErr) throw pointsErr;
+
+            const pointsMap = {};
+            pointsData?.forEach(p => {
+                pointsMap[p.userId] = { total: p.total, history: p.history };
+            });
+
+            setMeetings(meetingsData || []);
+            setMails(announcementsData || []);
+            setPoints(pointsMap);
+
+            // 4. Fetch Club Members from Supabase
             const { data: dbMembersData, error: membersError } = await supabase
                 .from('users')
                 .select('*')
                 .eq('status', 'accepted');
             if (membersError) throw membersError;
             const dbMembers = dbMembersData || [];
-            // Sort by name ascending
             dbMembers.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
             setMembers(dbMembers);
             
@@ -88,19 +96,19 @@ export default function MeetingsTab() {
         }
         setActionLoading(true);
         try {
-            const res = await secureFetch("/api/secretary/db", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    type: "meeting",
-                    action: "create",
-                    data: meetingForm
-                })
-            });
-            if (!res.ok) throw new Error("Failed to create meeting.");
-            const resJson = await res.json();
-            setMeetings(resJson.db.meetings);
+            const { error } = await supabase
+                .from('meetings')
+                .insert([{
+                    title: meetingForm.title,
+                    date: meetingForm.date,
+                    time: meetingForm.time,
+                    description: meetingForm.description || '',
+                    attendance: []
+                }]);
+            if (error) throw error;
+
             setMeetingForm({ title: "", date: "", time: "", description: "" });
+            fetchData();
             await showAlert("New meeting scheduled successfully!", "Success");
         } catch (err) {
             await showAlert(err.message, "Error");
@@ -114,18 +122,12 @@ export default function MeetingsTab() {
         if (!confirm("Are you sure you want to delete this meeting?")) return;
         setActionLoading(true);
         try {
-            const res = await secureFetch("/api/secretary/db", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    type: "meeting",
-                    action: "delete",
-                    data: { id: meetingId }
-                })
-            });
-            if (!res.ok) throw new Error("Failed to delete meeting.");
-            const resJson = await res.json();
-            setMeetings(resJson.db.meetings);
+            const { error } = await supabase
+                .from('meetings')
+                .delete()
+                .eq('id', meetingId);
+            if (error) throw error;
+            fetchData();
         } catch (err) {
             await showAlert(err.message, "Error");
         } finally {
@@ -142,20 +144,19 @@ export default function MeetingsTab() {
         }
         setActionLoading(true);
         try {
-            const res = await secureFetch("/api/secretary/db", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    type: "mail",
-                    action: "send",
-                    data: mailForm
-                })
-            });
-            if (!res.ok) throw new Error("Failed to publish announcement.");
-            const resJson = await res.json();
-            setMails(resJson.db.mails);
+            const { error } = await supabase
+                .from('announcements')
+                .insert([{
+                    subject: mailForm.subject,
+                    body: mailForm.body,
+                    target: mailForm.target || 'all',
+                    date: new Date().toISOString().split('T')[0]
+                }]);
+            if (error) throw error;
+
             setMailForm({ subject: "", body: "", target: "all" });
-            await showAlert("Announcement published to member portals!", "Success");
+            fetchData();
+            await showAlert("Announcement published successfully!", "Success");
         } catch (err) {
             await showAlert(err.message, "Error");
         } finally {
@@ -168,18 +169,12 @@ export default function MeetingsTab() {
         if (!confirm("Delete this announcement?")) return;
         setActionLoading(true);
         try {
-            const res = await secureFetch("/api/secretary/db", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    type: "mail",
-                    action: "delete",
-                    data: { id: mailId }
-                })
-            });
-            if (!res.ok) throw new Error("Failed to delete announcement.");
-            const resJson = await res.json();
-            setMails(resJson.db.mails);
+            const { error } = await supabase
+                .from('announcements')
+                .delete()
+                .eq('id', mailId);
+            if (error) throw error;
+            fetchData();
         } catch (err) {
             await showAlert(err.message, "Error");
         } finally {
@@ -204,18 +199,11 @@ export default function MeetingsTab() {
         setMeetings(prev => prev.map(m => m.id === selectedMeeting.id ? updatedMeeting : m));
 
         try {
-            await secureFetch("/api/secretary/db", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    type: "meeting",
-                    action: "update-attendance",
-                    data: {
-                        meetingId: selectedMeeting.id,
-                        attendanceList: updatedAttendance
-                    }
-                })
-            });
+            const { error } = await supabase
+                .from('meetings')
+                .update({ attendance: updatedAttendance })
+                .eq('id', selectedMeeting.id);
+            if (error) throw error;
         } catch (err) {
             console.error("Attendance update error:", err);
         }
@@ -229,22 +217,43 @@ export default function MeetingsTab() {
         }
         setActionLoading(true);
         try {
-            const res = await secureFetch("/api/secretary/db", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    type: "points",
-                    action: "update",
-                    data: {
+            // Check if member already has points record
+            const { data: existingPoints, error: fetchErr } = await supabase
+                .from('member_points')
+                .select('*')
+                .eq('userId', userId)
+                .maybeSingle();
+            if (fetchErr) throw fetchErr;
+
+            const newHistoryItem = {
+                id: `history-${Date.now()}`,
+                pointsChange,
+                reason,
+                date: new Date().toISOString().split('T')[0]
+            };
+
+            if (existingPoints) {
+                const updatedHistory = [newHistoryItem, ...(existingPoints.history || [])];
+                const updatedTotal = (existingPoints.total || 0) + pointsChange;
+                
+                const { error: updateErr } = await supabase
+                    .from('member_points')
+                    .update({
+                        total: updatedTotal,
+                        history: updatedHistory
+                    })
+                    .eq('userId', userId);
+                if (updateErr) throw updateErr;
+            } else {
+                const { error: insertErr } = await supabase
+                    .from('member_points')
+                    .insert([{
                         userId,
-                        pointsChange,
-                        reason
-                    }
-                })
-            });
-            if (!res.ok) throw new Error("Failed to update points.");
-            const resJson = await res.json();
-            setPoints(resJson.db.points);
+                        total: pointsChange,
+                        history: [newHistoryItem]
+                    }]);
+                if (insertErr) throw insertErr;
+            }
             
             // Clear input reason
             setPointChangeStates(prev => ({
@@ -252,6 +261,7 @@ export default function MeetingsTab() {
                 [userId]: { ...prev[userId], reason: "Active participation in meeting" }
             }));
             
+            fetchData();
             await showAlert(`Successfully adjusted user points!`, "Points Adjusted");
         } catch (err) {
             await showAlert(err.message, "Error");
