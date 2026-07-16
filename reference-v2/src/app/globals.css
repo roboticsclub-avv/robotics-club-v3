@@ -169,6 +169,9 @@ body::before {
   background-size: 80px 80px;
   pointer-events: none;
   z-index: 0;
+  /* Promote to its own GPU compositing layer — prevents repaint on scroll */
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 /* ===== GLOW EFFECTS — removed in V3 ===== */
@@ -225,6 +228,8 @@ button {
 .section {
   padding: var(--section-padding);
   position: relative;
+  /* Isolate paint/layout per section — reduces scroll repaint cost */
+  contain: layout style;
 }
 
 .section-label {
@@ -277,10 +282,12 @@ spline-viewer {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-lg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(8px);         /* Reduced from 12px — cheaper GPU cost */
+  -webkit-backdrop-filter: blur(8px);
   transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-medium);
   will-change: transform;
+  transform: translateZ(0);           /* Promote to its own GPU layer */
+  isolation: isolate;                 /* Contain the backdrop-filter stacking context */
 }
 
 .glass-card:hover {
