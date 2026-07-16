@@ -3,8 +3,7 @@
 import styles from "./Hero.module.css";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { db } from "@/lib/firebase/firestore";
-import { doc, getDoc } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 import TextAnimation from "./ui/scroll-text";
 
 // Lazy load spline to improve performance on main thread
@@ -100,7 +99,7 @@ export default function Hero({ isReady }) {
     return () => observer.disconnect();
   }, []);
 
-  // 5. Firebase recruitment status sync
+  // 5. Supabase recruitment status sync
   useEffect(() => {
     const cached = sessionStorage.getItem("is_recruiting");
     if (cached !== null) {
@@ -109,12 +108,17 @@ export default function Hero({ isReady }) {
 
     const fetchSettings = async () => {
       try {
-        const docRef = doc(db, "settings", "is_recruiting");
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setIsRecruiting(data.value);
-          sessionStorage.setItem("is_recruiting", String(data.value));
+        const { data, error } = await supabase
+          .from("settings")
+          .select("value")
+          .eq("id", "is_recruiting")
+          .maybeSingle();
+
+        if (error) throw error;
+        if (data) {
+          const val = data.value === true;
+          setIsRecruiting(val);
+          sessionStorage.setItem("is_recruiting", String(val));
         }
       } catch (err) {
         console.error("Error fetching recruitment setting:", err);
