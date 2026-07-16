@@ -28,20 +28,35 @@ const DASHBOARD_TABS = [
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("applicants");
+  const [isTabInitialized, setIsTabInitialized] = useState(false);
+  const [hasOpened, setHasOpened] = useState({
+    applicants: true
+  });
   const { user, profile, logout } = useAuth();
 
   const userRole = profile?.role || "admin";
   const adminEmail = profile?.email || user?.email || "Admin";
 
+  // Track which tabs have been opened to lazy-load them and keep them mounted
+  useEffect(() => {
+    if (activeTab) {
+      setHasOpened((prev) => ({ ...prev, [activeTab]: true }));
+    }
+  }, [activeTab]);
+
   // Set the default tab to the first allowed tab for their role once profile loads
   useEffect(() => {
-    if (profile?.role) {
+    if (profile?.role && !isTabInitialized) {
       const allowed = DASHBOARD_TABS.filter(t => t.roles.includes(profile.role));
       if (allowed.length > 0) {
-        setActiveTab(allowed[0].id);
+        const isCurrentTabAllowed = allowed.some(t => t.id === activeTab);
+        if (!isCurrentTabAllowed) {
+          setActiveTab(allowed[0].id);
+        }
+        setIsTabInitialized(true);
       }
     }
-  }, [profile]);
+  }, [profile, isTabInitialized, activeTab]);
 
   return (
     <AdminRoute>
@@ -53,15 +68,33 @@ export default function DashboardPage() {
         userRole={userRole}
         profile={profile}
       >
-        {activeTab === "applicants" && <ApplicantsTab />}
-        {activeTab === "team" && <TeamTab />}
-        {activeTab === "projects" && <ProjectsTab />}
-        {activeTab === "events" && <EventsTab />}
-        {activeTab === "media" && <MediaTab />}
-        {activeTab === "inventory" && <InventoryTab />}
-        {activeTab === "allocations" && <AllocationsTab />}
-        {activeTab === "meetings" && <MeetingsTab />}
-        {activeTab === "settings" && <SettingsTab adminEmail={adminEmail} />}
+        <div className={activeTab === "applicants" ? "" : "hidden"}>
+          {hasOpened.applicants && <ApplicantsTab />}
+        </div>
+        <div className={activeTab === "team" ? "" : "hidden"}>
+          {hasOpened.team && <TeamTab />}
+        </div>
+        <div className={activeTab === "projects" ? "" : "hidden"}>
+          {hasOpened.projects && <ProjectsTab />}
+        </div>
+        <div className={activeTab === "events" ? "" : "hidden"}>
+          {hasOpened.events && <EventsTab />}
+        </div>
+        <div className={activeTab === "media" ? "" : "hidden"}>
+          {hasOpened.media && <MediaTab />}
+        </div>
+        <div className={activeTab === "inventory" ? "" : "hidden"}>
+          {hasOpened.inventory && <InventoryTab />}
+        </div>
+        <div className={activeTab === "allocations" ? "" : "hidden"}>
+          {hasOpened.allocations && <AllocationsTab />}
+        </div>
+        <div className={activeTab === "meetings" ? "" : "hidden"}>
+          {hasOpened.meetings && <MeetingsTab />}
+        </div>
+        <div className={activeTab === "settings" ? "" : "hidden"}>
+          {hasOpened.settings && <SettingsTab adminEmail={adminEmail} />}
+        </div>
       </DashboardShell>
     </AdminRoute>
   );
