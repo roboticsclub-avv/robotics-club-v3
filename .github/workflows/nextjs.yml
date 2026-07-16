@@ -26,18 +26,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: npm
-          cache-dependency-path: ./reference-v2/package-lock.json
-      - name: Restore cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ./reference-v2/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('reference-v2/package-lock.json') }}-${{ hashFiles('reference-v2/**/*.[jt]s', 'reference-v2/**/*.[jt]sx') }}
-          restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('reference-v2/package-lock.json') }}-
       - name: Install dependencies
-        run: npm ci
+        run: npm install
         working-directory: ./reference-v2
       - name: Build with Next.js
         run: npm run build
