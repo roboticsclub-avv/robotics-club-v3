@@ -31,13 +31,14 @@ export default function Home() {
   useEffect(() => {
     if (isLoading) return;
 
-    // Initialize Lenis smooth scroll engine
+    // Initialize Lenis smooth scroll engine with ultra-smooth buttery configuration
     const lenis = new Lenis({
-      duration: 0.85,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      duration: 1.4,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // easeOutExpo
       smoothWheel: true,
       wheelMultiplier: 1.0,
       touchMultiplier: 1.5,
+      lerp: 0.06, // Linear interpolation factor for ultra-smooth high-refresh rate glide
     });
     window.lenis = lenis;
 
