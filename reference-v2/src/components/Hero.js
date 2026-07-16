@@ -22,12 +22,26 @@ function RobotPlaceholder() {
   );
 }
 
+function isWebGLSupported() {
+  if (typeof window === "undefined") return true;
+  try {
+    const canvas = document.createElement("canvas");
+    return !!(
+      window.WebGLRenderingContext &&
+      (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
 export default function Hero({ isReady }) {
   const [isRecruiting, setIsRecruiting] = useState(true);
   const [inView, setInView] = useState(true);
   const [deviceType, setDeviceType] = useState("desktop"); // "desktop" | "tablet" | "mobile"
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [hasBeenViewed, setHasBeenViewed] = useState(false);
+  const [webglSupported, setWebglSupported] = useState(true);
 
   useEffect(() => {
     if (inView) {
@@ -52,7 +66,12 @@ export default function Hero({ isReady }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // 2. Detect prefers-reduced-motion
+  // 2. Detect WebGL support
+  useEffect(() => {
+    setWebglSupported(isWebGLSupported());
+  }, []);
+
+  // 3. Detect prefers-reduced-motion
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(mediaQuery.matches);
@@ -63,7 +82,7 @@ export default function Hero({ isReady }) {
     return () => mediaQuery.removeEventListener("change", handleMotionChange);
   }, []);
 
-  // 3. Monitor intersection of visual block to save CPU/GPU cycles
+  // 4. Monitor intersection of visual block to save CPU/GPU cycles
   useEffect(() => {
     const visualElement = document.querySelector(`.${styles.heroVisual}`);
     if (!visualElement) return;
@@ -81,7 +100,7 @@ export default function Hero({ isReady }) {
     return () => observer.disconnect();
   }, []);
 
-  // 4. Firebase recruitment status sync
+  // 5. Firebase recruitment status sync
   useEffect(() => {
     const cached = sessionStorage.getItem("is_recruiting");
     if (cached !== null) {
@@ -104,7 +123,7 @@ export default function Hero({ isReady }) {
     fetchSettings();
   }, []);
 
-  // 5. Glitch typewriter animation with reduced motion support
+  // 6. Glitch typewriter animation with reduced motion support
   useEffect(() => {
     const textElement = document.querySelector(".typewriter-text");
     if (!textElement) return;
@@ -240,8 +259,8 @@ export default function Hero({ isReady }) {
         </div>
 
         <div className={styles.heroVisual}>
-          {deviceType === "mobile" ? (
-            // Mobile: Static high-fidelity placeholder image
+          {deviceType === "mobile" || !webglSupported ? (
+            // Mobile or WebGL unsupported: Static high-fidelity placeholder image
             <div className={styles.robotImageWrapper}>
               <img
                 src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/media/robotics-side.png`}
@@ -250,7 +269,7 @@ export default function Hero({ isReady }) {
               />
             </div>
           ) : isReady && hasBeenViewed ? (
-            // Desktop & Tablet: Spline 3D Scene
+            // Desktop & Tablet (with WebGL support): Spline 3D Scene
             <div
               className={styles.splineWrapper}
               style={{
