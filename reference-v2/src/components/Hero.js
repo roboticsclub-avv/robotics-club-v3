@@ -257,7 +257,7 @@ export default function Hero({ isReady }) {
                 // Scaled down on tablet, pointer events disabled to stop tracking
                 transform: deviceType === "tablet" ? "scale(0.85)" : "scale(1)",
                 pointerEvents:
-                  !inView || deviceType === "tablet" || prefersReducedMotion ? "none" : "auto",
+                  deviceType === "mobile" || deviceType === "tablet" ? "none" : "auto",
                 transition: "transform 0.3s ease, opacity 0.5s ease",
                 opacity: inView ? 1 : 0,
               }}

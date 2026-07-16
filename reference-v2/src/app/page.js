@@ -26,15 +26,7 @@ const sectionVariants = {
 };
 
 export default function Home() {
-  // Start false on both server and client to avoid hydration mismatch.
-  const [isLoading, setIsLoading] = useState(false);
-
-  // After hydration, check sessionStorage and show intro if not yet seen this session
-  useEffect(() => {
-    if (sessionStorage.getItem('intro_seen') !== 'true') {
-      setIsLoading(true);
-    }
-  }, []);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (isLoading) return;
