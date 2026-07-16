@@ -1,10 +1,33 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import styles from "./Hero.module.css";
-import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import TextAnimation from "./ui/scroll-text";
+
+// 1. Spline Error Boundary to catch any WebGL/GPU compilation crashes on older devices
+class SplineErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Spline 3D render crash caught:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
 
 // Lazy load spline to improve performance on main thread
 // When loading or when WebGL falls back, show the Static Robot Placeholder Image
@@ -99,9 +122,14 @@ export default function Hero({ isReady }) {
     return () => observer.disconnect();
   }, []);
 
-  // 5. Supabase recruitment status sync
+  // 5. Supabase recruitment status sync with safe storage writing
   useEffect(() => {
-    const cached = sessionStorage.getItem("is_recruiting");
+    let cached = null;
+    try {
+      cached = sessionStorage.getItem("is_recruiting");
+    } catch (e) {
+      console.warn("Session storage access disabled:", e);
+    }
     if (cached !== null) {
       setIsRecruiting(cached === "true");
     }
@@ -118,7 +146,11 @@ export default function Hero({ isReady }) {
         if (data) {
           const val = data.value === true;
           setIsRecruiting(val);
-          sessionStorage.setItem("is_recruiting", String(val));
+          try {
+            sessionStorage.setItem("is_recruiting", String(val));
+          } catch (e) {
+            console.warn("Session storage write blocked:", e);
+          }
         }
       } catch (err) {
         console.error("Error fetching recruitment setting:", err);
@@ -210,6 +242,17 @@ export default function Hero({ isReady }) {
     };
   }, [prefersReducedMotion]);
 
+  // Static Fallback Image Node
+  const staticFallback = (
+    <div className={styles.robotImageWrapper}>
+      <img
+        src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/media/robotics-side.png`}
+        alt="Robotics Club Robot"
+        className={styles.staticRobotImage}
+      />
+    </div>
+  );
+
   return (
     <section className={styles.hero} id="home">
       <div className={styles.heroContainer}>
@@ -264,29 +307,24 @@ export default function Hero({ isReady }) {
 
         <div className={styles.heroVisual}>
           {deviceType === "mobile" || !webglSupported ? (
-            // Mobile or WebGL unsupported: Static high-fidelity placeholder image
-            <div className={styles.robotImageWrapper}>
-              <img
-                src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/media/robotics-side.png`}
-                alt="Robotics Club Robot"
-                className={styles.staticRobotImage}
-              />
-            </div>
+            staticFallback
           ) : isReady && hasBeenViewed ? (
-            // Desktop & Tablet (with WebGL support): Spline 3D Scene
-            <div
-              className={styles.splineWrapper}
-              style={{
-                // Scaled down on tablet, pointer events disabled to stop tracking
-                transform: deviceType === "tablet" ? "scale(0.85)" : "scale(1)",
-                pointerEvents:
-                  deviceType === "mobile" || deviceType === "tablet" ? "none" : "auto",
-                transition: "transform 0.3s ease, opacity 0.5s ease",
-                opacity: inView ? 1 : 0,
-              }}
-            >
-              <Spline scene={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/scene.splinecode`} />
-            </div>
+            // Desktop & Tablet (with WebGL support): Spline 3D Scene wrapped in Error Boundary
+            <SplineErrorBoundary fallback={staticFallback}>
+              <div
+                className={styles.splineWrapper}
+                style={{
+                  // Scaled down on tablet, pointer events disabled to stop tracking
+                  transform: deviceType === "tablet" ? "scale(0.85)" : "scale(1)",
+                  pointerEvents:
+                    deviceType === "mobile" || deviceType === "tablet" ? "none" : "auto",
+                  transition: "transform 0.3s ease, opacity 0.5s ease",
+                  opacity: inView ? 1 : 0,
+                }}
+              >
+                <Spline scene={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/scene.splinecode`} />
+              </div>
+            </SplineErrorBoundary>
           ) : (
             // Load state / WebGL off placeholder
             <RobotPlaceholder />

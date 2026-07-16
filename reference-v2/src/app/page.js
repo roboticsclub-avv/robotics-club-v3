@@ -72,7 +72,11 @@ export default function Home() {
   }, [isLoading]);
 
   const handleLoadingFinish = () => {
-    sessionStorage.setItem('intro_seen', 'true');
+    try {
+      sessionStorage.setItem('intro_seen', 'true');
+    } catch (e) {
+      console.warn("Session storage disabled:", e);
+    }
     setIsLoading(false);
   };
 
