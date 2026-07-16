@@ -8,7 +8,7 @@ export default function AdminRoute({ children }) {
   const { loading, isAuthenticated, profile } = useAuth();
   const router = useRouter();
 
-  const validDashboardRoles = ["admin", "technical", "ops", "data", "secretary", "media"];
+  const validDashboardRoles = ["admin", "technical", "ops", "data", "secretary", "media", "it"];
   const isAuthorized = profile && validDashboardRoles.includes(profile.role);
 
   useEffect(() => {

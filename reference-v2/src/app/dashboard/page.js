@@ -12,10 +12,12 @@ import AllocationsTab from "@/components/dashboard/AllocationsTab";
 import MeetingsTab from "@/components/dashboard/MeetingsTab";
 import SettingsTab from "@/components/dashboard/SettingsTab";
 import MediaTab from "@/components/dashboard/MediaTab";
+import ProjectsTab from "@/components/dashboard/ProjectsTab";
 
 const DASHBOARD_TABS = [
   { id: "applicants", roles: ["admin"] },
   { id: "team", roles: ["admin", "technical"] },
+  { id: "projects", roles: ["admin", "technical", "it"] },
   { id: "events", roles: ["admin", "ops"] },
   { id: "media", roles: ["admin", "media"] },
   { id: "inventory", roles: ["admin", "data"] },
@@ -53,6 +55,7 @@ export default function DashboardPage() {
       >
         {activeTab === "applicants" && <ApplicantsTab />}
         {activeTab === "team" && <TeamTab />}
+        {activeTab === "projects" && <ProjectsTab />}
         {activeTab === "events" && <EventsTab />}
         {activeTab === "media" && <MediaTab />}
         {activeTab === "inventory" && <InventoryTab />}

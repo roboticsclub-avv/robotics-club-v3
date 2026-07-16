@@ -49,6 +49,17 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public;
 
+-- 4.5. CREATE FUNCTION: IT OR TECHNICAL OR ADMIN
+create or replace function public.is_it_or_tech_or_admin(user_id uuid)
+returns boolean as $$
+begin
+  return exists (
+    select 1 from public.users
+    where uid = user_id and role in ('admin', 'technical', 'it')
+  );
+end;
+$$ language plpgsql security definer set search_path = public;
+
 -- 5. CREATE FUNCTION: SECRETARY OR ADMIN
 create or replace function public.is_secretary_or_admin(user_id uuid)
 returns boolean as $$
@@ -201,6 +212,33 @@ FOR ALL TO authenticated
 USING (
   EXISTS (
     SELECT 1 FROM public.users
-    WHERE uid = auth.uid() AND role IN ('admin', 'technical', 'ops', 'data', 'secretary')
+    WHERE uid = auth.uid() AND role IN ('admin', 'technical', 'ops', 'data', 'secretary', 'it')
   )
 );
+
+-- =========================================================================
+-- PROJECTS: Table and Policies Setup
+-- =========================================================================
+CREATE TABLE IF NOT EXISTS public.projects (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    emoji TEXT NOT NULL DEFAULT '🤖',
+    description TEXT NOT NULL,
+    tags JSONB DEFAULT '[]'::jsonb,
+    link TEXT DEFAULT '#',
+    "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- Enable RLS
+ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
+
+-- Select: Public read access
+DROP POLICY IF EXISTS "Allow public select on projects" ON public.projects;
+CREATE POLICY "Allow public select on projects" ON public.projects
+FOR SELECT USING (true);
+
+-- Manage: Admin, Technical, and IT teams
+DROP POLICY IF EXISTS "Allow admin/tech/it manage on projects" ON public.projects;
+CREATE POLICY "Allow admin/tech/it manage on projects" ON public.projects
+FOR ALL TO authenticated
+USING (public.is_it_or_tech_or_admin(auth.uid()));
