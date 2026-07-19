@@ -5,6 +5,7 @@ import styles from "./Hero.module.css";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import TextAnimation from "./ui/scroll-text";
+import Link from "next/link";
 
 // 1. Spline Error Boundary to catch any WebGL/GPU compilation crashes on older devices
 class SplineErrorBoundary extends React.Component {
@@ -57,6 +58,8 @@ function isWebGLSupported() {
   }
 }
 
+
+
 export default function Hero({ isReady }) {
   const [isRecruiting, setIsRecruiting] = useState(true);
   const [inView, setInView] = useState(true);
@@ -64,9 +67,9 @@ export default function Hero({ isReady }) {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [hasBeenViewed, setHasBeenViewed] = useState(false);
   const [webglSupported, setWebglSupported] = useState(true);
-
   useEffect(() => {
     if (inView) {
+      // eslint-disable-next-line
       setHasBeenViewed(true);
     }
   }, [inView]);
@@ -263,11 +266,11 @@ export default function Hero({ isReady }) {
               style={
                 !isRecruiting
                   ? {
-                      borderColor: "rgba(34, 197, 94, 0.3)",
-                      backgroundColor: "rgba(34, 197, 94, 0.1)",
-                      color: "#22c55e",
-                      marginBottom: 0,
-                    }
+                    borderColor: "rgba(34, 197, 94, 0.3)",
+                    backgroundColor: "rgba(34, 197, 94, 0.1)",
+                    color: "#22c55e",
+                    marginBottom: 0,
+                  }
                   : { marginBottom: 0 }
               }
             >
@@ -292,9 +295,9 @@ export default function Hero({ isReady }) {
           </p>
 
           <div className={styles.heroCta}>
-            <a href="#contact" className={styles.ctaPrimary}>
+            <Link href="/join-us" className={styles.ctaPrimary}>
               Join the Club <span>→</span>
-            </a>
+            </Link>
             <a href="#projects" className={styles.ctaSecondary}>
               View Projects
             </a>

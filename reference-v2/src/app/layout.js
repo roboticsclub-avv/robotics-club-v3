@@ -22,6 +22,8 @@ export const metadata = {
   description: "Next-gen platform for Amrita Robotics Club",
 };
 
+import GlobalBackground from "@/components/GlobalBackground";
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable} ${orbitron.variable}`} suppressHydrationWarning>
@@ -29,6 +31,7 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <ThemeProvider>
             <AlertProvider>
+              <GlobalBackground />
               {children}
             </AlertProvider>
           </ThemeProvider>

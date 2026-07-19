@@ -16,13 +16,15 @@
     align-items: center;
     gap: 60px;
     position: relative;
-    z-index: 1;
+    z-index: 3;
 }
 
 .heroContent {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    position: relative;
+    z-index: 3;
 }
 
 .badge {
@@ -109,23 +111,24 @@
 }
 
 .ctaPrimary {
-    padding: 14px 32px;
-    border-radius: var(--radius-pill);
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
     font-size: 0.95rem;
     font-weight: 600;
-    color: #ffffff;
-    background: var(--accent-purple);
-    transition: all var(--transition-fast);
+    color: #0B0F19;
+    background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%);
+    transition: all 0.3s ease;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 4px 20px var(--accent-purple-glow);
+    border: none;
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
 }
 
 .ctaPrimary:hover {
-    filter: brightness(1.15);
+    filter: brightness(1.1);
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px var(--accent-purple-glow);
+    box-shadow: 0 0 25px rgba(0, 242, 254, 0.6);
 }
 
 .ctaSecondary {
