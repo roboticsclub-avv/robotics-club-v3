@@ -5,6 +5,7 @@ import styles from "./Hero.module.css";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import TextAnimation from "./ui/scroll-text";
+import GlitchTypewriter from "./ui/GlitchTypewriter";
 import Link from "next/link";
 
 // 1. Spline Error Boundary to catch any WebGL/GPU compilation crashes on older devices
@@ -162,88 +163,7 @@ export default function Hero({ isReady }) {
     fetchSettings();
   }, []);
 
-  // 6. Glitch typewriter animation with reduced motion support
-  useEffect(() => {
-    const textElement = document.querySelector(".typewriter-text");
-    if (!textElement) return;
-
-    const phrases = ["CODE.\nCONSTRUCT.\nCONQUER.", "INNOVATE.\nBUILD.\nINSPIRE."];
-    let phraseIndex = 0;
-    let charIndex = 0;
-    let isDeleting = false;
-    let activeTimer = null;
-
-    const glyphs = "█▓▒░_+$^&@#";
-
-    function type() {
-      if (!textElement) return;
-
-      if (prefersReducedMotion) {
-        textElement.innerHTML = phrases[0].replace(/\n/g, "<br/>");
-        return;
-      }
-
-      const currentPhrase = phrases[phraseIndex];
-      let textToShow = "";
-
-      if (isDeleting) {
-        textToShow = currentPhrase.substring(0, charIndex);
-      } else {
-        const subStr = currentPhrase.substring(0, charIndex);
-        if (Math.random() > 0.82 && charIndex > 0) {
-          textToShow = subStr
-            .split("")
-            .map((c) =>
-              c === "\n" || Math.random() > 0.25
-                ? c
-                : glyphs[Math.floor(Math.random() * glyphs.length)]
-            )
-            .join("");
-        } else {
-          textToShow = subStr;
-        }
-      }
-
-      const lines = textToShow.split("\n");
-      const isTypingLastLine = lines.length === currentPhrase.split("\n").length;
-
-      if (isTypingLastLine && lines[lines.length - 1].length > 0) {
-        const precedingLines = lines.slice(0, lines.length - 1);
-        const lastLine = lines[lines.length - 1];
-
-        let html = precedingLines.join("<br/>");
-        if (precedingLines.length > 0) html += "<br/>";
-        html += `<span class="${styles.heroTitleAccent}">${lastLine}</span>`;
-        textElement.innerHTML = html;
-      } else {
-        textElement.innerHTML = textToShow.replace(/\n/g, "<br/>");
-      }
-
-      let typeSpeed = isDeleting ? 40 : 80;
-
-      if (!isDeleting && charIndex === currentPhrase.length) {
-        typeSpeed = 2500;
-        isDeleting = true;
-      } else if (isDeleting && charIndex === 0) {
-        isDeleting = false;
-        phraseIndex = (phraseIndex + 1) % phrases.length;
-        typeSpeed = 600;
-      }
-
-      charIndex += isDeleting ? -1 : 1;
-      activeTimer = setTimeout(type, typeSpeed);
-    }
-
-    if (prefersReducedMotion) {
-      textElement.innerHTML = phrases[0].replace(/\n/g, "<br/>");
-    } else {
-      activeTimer = setTimeout(type, 800);
-    }
-
-    return () => {
-      if (activeTimer) clearTimeout(activeTimer);
-    };
-  }, [prefersReducedMotion]);
+  // Removed old manual typewriter logic
 
   // Static Fallback Image Node
   const staticFallback = (
@@ -286,9 +206,7 @@ export default function Hero({ isReady }) {
             </div>
           </div>
 
-          <h1 className={styles.heroTitle}>
-            <span className={`typewriter-text ${styles.typewriterText}`} />
-          </h1>
+          <GlitchTypewriter />
 
           <p className={styles.heroDescription}>
             Join our community of makers, engineers, and dreamers who are shaping the future of automation.
