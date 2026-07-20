@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { formatDate } from "@/utils/formatters";
-import { updateAdminNotes, updateUserRole } from "@/lib/supabase/dashboardService";
+import { updateAdminNotes, updateUserRole, deleteUser } from "@/lib/supabase/dashboardService";
 import useAuth from "@/hooks/useAuth";
 
-export default function ApplicantDetailModal({ applicant, onClose, onUpdateApplicant }) {
+export default function ApplicantDetailModal({ applicant, onClose, onUpdateApplicant, onDeleteApplicant }) {
   console.log("[ApplicantDetailModal] Mounting with applicant:", applicant);
   const [notes, setNotes] = useState(applicant ? applicant.adminNotes || "" : "");
   const [savingNotes, setSavingNotes] = useState(false);
@@ -96,6 +96,28 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
     }
   };
 
+  const handleDeleteUser = async () => {
+    const confirmDelete = window.confirm(
+      `[SUPER ADMIN] Are you sure you want to permanently delete user "${name}" (${email})? This action cannot be undone.`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      setSavingNotes(true);
+      await deleteUser(applicant.id);
+      alert(`User "${name}" deleted successfully.`);
+      if (onDeleteApplicant) {
+        onDeleteApplicant(applicant.id);
+      }
+      onClose();
+    } catch (err) {
+      console.error("Error deleting user:", err);
+      alert(`Failed to delete user: ${err.message || err}`);
+    } finally {
+      setSavingNotes(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
@@ -104,25 +126,17 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
         className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300"
       />
 
-      {/* Modal Content - Glassmorphic, Animated */}
-      <div className="relative z-10 bg-[#111115] border border-white/10 w-full max-w-3xl rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      {/* Main Modal Shell */}
+      <div className="relative z-10 bg-[#111115] border border-white/[0.08] max-w-4xl w-full max-h-[90vh] rounded-2xl overflow-hidden shadow-2xl flex flex-col font-inter">
         
-        {/* Header/Banner */}
-        <div className="relative h-32 bg-gradient-to-r from-cyan-950/40 via-purple-950/40 to-slate-950/40 p-6 flex items-end border-b border-white/[0.05]">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors bg-white/[0.03] hover:bg-white/[0.08] p-2 rounded-full border border-white/[0.05]"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          
+        {/* Header */}
+        <div className="bg-[#16161c] border-b border-white/[0.05] p-6 flex justify-between items-start">
           <div className="flex items-center gap-4">
+            {/* Profile Avatar / Thumbnail */}
             <div 
-              onClick={() => setShowImagePreview(true)}
-              title="Click to view fullsize profile image"
-              className="w-20 h-20 rounded-full border-2 border-cyan-500 overflow-hidden bg-slate-800 shadow-[0_0_15px_rgba(6,182,212,0.3)] shrink-0 cursor-pointer hover:scale-105 transition-transform"
+              onClick={() => photoURL && setShowImagePreview(true)}
+              className="w-14 h-14 rounded-full border border-cyan-500/30 bg-slate-800 overflow-hidden shrink-0 cursor-pointer hover:scale-105 transition-transform shadow-[0_0_15px_rgba(6,182,212,0.2)] group"
+              title="Click to view fullsize image"
             >
               {photoURL ? (
                 <img
@@ -132,121 +146,136 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.style.display = "none";
-                    e.target.parentNode.innerHTML = `<div class="w-full h-full flex items-center justify-center text-cyan-400 font-orbitron font-bold text-xl">${name[0]}</div>`;
+                    e.target.parentNode.innerHTML = `<div class="w-full h-full flex items-center justify-center text-cyan-400 font-orbitron font-bold text-lg">${name[0]}</div>`;
                   }}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-cyan-400 font-orbitron font-bold text-xl">
-                  {name[0].toUpperCase()}
+                <div className="w-full h-full flex items-center justify-center text-cyan-400 font-orbitron font-bold text-lg">
+                  {name[0]}
                 </div>
               )}
             </div>
-            
-            <div className="mb-1">
-              <h2 className="text-2xl font-bold font-orbitron text-white tracking-wide">{name}</h2>
-              <p className="text-xs text-gray-400 font-mono">
-                {year} Year {" // "} {branch} {" // "} Section {section}
-              </p>
+
+            <div>
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-bold text-white font-orbitron tracking-wide">{name}</h2>
+                <span className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider border ${
+                  status === "accepted"
+                    ? "bg-green-500/10 border-green-500/30 text-green-400"
+                    : status === "rejected"
+                    ? "bg-red-500/10 border-red-500/30 text-red-400"
+                    : "bg-yellow-500/10 border-yellow-500/30 text-yellow-400"
+                }`}>
+                  {status}
+                </span>
+              </div>
+              <p className="text-xs text-gray-400 font-mono mt-1">{email}</p>
             </div>
           </div>
+
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white p-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.05] transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
-        {/* Scrollable details area */}
-        <div className="flex-1 p-6 overflow-y-auto space-y-8 font-inter">
+        {/* Modal Body Scroll Area */}
+        <div className="p-6 overflow-y-auto space-y-8 custom-scrollbar">
           
-          {/* Main Info Columns */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* Contact & Status */}
-            <div className="space-y-4 bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">
-              <h3 className="font-orbitron font-bold text-xs text-cyan-400 uppercase tracking-widest border-b border-white/[0.05] pb-2">
-                Applicant Details
-              </h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between py-1 border-b border-white/[0.02]">
-                  <span className="text-gray-500">Email</span>
-                  <span className="text-gray-300 font-medium break-all text-right">{email}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-white/[0.02]">
-                  <span className="text-gray-500">Phone</span>
-                  <span className="text-gray-300 font-medium">{phone}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-white/[0.02]">
-                  <span className="text-gray-500">Interests</span>
-                  <span className="text-cyan-400 font-mono text-xs">{interests}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-white/[0.02]">
-                  <span className="text-gray-500">Member ID</span>
-                  <span className="text-purple-400 font-mono text-xs font-bold">{memberId}</span>
-                </div>
-                <div className="flex justify-between items-center py-1">
-                  <span className="text-gray-500">Position / Role</span>
-                  {isAdmin ? (
-                    <select
-                      value={selectedRole}
-                      disabled={savingRole}
-                      onChange={(e) => handleRoleChange(e.target.value)}
-                      className="bg-black/60 border border-white/[0.1] text-cyan-400 text-xs font-mono font-bold rounded px-2 py-1 outline-none focus:border-cyan-400 cursor-pointer"
-                    >
-                      <option value="member">Member</option>
-                      <option value="technical">Technical</option>
-                      <option value="ops">Ops</option>
-                      <option value="data">Data</option>
-                      <option value="secretary">Secretary</option>
-                      <option value="media">Media</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  ) : (
-                    <span className="text-cyan-400 font-mono text-xs capitalize font-bold">{selectedRole}</span>
-                  )}
-                </div>
+          {/* Assigned Member ID & Role Badge */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block">Assigned Member ID</span>
+                <span className="text-lg font-mono font-bold text-cyan-400 mt-1 block">{memberId}</span>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 font-mono text-xs">
+                #
               </div>
             </div>
 
-            {/* Social Channels */}
-            <div className="space-y-4 bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">
-              <h3 className="font-orbitron font-bold text-xs text-cyan-400 uppercase tracking-widest border-b border-white/[0.05] pb-2">
-                Social Networks
-              </h3>
-              <div className="space-y-3">
-                <div className="flex flex-col">
-                  <span className="text-xs text-gray-500">GitHub</span>
-                  {renderSocialLink("GitHub", applicant.githubUrl)}
+            <div className="bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">
+              <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block mb-1">System Role</span>
+              {isAdmin ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <select
+                    value={selectedRole}
+                    onChange={(e) => handleRoleChange(e.target.value)}
+                    disabled={savingRole}
+                    className="bg-black/60 border border-white/10 rounded px-2.5 py-1 text-xs text-cyan-400 font-mono focus:outline-none focus:border-cyan-500"
+                  >
+                    <option value="member">member</option>
+                    <option value="technical">technical</option>
+                    <option value="ops">ops</option>
+                    <option value="data">data</option>
+                    <option value="secretary">secretary</option>
+                    <option value="media">media</option>
+                    <option value="it">it</option>
+                    <option value="admin">admin</option>
+                  </select>
+                  {savingRole && <span className="text-[10px] font-mono text-cyan-400 animate-pulse">Saving...</span>}
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-xs text-gray-500">LinkedIn</span>
-                  {renderSocialLink("LinkedIn", applicant.linkedinUrl)}
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-xs text-gray-500">Portfolio</span>
-                  {renderSocialLink("Portfolio", applicant.portfolioUrl)}
-                </div>
+              ) : (
+                <span className="text-sm font-mono text-gray-300 capitalize">{role}</span>
+              )}
+            </div>
+          </div>
+
+          {/* User Basic Info Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg text-xs">
+            <div>
+              <span className="text-gray-500 font-mono block">Academic Year</span>
+              <span className="text-gray-200 font-bold mt-1 block">{year} Year</span>
+            </div>
+            <div>
+              <span className="text-gray-500 font-mono block">Branch</span>
+              <span className="text-gray-200 font-bold mt-1 block">{branch}</span>
+            </div>
+            <div>
+              <span className="text-gray-500 font-mono block">Section</span>
+              <span className="text-gray-200 font-bold mt-1 block">{section}</span>
+            </div>
+            <div>
+              <span className="text-gray-500 font-mono block">Phone Number</span>
+              <span className="text-gray-200 font-bold mt-1 block font-mono">{phone}</span>
+            </div>
+          </div>
+
+          {/* Domain Interests & Reason */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-xs font-mono font-bold text-gray-400 uppercase tracking-widest mb-2">Domain Interests</h3>
+              <div className="flex flex-wrap gap-2">
+                {interests.split(',').map((item, idx) => (
+                  <span key={idx} className="px-3 py-1 bg-cyan-950/30 border border-cyan-500/20 rounded-full text-xs text-cyan-300 font-mono">
+                    {item.trim()}
+                  </span>
+                ))}
               </div>
             </div>
 
+            <div>
+              <h3 className="text-xs font-mono font-bold text-gray-400 uppercase tracking-widest mb-2">Statement of Motivation</h3>
+              <div className="p-4 bg-black/40 border border-white/[0.04] rounded-lg text-sm text-gray-300 leading-relaxed font-inter whitespace-pre-wrap">
+                {reason}
+              </div>
+            </div>
           </div>
 
-          {/* Motivation Statement */}
-          <div className="space-y-3 bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">
-            <h3 className="font-orbitron font-bold text-xs text-cyan-400 uppercase tracking-widest border-b border-white/[0.05] pb-2">
-              Motivation Statement
-            </h3>
-            <p className="text-sm text-gray-300 leading-relaxed italic whitespace-pre-wrap">
-              &ldquo;{reason}&rdquo;
-            </p>
-          </div>
-
-          {/* Admin Comments & Notes */}
-          <div className="space-y-3 bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">
-            <h3 className="font-orbitron font-bold text-xs text-cyan-400 uppercase tracking-widest border-b border-white/[0.05] pb-2">
-              Admin Notes
-            </h3>
+          {/* Admin Internal Notes */}
+          <div className="space-y-2">
+            <label className="text-xs font-mono font-bold text-gray-400 uppercase tracking-widest block">
+              Internal Admin Notes
+            </label>
             <textarea
+              rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Record coordinator review notes or candidate feedback here..."
-              rows={3}
-              disabled={savingNotes}
+              placeholder="Add confidential recruitment notes or evaluation comments here..."
               className="w-full bg-black/40 border border-white/[0.06] hover:border-cyan-500/40 focus:border-cyan-400 focus:outline-none rounded-lg p-3 text-sm text-gray-300 placeholder-gray-600 transition-colors font-inter resize-y"
             />
             <div className="flex justify-end">
@@ -255,65 +284,25 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
                 disabled={savingNotes}
                 className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-cyan-800 text-white font-orbitron font-bold text-xs rounded transition-colors"
               >
-                {savingNotes ? "SAVING NOTES..." : "SAVE NOTES"}
+                {savingNotes ? "SAVING..." : "SAVE NOTES"}
               </button>
-            </div>
-          </div>
-
-          {/* Application Timeline */}
-          <div className="space-y-4 bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">
-            <h3 className="font-orbitron font-bold text-xs text-cyan-400 uppercase tracking-widest border-b border-white/[0.05] pb-2">
-              Application Activity Timeline
-            </h3>
-            
-            <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-700/50">
-              
-              {/* Event 1: Submitted */}
-              <div className="relative">
-                <span className="absolute -left-[20px] top-1.5 w-3.5 h-3.5 rounded-full bg-green-500 border border-slate-900 shadow-[0_0_10px_rgba(34,197,94,0.4)]"></span>
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-200">Application Submitted</h4>
-                  <p className="text-xs text-gray-500 font-mono mt-0.5">{submitDateStr}</p>
-                </div>
-              </div>
-
-              {/* Event 2: Pending Review */}
-              <div className="relative">
-                <span className="absolute -left-[20px] top-1.5 w-3.5 h-3.5 rounded-full bg-yellow-500 border border-slate-900 shadow-[0_0_10px_rgba(234,179,8,0.4)]"></span>
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-200">Pending Review</h4>
-                  <p className="text-xs text-gray-500 font-mono mt-0.5">Assigned to recruitment coordinators</p>
-                </div>
-              </div>
-
-              {/* Event 3: Decision */}
-              <div className="relative">
-                <span className={`absolute -left-[20px] top-1.5 w-3.5 h-3.5 rounded-full border border-slate-900 ${
-                  status === "accepted"
-                    ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)]"
-                    : status === "rejected"
-                    ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.4)]"
-                    : "bg-slate-700"
-                }`}></span>
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-200">
-                    {status === "accepted" && "Status Updated: Accepted"}
-                    {status === "rejected" && "Status Updated: Rejected"}
-                    {status === "pending" && "Decision: Pending"}
-                  </h4>
-                  <p className="text-xs text-gray-500 font-mono mt-0.5">
-                    {status !== "pending" && updateDateStr ? updateDateStr : "Awaiting administrator decision"}
-                  </p>
-                </div>
-              </div>
-
             </div>
           </div>
 
         </div>
 
         {/* Footer Actions */}
-        <div className="bg-[#111115] border-t border-white/[0.05] p-4 flex justify-end">
+        <div className="bg-[#111115] border-t border-white/[0.05] p-4 flex justify-between items-center">
+          <button
+            onClick={handleDeleteUser}
+            disabled={savingNotes}
+            className="px-4 py-2 rounded-lg bg-red-950/40 hover:bg-red-600 border border-red-500/30 text-red-400 hover:text-white text-xs font-orbitron font-bold transition-all disabled:opacity-50 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            DELETE USER
+          </button>
           <button
             onClick={onClose}
             className="px-5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-all border border-slate-700 hover:border-slate-600"

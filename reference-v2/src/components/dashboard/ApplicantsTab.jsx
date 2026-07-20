@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { fetchApplicants, updateApplicantStatus, generateNextMemberId } from "@/lib/supabase/dashboardService";
+import { fetchApplicants, updateApplicantStatus, generateNextMemberId, deleteUser, deleteBulkUsers } from "@/lib/supabase/dashboardService";
 import { sendStatusNotification } from "@/lib/mail";
 import ApplicantDetailModal from "./ApplicantDetailModal";
 
@@ -149,6 +149,56 @@ export default function ApplicantsTab() {
     } catch (err) {
       console.error("Error updating status:", err);
       alert(`Action failed: ${err.message || err}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Delete User Handler (Single)
+  const handleDeleteApplicant = async (applicant) => {
+    const confirmDelete = window.confirm(
+      `[SUPER ADMIN] Are you sure you want to permanently delete user "${applicant.name || applicant.email}"? This action cannot be undone.`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      setActionLoading(true);
+      await deleteUser(applicant.id);
+      alert(`User "${applicant.name || applicant.email}" was deleted successfully.`);
+      if (selectedApplicant?.id === applicant.id) {
+        setSelectedApplicant(null);
+      }
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        next.delete(applicant.id);
+        return next;
+      });
+      await loadData();
+    } catch (err) {
+      console.error("Error deleting user:", err);
+      alert(`Failed to delete user: ${err.message || err}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Delete Users Handler (Bulk Checkbox Selection)
+  const handleDeleteSelected = async () => {
+    if (selectedIds.size === 0) return;
+    const confirmDelete = window.confirm(
+      `[SUPER ADMIN] Are you sure you want to permanently delete the ${selectedIds.size} selected user(s)? This action cannot be undone.`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      setActionLoading(true);
+      await deleteBulkUsers(Array.from(selectedIds));
+      alert(`${selectedIds.size} user(s) were deleted successfully.`);
+      setSelectedIds(new Set());
+      await loadData();
+    } catch (err) {
+      console.error("Error deleting selected users:", err);
+      alert(`Failed to delete users: ${err.message || err}`);
     } finally {
       setActionLoading(false);
     }
@@ -316,8 +366,21 @@ export default function ApplicantsTab() {
           />
         </div>
 
-        {/* CSV Export & Filters */}
+        {/* CSV Export, Bulk Delete & Filters */}
         <div className="flex w-full md:w-auto items-center justify-end gap-3 shrink-0">
+          {selectedIds.size > 0 && (
+            <button
+              onClick={handleDeleteSelected}
+              disabled={actionLoading}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-red-950/40 hover:bg-red-600 text-xs font-orbitron font-bold rounded-lg border border-red-500/30 transition-colors cursor-pointer text-red-400 hover:text-white disabled:opacity-50"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              DELETE ({selectedIds.size})
+            </button>
+          )}
+
           <button
             onClick={exportToCSV}
             className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-orbitron font-bold rounded-lg border border-slate-700 transition-colors cursor-pointer text-cyan-400"
@@ -488,7 +551,7 @@ export default function ApplicantsTab() {
                             <td className="p-4">
                               {renderStatusBadge(applicant.status)}
                             </td>
-                            <td className="p-4 pr-6 text-right space-x-2 shrink-0">
+                             <td className="p-4 pr-6 text-right space-x-2 shrink-0">
                               <button
                                 onClick={() => {
                                   console.log("[ApplicantsTab] Clicking details for:", applicant);
@@ -511,11 +574,19 @@ export default function ApplicantsTab() {
                                 <button
                                   onClick={() => handleUpdateStatus(applicant, "rejected")}
                                   disabled={actionLoading}
-                                  className="px-2.5 py-1.5 bg-red-950/20 hover:bg-red-600 border border-red-500/30 text-red-400 hover:text-white text-[10px] font-orbitron font-bold rounded tracking-wider transition-colors disabled:opacity-50"
+                                  className="px-2.5 py-1.5 bg-yellow-950/20 hover:bg-yellow-600 border border-yellow-500/30 text-yellow-400 hover:text-white text-[10px] font-orbitron font-bold rounded tracking-wider transition-colors disabled:opacity-50"
                                 >
                                   REJECT
                                 </button>
                               )}
+                              <button
+                                onClick={() => handleDeleteApplicant(applicant)}
+                                disabled={actionLoading}
+                                className="px-2.5 py-1.5 bg-red-950/40 hover:bg-red-600 border border-red-500/40 text-red-400 hover:text-white text-[10px] font-orbitron font-bold rounded tracking-wider transition-colors disabled:opacity-50"
+                                title="Permanently delete user profile"
+                              >
+                                DELETE
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -639,11 +710,19 @@ export default function ApplicantsTab() {
                                 <button
                                   onClick={() => handleUpdateStatus(applicant, "rejected")}
                                   disabled={actionLoading}
-                                  className="px-2.5 py-1.5 bg-red-950/20 hover:bg-red-600 border border-red-500/30 text-red-400 hover:text-white text-[10px] font-orbitron font-bold rounded tracking-wider transition-colors disabled:opacity-50"
+                                  className="px-2.5 py-1.5 bg-yellow-950/20 hover:bg-yellow-600 border border-yellow-500/30 text-yellow-400 hover:text-white text-[10px] font-orbitron font-bold rounded tracking-wider transition-colors disabled:opacity-50"
                                 >
                                   REJECT
                                 </button>
                               )}
+                              <button
+                                onClick={() => handleDeleteApplicant(applicant)}
+                                disabled={actionLoading}
+                                className="px-2.5 py-1.5 bg-red-950/40 hover:bg-red-600 border border-red-500/40 text-red-400 hover:text-white text-[10px] font-orbitron font-bold rounded tracking-wider transition-colors disabled:opacity-50"
+                                title="Permanently delete user profile"
+                              >
+                                DELETE
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -665,6 +744,10 @@ export default function ApplicantsTab() {
           onUpdateApplicant={(updatedApp) => {
             setApplicants(prev => prev.map(a => a.id === updatedApp.id ? updatedApp : a));
             setSelectedApplicant(updatedApp);
+          }}
+          onDeleteApplicant={(deletedId) => {
+            setApplicants(prev => prev.filter(a => a.id !== deletedId));
+            setSelectedApplicant(null);
           }}
         />
       )}

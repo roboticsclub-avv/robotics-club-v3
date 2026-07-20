@@ -129,6 +129,42 @@ export async function updateUserRole(uid, role) {
 }
 
 /**
+ * Delete a single user profile from Supabase.
+ */
+export async function deleteUser(uid) {
+  try {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('uid', uid);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error("[supabase/dashboardService] Error deleting user profile:", error);
+    throw error;
+  }
+}
+
+/**
+ * Delete multiple user profiles from Supabase.
+ */
+export async function deleteBulkUsers(uidsArray) {
+  try {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .in('uid', uidsArray);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error("[supabase/dashboardService] Error bulk deleting users:", error);
+    throw error;
+  }
+}
+
+/**
  * Fetch all events from Supabase.
  * Sorts them by date (newest first).
  */
