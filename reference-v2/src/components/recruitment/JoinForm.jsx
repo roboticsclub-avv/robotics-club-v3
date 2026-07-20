@@ -311,6 +311,17 @@ export default function JoinForm() {
     let uploadedPhotoUrl = "";
 
     try {
+      // Check if email already exists in users profile database to prevent silent Supabase Auth block
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('uid')
+        .eq('email', formData.email.trim().toLowerCase())
+        .maybeSingle();
+
+      if (existingUser) {
+        throw new Error("This email is already registered. Please log in directly.");
+      }
+
       // 1. Create Auth Credentials
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email.trim(),
@@ -413,6 +424,17 @@ export default function JoinForm() {
 
     setReqSubmitting(true);
     try {
+      // Check if email already exists in users profile database to prevent silent Supabase Auth block
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('uid')
+        .eq('email', reqFormData.email.trim().toLowerCase())
+        .maybeSingle();
+
+      if (existingUser) {
+        throw new Error("This email is already registered. Please log in directly.");
+      }
+
       // 1. Create Auth Credentials
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: reqFormData.email.trim(),
