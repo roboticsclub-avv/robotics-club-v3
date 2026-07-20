@@ -27,6 +27,10 @@ export default function MemberPage() {
   // Extension Modal State
   const [selectedExtensionRequest, setSelectedExtensionRequest] = useState(null);
 
+  // Own email change state
+  const [newEmail, setNewEmail] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+
   const fetchData = async () => {
     if (!user) return;
     setLoading(true);
@@ -78,6 +82,44 @@ export default function MemberPage() {
       fetchData();
     }
   }, [user, authLoading]);
+
+  const handleMemberChangeEmail = async (e) => {
+    e.preventDefault();
+    if (!newEmail.trim()) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail.trim())) {
+      alert("Invalid email format.");
+      return;
+    }
+    const confirmChange = window.confirm(`Are you sure you want to change your portal email address to "${newEmail.trim().toLowerCase()}"?`);
+    if (!confirmChange) return;
+
+    setSavingEmail(true);
+    try {
+      // 1. Update in Supabase Auth
+      const { error: authError } = await supabase.auth.updateUser({
+        email: newEmail.trim().toLowerCase(),
+      });
+      if (authError) throw authError;
+
+      // 2. Also update profile email in database 'users' table
+      await supabase
+        .from('users')
+        .update({ email: newEmail.trim().toLowerCase() })
+        .eq('uid', user.id);
+
+      alert("Email update request sent! Please check both your old and new inbox to confirm the change.");
+      setNewEmail("");
+    } catch (err) {
+      console.error("Error changing email:", err);
+      alert("Failed to update email: " + (err.message || err));
+    } finally {
+      setSavingEmail(false);
+    }
+  };
 
   // Handle PDF Re-Download
   const handleRedownloadPDF = async (request) => {
@@ -173,6 +215,18 @@ export default function MemberPage() {
             >
               INVENTORY CATALOG ({hardware.length})
               {activeTab === "requisition" && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab("settings")}
+              className={`pb-4 font-bold tracking-wider relative transition-all ${
+                activeTab === "settings" ? "text-purple-400" : "text-gray-400 hover:text-gray-200"
+              }`}
+            >
+              PORTAL SETTINGS
+              {activeTab === "settings" && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500" />
               )}
             </button>
@@ -305,7 +359,7 @@ export default function MemberPage() {
                 })
               )}
             </div>
-          ) : (
+          ) : activeTab === "requisition" ? (
             /* Catalog Roster */
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {hardware.map((item) => (
@@ -334,6 +388,50 @@ export default function MemberPage() {
                   </Link>
                 </div>
               ))}
+            </div>
+          ) : (
+            /* Settings Roster */
+            <div className="max-w-2xl space-y-6">
+              <div className="bg-[#111115]/80 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-6 shadow-xl space-y-6">
+                <div>
+                  <h3 className="font-orbitron font-bold text-white text-base">
+                    Change Login Email Address
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-1 font-inter">
+                    Update your registered email address. This will update both your login credentials and profile communications.
+                  </p>
+                </div>
+
+                <form onSubmit={handleMemberChangeEmail} className="space-y-4 max-w-md font-inter">
+                  <div>
+                    <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">
+                      New Email Address
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      placeholder="enter new email address..."
+                      className="w-full bg-black/40 border border-white/[0.06] hover:border-purple-500/40 focus:border-purple-400 focus:outline-none rounded-lg px-4 py-2 text-sm text-white font-mono transition-colors"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={savingEmail || !newEmail.trim()}
+                    className="px-5 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:bg-purple-800 text-white font-orbitron font-bold text-xs rounded-xl tracking-wider transition-colors uppercase cursor-pointer"
+                  >
+                    {savingEmail ? "Updating..." : "Update Email"}
+                  </button>
+                </form>
+
+                <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.03]">
+                  <p className="text-[10px] font-mono text-gray-500 leading-relaxed">
+                    Note: A verification email link will be sent to the new email address. Your login credentials and database profile will update once confirmed.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </main>

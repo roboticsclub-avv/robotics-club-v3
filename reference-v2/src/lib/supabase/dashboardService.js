@@ -129,6 +129,24 @@ export async function updateUserRole(uid, role) {
 }
 
 /**
+ * Update a user's email address in the database.
+ */
+export async function updateUserEmail(uid, newEmail) {
+  try {
+    const { error } = await supabase
+      .from('users')
+      .update({ email: newEmail.trim().toLowerCase() })
+      .eq('uid', uid);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error("[supabase/dashboardService] Error updating user email:", error);
+    throw error;
+  }
+}
+
+/**
  * Delete a single user profile from Supabase.
  */
 export async function deleteUser(uid) {

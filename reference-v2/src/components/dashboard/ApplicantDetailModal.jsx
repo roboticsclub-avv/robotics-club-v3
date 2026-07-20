@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { formatDate } from "@/utils/formatters";
-import { updateAdminNotes, updateUserRole, deleteUser } from "@/lib/supabase/dashboardService";
+import { updateAdminNotes, updateUserRole, deleteUser, updateUserEmail } from "@/lib/supabase/dashboardService";
 import useAuth from "@/hooks/useAuth";
 
 export default function ApplicantDetailModal({ applicant, onClose, onUpdateApplicant, onDeleteApplicant }) {
@@ -14,11 +14,14 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
   const { isAdmin } = useAuth();
   const [selectedRole, setSelectedRole] = useState(applicant ? applicant.role || "member" : "member");
   const [savingRole, setSavingRole] = useState(false);
+  const [emailInput, setEmailInput] = useState(applicant ? applicant.email || "" : "");
+  const [savingEmail, setSavingEmail] = useState(false);
 
-  // Sync role state when applicant changes
+  // Sync state when applicant changes
   useEffect(() => {
     if (applicant) {
       setSelectedRole(applicant.role || "member");
+      setEmailInput(applicant.email || "");
     }
   }, [applicant]);
 
@@ -93,6 +96,34 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
       alert(`Failed to update role: ${err.message || err}`);
     } finally {
       setSavingRole(false);
+    }
+  };
+
+  const handleUpdateEmail = async () => {
+    if (!emailInput.trim()) {
+      alert("Email address cannot be empty.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailInput.trim())) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+    const confirmChange = window.confirm(`[ADMIN] Are you sure you want to change this user's profile email to "${emailInput.trim()}"?`);
+    if (!confirmChange) return;
+
+    try {
+      setSavingEmail(true);
+      await updateUserEmail(applicant.id, emailInput.trim());
+      alert("User email updated successfully in database!");
+      if (onUpdateApplicant) {
+        onUpdateApplicant({ ...applicant, email: emailInput.trim() });
+      }
+    } catch (err) {
+      console.error("Error updating email:", err);
+      alert(`Failed to update email: ${err.message || err}`);
+    } finally {
+      setSavingEmail(false);
     }
   };
 
@@ -186,8 +217,8 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
         {/* Modal Body Scroll Area */}
         <div className="p-6 overflow-y-auto space-y-8 custom-scrollbar">
           
-          {/* Assigned Member ID & Role Badge */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Assigned Member ID, Role & Email Badge */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block">Assigned Member ID</span>
@@ -221,6 +252,30 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
                 </div>
               ) : (
                 <span className="text-sm font-mono text-gray-300 capitalize">{role}</span>
+              )}
+            </div>
+
+            <div className="bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">
+              <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block mb-1">Email Address</span>
+              {isAdmin ? (
+                <div className="flex items-center gap-1.5 mt-1">
+                  <input
+                    type="email"
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    disabled={savingEmail}
+                    className="bg-black/60 border border-white/10 rounded px-2.5 py-1 text-xs text-cyan-400 font-mono focus:outline-none focus:border-cyan-500 w-full"
+                  />
+                  <button
+                    onClick={handleUpdateEmail}
+                    disabled={savingEmail || emailInput.trim() === applicant.email}
+                    className="px-2 py-1 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-850 disabled:text-gray-600 text-white font-orbitron font-bold text-[9px] rounded transition-colors uppercase shrink-0"
+                  >
+                    {savingEmail ? "..." : "Save"}
+                  </button>
+                </div>
+              ) : (
+                <span className="text-xs font-mono text-gray-300 block mt-1.5">{email}</span>
               )}
             </div>
           </div>
