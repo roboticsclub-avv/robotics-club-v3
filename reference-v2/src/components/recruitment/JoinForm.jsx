@@ -350,10 +350,10 @@ export default function JoinForm() {
         uploadedPhotoUrl = publicUrlData.publicUrl;
       }
 
-      setSubmittingMsg("Awaiting email verification...");
+      setSubmittingMsg("Registering profile details...");
 
-      // Save payload for post-OTP insert
-      setSignupPendingPayload({
+      // 3. Directly insert user profile details into 'users' table
+      const finalPayload = {
         uid: user.id,
         email: formData.email.trim().toLowerCase(),
         name: formData.name.trim(),
@@ -368,10 +368,19 @@ export default function JoinForm() {
         status: "pending",
         memberId: "PENDING",
         createdAt: new Date().toISOString(),
-      });
+      };
 
-      setTargetEmail(formData.email.trim().toLowerCase());
-      setShowOtpVerify(true);
+      const { error: dbError } = await supabase
+        .from('users')
+        .insert([finalPayload]);
+
+      if (dbError && !dbError.message?.toLowerCase().includes("duplicate")) {
+        throw dbError;
+      }
+
+      // Clear draft & set completed
+      localStorage.removeItem(DRAFT_KEY);
+      setIsCompleted(true);
     } catch (err) {
       console.error("Submission failed:", err);
       const msg = err.message?.toLowerCase() || "";
@@ -457,8 +466,8 @@ export default function JoinForm() {
         joiningYear = "20" + rollPart.substring(5, 7); // e.g. 23 -> 2023
       }
 
-      // Save payload for post-OTP insert
-      setSignupPendingPayload({
+      // Save payload to database directly
+      const finalPayload = {
         uid: user.id,
         email: reqFormData.email.trim().toLowerCase(),
         name: reqFormData.name.trim(),
@@ -472,10 +481,17 @@ export default function JoinForm() {
         status: "accepted", // Auto-accepted for student requisitions!
         memberId: "STUDENT",
         createdAt: new Date().toISOString()
-      });
+      };
 
-      setTargetEmail(reqFormData.email.trim().toLowerCase());
-      setShowOtpVerify(true);
+      const { error: dbError } = await supabase
+        .from('users')
+        .insert([finalPayload]);
+
+      if (dbError && !dbError.message?.toLowerCase().includes("duplicate")) {
+        throw dbError;
+      }
+
+      setReqSuccess(true);
     } catch (err) {
       console.error("Hardware Requisition signup failed:", err);
       const msg = err.message?.toLowerCase() || "";
