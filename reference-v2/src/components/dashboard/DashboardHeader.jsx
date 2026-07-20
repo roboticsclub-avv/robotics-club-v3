@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 
 export default function DashboardHeader({ activeTab, adminEmail, onLogout, toggleSidebar }) {
   return (
@@ -31,12 +32,21 @@ export default function DashboardHeader({ activeTab, adminEmail, onLogout, toggl
       </div>
 
       <div className="flex items-center gap-6">
-        {/* Environment Tag */}
-        <div className="hidden lg:flex items-center gap-2 bg-cyan-950/30 border border-cyan-800/30 px-3 py-1 rounded-full">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-          <span className="text-[10px] text-cyan-400 font-mono tracking-widest font-semibold uppercase">
-            ADMIN_ACCESS_LEVEL_1
-          </span>
+        {/* Environment Tag & Website Link */}
+        <div className="hidden lg:flex items-center gap-3">
+          <Link
+            href="/"
+            className="flex items-center gap-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-mono transition-all"
+          >
+            <span>🏠</span>
+            <span>Main Website</span>
+          </Link>
+          <div className="flex items-center gap-2 bg-cyan-950/30 border border-cyan-800/30 px-3 py-1 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+            <span className="text-[10px] text-cyan-400 font-mono tracking-widest font-semibold uppercase">
+              ADMIN_ACCESS_LEVEL_1
+            </span>
+          </div>
         </div>
 
         {/* User profile identifier */}
