@@ -317,16 +317,9 @@ export default function JoinForm() {
         password: formData.password,
       });
 
-      const isRateLimit = signUpError && (
-        signUpError.message?.toLowerCase().includes("rate limit") ||
-        signUpError.message?.toLowerCase().includes("rate_limit") ||
-        signUpError.message?.toLowerCase().includes("once every") ||
-        signUpError.status === 429
-      );
-
-      if (signUpError && !isRateLimit) throw signUpError;
-
+      if (signUpError) throw signUpError;
       const user = signUpData?.user;
+      if (!user) throw new Error("Could not retrieve user registration metadata");
 
       // 2. Upload photograph to Supabase Storage (applicants bucket) if user exists
       if (user) {
@@ -338,19 +331,19 @@ export default function JoinForm() {
           .from('applicants')
           .upload(fileName, selectedPhoto, { upsert: true });
 
-        if (!uploadError) {
-          const { data: publicUrlData } = supabase.storage
-            .from('applicants')
-            .getPublicUrl(fileName);
-          uploadedPhotoUrl = publicUrlData.publicUrl;
-        }
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from('applicants')
+          .getPublicUrl(fileName);
+        uploadedPhotoUrl = publicUrlData.publicUrl;
       }
 
       setSubmittingMsg("Awaiting email verification...");
 
       // Save payload for post-OTP insert
       setSignupPendingPayload({
-        uid: user ? user.id : "",
+        uid: user.id,
         email: formData.email.trim().toLowerCase(),
         name: formData.name.trim(),
         phone: "",
@@ -368,19 +361,11 @@ export default function JoinForm() {
 
       setTargetEmail(formData.email.trim().toLowerCase());
       setShowOtpVerify(true);
-
-      if (isRateLimit) {
-        setErrorMsg("Note: Email rate limit reached, but a verification code was sent to your email. Please enter the 8-digit code below.");
-      }
     } catch (err) {
       console.error("Submission failed:", err);
       const msg = err.message?.toLowerCase() || "";
 
-      if (msg.includes("rate limit") || msg.includes("rate_limit") || msg.includes("once every") || err.status === 429) {
-        setTargetEmail(formData.email.trim().toLowerCase());
-        setShowOtpVerify(true);
-        setErrorMsg("Rate limit reached, but a verification code was sent to your email inbox. Please enter the 8-digit code below.");
-      } else if (msg.includes("already registered") || msg.includes("already in use")) {
+      if (msg.includes("already registered") || msg.includes("already in use")) {
         setErrorMsg("This email is already registered. Please use a different email or log in.");
       } else if (msg.includes("weak-password")) {
         setErrorMsg("Password is too weak. Please use at least 6 characters.");
@@ -434,16 +419,9 @@ export default function JoinForm() {
         password: reqFormData.password,
       });
 
-      const isRateLimit = signUpError && (
-        signUpError.message?.toLowerCase().includes("rate limit") ||
-        signUpError.message?.toLowerCase().includes("rate_limit") ||
-        signUpError.message?.toLowerCase().includes("once every") ||
-        signUpError.status === 429
-      );
-
-      if (signUpError && !isRateLimit) throw signUpError;
-
+      if (signUpError) throw signUpError;
       const user = signUpData?.user;
+      if (!user) throw new Error("Could not retrieve user registration metadata");
 
       // Extract branch and year from email local part
       const localPart = reqFormData.email.split('@')[0];
@@ -459,7 +437,7 @@ export default function JoinForm() {
 
       // Save payload for post-OTP insert
       setSignupPendingPayload({
-        uid: user ? user.id : "",
+        uid: user.id,
         email: reqFormData.email.trim().toLowerCase(),
         name: reqFormData.name.trim(),
         phone: "",
@@ -476,18 +454,10 @@ export default function JoinForm() {
 
       setTargetEmail(reqFormData.email.trim().toLowerCase());
       setShowOtpVerify(true);
-
-      if (isRateLimit) {
-        setErrorMsg("Note: Email rate limit reached, but a verification code was sent to your email. Please enter the 8-digit code below.");
-      }
     } catch (err) {
       console.error("Hardware Requisition signup failed:", err);
       const msg = err.message?.toLowerCase() || "";
-      if (msg.includes("rate limit") || msg.includes("rate_limit") || msg.includes("once every") || err.status === 429) {
-        setTargetEmail(reqFormData.email.trim().toLowerCase());
-        setShowOtpVerify(true);
-        setErrorMsg("Rate limit reached, but a verification code was sent to your email inbox. Please enter the 8-digit code below.");
-      } else if (msg.includes("already registered") || msg.includes("already in use")) {
+      if (msg.includes("already registered") || msg.includes("already in use")) {
         setErrorMsg("This email is already registered. Please log in directly.");
       } else {
         setErrorMsg(err.message || "Sign up failed. Please check network settings.");
