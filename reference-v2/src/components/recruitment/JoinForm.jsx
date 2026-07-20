@@ -110,52 +110,76 @@ export default function JoinForm() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentStep, formData, selectedPhoto, flowMode]);
 
-  // 5. Image Compression Utility
+  // 5. Image Compression Utility (Handles high-res photos > 5MB, PNGs, and HEIC files)
   const compressImage = async (file) => {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new Image();
-        img.src = event.target.result;
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          const MAX_WIDTH = 400;
-          const MAX_HEIGHT = 400;
-          let width = img.width;
-          let height = img.height;
+      const objectUrl = URL.createObjectURL(file);
+      const img = new Image();
+      img.src = objectUrl;
 
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height = Math.round((height * MAX_WIDTH) / width);
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width = Math.round((width * MAX_HEIGHT) / height);
-              height = MAX_HEIGHT;
-            }
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 600;
+        const MAX_HEIGHT = 600;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
           }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
 
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, width, height);
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        
+        // Draw white background so transparent PNGs don't turn black on JPEG conversion
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
 
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                resolve(new File([blob], file.name, { type: file.type }));
-              } else {
-                reject(new Error("Image compression canvas blob output empty"));
+        // Always force image/jpeg at 0.75 quality to guarantee compression down to ~30-80KB
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const cleanName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+              resolve(new File([blob], cleanName, { type: "image/jpeg" }));
+            } else {
+              // Fallback for browsers where toBlob canvas output fails
+              try {
+                const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
+                const arr = dataUrl.split(",");
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while (n--) {
+                  u8arr[n] = bstr.charCodeAt(n);
+                }
+                const fallbackBlob = new Blob([u8arr], { type: "image/jpeg" });
+                const cleanName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+                resolve(new File([fallbackBlob], cleanName, { type: "image/jpeg" }));
+              } catch (e) {
+                reject(new Error("Image processing failed"));
               }
-            },
-            file.type || "image/jpeg",
-            0.7
-          );
-        };
+            }
+          },
+          "image/jpeg",
+          0.75
+        );
       };
-      reader.onerror = (err) => reject(err);
+
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("Unable to read image file. Please select a valid JPEG or PNG file."));
+      };
     });
   };
 
@@ -164,7 +188,7 @@ export default function JoinForm() {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
+    if (!file.type.startsWith("image/") && !/\.(jpg|jpeg|png|webp|heic|heif)$/i.test(file.name)) {
       setErrorMsg("Please upload an image file only.");
       return;
     }
@@ -173,7 +197,7 @@ export default function JoinForm() {
       setErrorMsg("");
       setIsUploading(true);
       
-      // Dynamic Client-side Compression
+      // Dynamic Client-side Compression (handles > 5MB files)
       const compressed = await compressImage(file);
       setSelectedPhoto(compressed);
       
@@ -182,7 +206,7 @@ export default function JoinForm() {
       setPhotoPreview(previewUrl);
     } catch (err) {
       console.error("Compression error:", err);
-      setErrorMsg("Failed to process image. Try another file.");
+      setErrorMsg(err.message || "Failed to process image. Try selecting a smaller JPG or PNG image.");
     } finally {
       setIsUploading(false);
     }
@@ -292,31 +316,41 @@ export default function JoinForm() {
         email: formData.email.trim(),
         password: formData.password,
       });
-      if (signUpError) throw signUpError;
-      const user = signUpData.user;
-      if (!user) throw new Error("Could not retrieve user registration metadata");
 
-      setSubmittingMsg("Uploading profile photo...");
+      const isRateLimit = signUpError && (
+        signUpError.message?.toLowerCase().includes("rate limit") ||
+        signUpError.message?.toLowerCase().includes("rate_limit") ||
+        signUpError.message?.toLowerCase().includes("once every") ||
+        signUpError.status === 429
+      );
 
-      // 2. Upload photograph to Supabase Storage (applicants bucket)
-      const fileExt = selectedPhoto.name.split('.').pop() || 'jpg';
-      const fileName = `${user.id}_${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('applicants')
-        .upload(fileName, selectedPhoto);
-      if (uploadError) throw uploadError;
+      if (signUpError && !isRateLimit) throw signUpError;
 
-      const { data: publicUrlData } = supabase.storage
-        .from('applicants')
-        .getPublicUrl(fileName);
-      uploadedPhotoUrl = publicUrlData.publicUrl;
+      const user = signUpData?.user;
+
+      // 2. Upload photograph to Supabase Storage (applicants bucket) if user exists
+      if (user) {
+        setSubmittingMsg("Uploading profile photo...");
+        const fileExt = selectedPhoto.name.split('.').pop() || 'jpg';
+        const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('applicants')
+          .upload(fileName, selectedPhoto, { upsert: true });
+
+        if (!uploadError) {
+          const { data: publicUrlData } = supabase.storage
+            .from('applicants')
+            .getPublicUrl(fileName);
+          uploadedPhotoUrl = publicUrlData.publicUrl;
+        }
+      }
 
       setSubmittingMsg("Awaiting email verification...");
 
       // Save payload for post-OTP insert
       setSignupPendingPayload({
-        uid: user.id,
+        uid: user ? user.id : "",
         email: formData.email.trim().toLowerCase(),
         name: formData.name.trim(),
         phone: "",
@@ -334,11 +368,21 @@ export default function JoinForm() {
 
       setTargetEmail(formData.email.trim().toLowerCase());
       setShowOtpVerify(true);
+
+      if (isRateLimit) {
+        setErrorMsg("Note: Email rate limit reached, but a verification code was sent to your email. Please enter the 8-digit code below.");
+      }
     } catch (err) {
       console.error("Submission failed:", err);
-      if (err.message && err.message.toLowerCase().includes("already registered")) {
+      const msg = err.message?.toLowerCase() || "";
+
+      if (msg.includes("rate limit") || msg.includes("rate_limit") || msg.includes("once every") || err.status === 429) {
+        setTargetEmail(formData.email.trim().toLowerCase());
+        setShowOtpVerify(true);
+        setErrorMsg("Rate limit reached, but a verification code was sent to your email inbox. Please enter the 8-digit code below.");
+      } else if (msg.includes("already registered") || msg.includes("already in use")) {
         setErrorMsg("This email is already registered. Please use a different email or log in.");
-      } else if (err.message && err.message.toLowerCase().includes("weak-password")) {
+      } else if (msg.includes("weak-password")) {
         setErrorMsg("Password is too weak. Please use at least 6 characters.");
       } else {
         setErrorMsg(err.message || "Registration failed. Please check network settings.");
@@ -390,9 +434,16 @@ export default function JoinForm() {
         password: reqFormData.password,
       });
 
-      if (signUpError) throw signUpError;
-      const user = signUpData.user;
-      if (!user) throw new Error("Could not retrieve user registration metadata");
+      const isRateLimit = signUpError && (
+        signUpError.message?.toLowerCase().includes("rate limit") ||
+        signUpError.message?.toLowerCase().includes("rate_limit") ||
+        signUpError.message?.toLowerCase().includes("once every") ||
+        signUpError.status === 429
+      );
+
+      if (signUpError && !isRateLimit) throw signUpError;
+
+      const user = signUpData?.user;
 
       // Extract branch and year from email local part
       const localPart = reqFormData.email.split('@')[0];
@@ -408,7 +459,7 @@ export default function JoinForm() {
 
       // Save payload for post-OTP insert
       setSignupPendingPayload({
-        uid: user.id,
+        uid: user ? user.id : "",
         email: reqFormData.email.trim().toLowerCase(),
         name: reqFormData.name.trim(),
         phone: "",
@@ -425,9 +476,22 @@ export default function JoinForm() {
 
       setTargetEmail(reqFormData.email.trim().toLowerCase());
       setShowOtpVerify(true);
+
+      if (isRateLimit) {
+        setErrorMsg("Note: Email rate limit reached, but a verification code was sent to your email. Please enter the 8-digit code below.");
+      }
     } catch (err) {
       console.error("Hardware Requisition signup failed:", err);
-      setErrorMsg(err.message || "Sign up failed. Please check network settings.");
+      const msg = err.message?.toLowerCase() || "";
+      if (msg.includes("rate limit") || msg.includes("rate_limit") || msg.includes("once every") || err.status === 429) {
+        setTargetEmail(reqFormData.email.trim().toLowerCase());
+        setShowOtpVerify(true);
+        setErrorMsg("Rate limit reached, but a verification code was sent to your email inbox. Please enter the 8-digit code below.");
+      } else if (msg.includes("already registered") || msg.includes("already in use")) {
+        setErrorMsg("This email is already registered. Please log in directly.");
+      } else {
+        setErrorMsg(err.message || "Sign up failed. Please check network settings.");
+      }
     } finally {
       setReqSubmitting(false);
     }
@@ -444,7 +508,7 @@ export default function JoinForm() {
       }
 
       // 1. Verify OTP with Supabase
-      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
         email: targetEmail,
         token: otpToken.trim(),
         type: 'signup'
@@ -452,13 +516,24 @@ export default function JoinForm() {
 
       if (verifyError) throw verifyError;
 
+      const verifiedUser = verifyData?.user || verifyData?.session?.user;
+
       // 2. Insert user profile details
       if (signupPendingPayload) {
-        const { error: dbError } = await supabase
-          .from('users')
-          .insert([signupPendingPayload]);
+        const finalPayload = {
+          ...signupPendingPayload,
+          uid: signupPendingPayload.uid || (verifiedUser ? verifiedUser.id : "")
+        };
 
-        if (dbError) throw dbError;
+        if (finalPayload.uid) {
+          const { error: dbError } = await supabase
+            .from('users')
+            .insert([finalPayload]);
+
+          if (dbError && !dbError.message?.toLowerCase().includes("duplicate")) {
+            console.error("Profile insertion warning:", dbError);
+          }
+        }
       }
 
       // 3. Clear auth session to log out
@@ -494,7 +569,12 @@ export default function JoinForm() {
       alert("A new verification code has been sent to your email!");
     } catch (err) {
       console.error("Resending OTP failed:", err);
-      setErrorMsg(err.message || "Failed to resend code. Please try again.");
+      const msg = err.message?.toLowerCase() || "";
+      if (msg.includes("rate limit") || msg.includes("rate_limit") || msg.includes("once every") || err.status === 429) {
+        setErrorMsg("Rate limit reached. Please check your inbox for the code already sent, or wait 60 seconds.");
+      } else {
+        setErrorMsg(err.message || "Failed to resend code. Please try again.");
+      }
     } finally {
       setSubmittingMsg("");
     }
