@@ -182,7 +182,8 @@
 
 .splineWrapper {
     width: 100%;
-    height: 500px;
+    aspect-ratio: 3 / 2;
+    height: auto;
     position: relative;
     background: var(--bg-primary);
 }
@@ -353,7 +354,8 @@
 /* Static Robot Placeholder styling */
 .placeholderContainer {
     width: 100%;
-    height: 500px;
+    aspect-ratio: 3 / 2;
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: center;
