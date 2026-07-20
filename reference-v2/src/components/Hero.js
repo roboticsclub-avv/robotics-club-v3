@@ -1,11 +1,33 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import styles from "./Hero.module.css";
-import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { db } from "@/lib/firebase/firestore";
-import { doc, getDoc } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 import TextAnimation from "./ui/scroll-text";
+
+// 1. Spline Error Boundary to catch any WebGL/GPU compilation crashes on older devices
+class SplineErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Spline 3D render crash caught:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
 
 // Lazy load spline to improve performance on main thread
 // When loading or when WebGL falls back, show the Static Robot Placeholder Image
@@ -22,12 +44,26 @@ function RobotPlaceholder() {
   );
 }
 
+function isWebGLSupported() {
+  if (typeof window === "undefined") return true;
+  try {
+    const canvas = document.createElement("canvas");
+    return !!(
+      window.WebGLRenderingContext &&
+      (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
 export default function Hero({ isReady }) {
   const [isRecruiting, setIsRecruiting] = useState(true);
   const [inView, setInView] = useState(true);
   const [deviceType, setDeviceType] = useState("desktop"); // "desktop" | "tablet" | "mobile"
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [hasBeenViewed, setHasBeenViewed] = useState(false);
+  const [webglSupported, setWebglSupported] = useState(true);
 
   useEffect(() => {
     if (inView) {
@@ -52,7 +88,12 @@ export default function Hero({ isReady }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // 2. Detect prefers-reduced-motion
+  // 2. Detect WebGL support
+  useEffect(() => {
+    setWebglSupported(isWebGLSupported());
+  }, []);
+
+  // 3. Detect prefers-reduced-motion
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(mediaQuery.matches);
@@ -63,7 +104,7 @@ export default function Hero({ isReady }) {
     return () => mediaQuery.removeEventListener("change", handleMotionChange);
   }, []);
 
-  // 3. Monitor intersection of visual block to save CPU/GPU cycles
+  // 4. Monitor intersection of visual block to save CPU/GPU cycles
   useEffect(() => {
     const visualElement = document.querySelector(`.${styles.heroVisual}`);
     if (!visualElement) return;
@@ -81,21 +122,35 @@ export default function Hero({ isReady }) {
     return () => observer.disconnect();
   }, []);
 
-  // 4. Firebase recruitment status sync
+  // 5. Supabase recruitment status sync with safe storage writing
   useEffect(() => {
-    const cached = sessionStorage.getItem("is_recruiting");
+    let cached = null;
+    try {
+      cached = sessionStorage.getItem("is_recruiting");
+    } catch (e) {
+      console.warn("Session storage access disabled:", e);
+    }
     if (cached !== null) {
       setIsRecruiting(cached === "true");
     }
 
     const fetchSettings = async () => {
       try {
-        const docRef = doc(db, "settings", "is_recruiting");
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setIsRecruiting(data.value);
-          sessionStorage.setItem("is_recruiting", String(data.value));
+        const { data, error } = await supabase
+          .from("settings")
+          .select("value")
+          .eq("id", "is_recruiting")
+          .maybeSingle();
+
+        if (error) throw error;
+        if (data) {
+          const val = data.value === true;
+          setIsRecruiting(val);
+          try {
+            sessionStorage.setItem("is_recruiting", String(val));
+          } catch (e) {
+            console.warn("Session storage write blocked:", e);
+          }
         }
       } catch (err) {
         console.error("Error fetching recruitment setting:", err);
@@ -104,7 +159,7 @@ export default function Hero({ isReady }) {
     fetchSettings();
   }, []);
 
-  // 5. Glitch typewriter animation with reduced motion support
+  // 6. Glitch typewriter animation with reduced motion support
   useEffect(() => {
     const textElement = document.querySelector(".typewriter-text");
     if (!textElement) return;
@@ -187,6 +242,17 @@ export default function Hero({ isReady }) {
     };
   }, [prefersReducedMotion]);
 
+  // Static Fallback Image Node
+  const staticFallback = (
+    <div className={styles.robotImageWrapper}>
+      <img
+        src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/media/robotics-side.png`}
+        alt="Robotics Club Robot"
+        className={styles.staticRobotImage}
+      />
+    </div>
+  );
+
   return (
     <section className={styles.hero} id="home">
       <div className={styles.heroContainer}>
@@ -240,30 +306,25 @@ export default function Hero({ isReady }) {
         </div>
 
         <div className={styles.heroVisual}>
-          {deviceType === "mobile" ? (
-            // Mobile: Static high-fidelity placeholder image
-            <div className={styles.robotImageWrapper}>
-              <img
-                src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/media/robotics-side.png`}
-                alt="Robotics Club Robot"
-                className={styles.staticRobotImage}
-              />
-            </div>
+          {deviceType === "mobile" || !webglSupported ? (
+            staticFallback
           ) : isReady && hasBeenViewed ? (
-            // Desktop & Tablet: Spline 3D Scene
-            <div
-              className={styles.splineWrapper}
-              style={{
-                // Scaled down on tablet, pointer events disabled to stop tracking
-                transform: deviceType === "tablet" ? "scale(0.85)" : "scale(1)",
-                pointerEvents:
-                  !inView || deviceType === "tablet" || prefersReducedMotion ? "none" : "auto",
-                transition: "transform 0.3s ease, opacity 0.5s ease",
-                opacity: inView ? 1 : 0,
-              }}
-            >
-              <Spline scene={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/scene.splinecode`} />
-            </div>
+            // Desktop & Tablet (with WebGL support): Spline 3D Scene wrapped in Error Boundary
+            <SplineErrorBoundary fallback={staticFallback}>
+              <div
+                className={styles.splineWrapper}
+                style={{
+                  // Scaled down on tablet, pointer events disabled to stop tracking
+                  transform: deviceType === "tablet" ? "scale(0.85)" : "scale(1)",
+                  pointerEvents:
+                    deviceType === "mobile" || deviceType === "tablet" ? "none" : "auto",
+                  transition: "transform 0.3s ease, opacity 0.5s ease",
+                  opacity: inView ? 1 : 0,
+                }}
+              >
+                <Spline scene={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/scene.splinecode`} />
+              </div>
+            </SplineErrorBoundary>
           ) : (
             // Load state / WebGL off placeholder
             <RobotPlaceholder />

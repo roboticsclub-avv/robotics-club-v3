@@ -26,26 +26,18 @@ const sectionVariants = {
 };
 
 export default function Home() {
-  // Start false on both server and client to avoid hydration mismatch.
-  const [isLoading, setIsLoading] = useState(false);
-
-  // After hydration, check sessionStorage and show intro if not yet seen this session
-  useEffect(() => {
-    if (sessionStorage.getItem('intro_seen') !== 'true') {
-      setIsLoading(true);
-    }
-  }, []);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (isLoading) return;
 
-    // Initialize Lenis smooth scroll engine
+    // Initialize Lenis — tuned for snappy high-FPS buttery feel
     const lenis = new Lenis({
-      duration: 0.85,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      lerp: 0.12,            // Higher = more responsive, lower = more floaty/laggy
       smoothWheel: true,
-      wheelMultiplier: 1.0,
-      touchMultiplier: 1.5,
+      wheelMultiplier: 1.2,  // Slightly higher for immediate wheel response
+      touchMultiplier: 2.0,  // Snappier on touch/trackpad
+      infinite: false,
     });
     window.lenis = lenis;
 
@@ -80,7 +72,11 @@ export default function Home() {
   }, [isLoading]);
 
   const handleLoadingFinish = () => {
-    sessionStorage.setItem('intro_seen', 'true');
+    try {
+      sessionStorage.setItem('intro_seen', 'true');
+    } catch (e) {
+      console.warn("Session storage disabled:", e);
+    }
     setIsLoading(false);
   };
 

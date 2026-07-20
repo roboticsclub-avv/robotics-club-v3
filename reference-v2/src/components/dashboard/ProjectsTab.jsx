@@ -200,11 +200,15 @@ export default function ProjectsTab() {
                                         <td className="p-4 text-gray-400 max-w-xs truncate">{item.description}</td>
                                         <td className="p-4">
                                             <div className="flex flex-wrap gap-1">
-                                                {(item.tags || []).map((t, i) => (
-                                                    <span key={i} className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] text-gray-400 font-mono">
-                                                        {t.label}
-                                                    </span>
-                                                ))}
+                                                {(item.tags || []).map((t, i) => {
+                                                    if (!t) return null;
+                                                    const label = typeof t === "string" ? t : t.label || "";
+                                                    return (
+                                                        <span key={i} className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] text-gray-400 font-mono">
+                                                            {label}
+                                                        </span>
+                                                    );
+                                                })}
                                             </div>
                                         </td>
                                         <td className="p-4 pr-6 text-right flex justify-end gap-2 items-center">

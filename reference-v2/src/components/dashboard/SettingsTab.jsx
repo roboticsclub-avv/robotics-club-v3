@@ -1,9 +1,50 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function SettingsTab({ adminEmail }) {
+  const [isRecruiting, setIsRecruiting] = useState(true);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch recruitment setting from Supabase
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("settings")
+          .select("*")
+          .eq("id", "is_recruiting")
+          .maybeSingle();
+
+        if (error) throw error;
+        if (data) {
+          setIsRecruiting(data.value === true);
+        }
+      } catch (err) {
+        console.error("Error fetching settings:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  // Update recruitment status setting in Supabase
+  const handleToggleRecruitment = async (newValue) => {
+    try {
+      setIsRecruiting(newValue);
+      const { error } = await supabase
+        .from("settings")
+        .upsert({ id: "is_recruiting", value: newValue });
+
+      if (error) throw error;
+    } catch (err) {
+      console.error("Error updating recruitment status:", err);
+      alert("Failed to update recruitment status: " + err.message);
+    }
+  };
+
   const [environment] = useState(() => {
     if (typeof window !== "undefined") {
       const hostname = window.location.hostname;
@@ -24,6 +65,57 @@ export default function SettingsTab({ adminEmail }) {
 
   return (
     <div className="space-y-6 font-inter max-w-3xl">
+      {/* Recruitment Toggle Panel */}
+      <div className="bg-[#111115] border border-white/[0.04] rounded-xl overflow-hidden shadow-lg">
+        <div className="p-5 border-b border-white/[0.04] bg-black/30">
+          <h2 className="font-orbitron text-sm font-bold text-gray-400 tracking-wider">
+            CLUB RECRUITMENT CONTROL
+          </h2>
+        </div>
+
+        <div className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-white font-bold text-sm">Recruitment Toggle</h3>
+              <p className="text-xs text-gray-500 mt-1 max-w-md">
+                Toggling this updates the home page badge status. When active, it displays "Now Recruiting Members". When deactivated, it shows "Welcome Club Members".
+              </p>
+            </div>
+
+            {loading ? (
+              <span className="text-xs text-gray-500 italic font-mono">Syncing...</span>
+            ) : (
+              <button
+                onClick={() => handleToggleRecruitment(!isRecruiting)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors outline-none focus:outline-none ${
+                  isRecruiting ? "bg-purple-600" : "bg-slate-800"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    isRecruiting ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            )}
+          </div>
+
+          <div className="mt-5 p-4 rounded-lg bg-white/[0.02] border border-white/[0.04] flex items-center gap-3">
+            <div
+              className={`w-2 h-2 rounded-full ${
+                isRecruiting ? "bg-purple-500 animate-pulse shadow-[0_0_8px_#a855f7]" : "bg-green-500 shadow-[0_0_8px_#22c55e]"
+              }`}
+            />
+            <span className="text-xs font-mono text-gray-400">
+              Live Badge Status:{" "}
+              <span className={isRecruiting ? "text-purple-400 font-bold" : "text-green-400 font-bold"}>
+                {isRecruiting ? "NOW RECRUITING MEMBERS" : "WELCOME CLUB MEMBERS"}
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* System Status Panel */}
       <div className="bg-[#111115] border border-white/[0.04] rounded-xl overflow-hidden shadow-lg">
         <div className="p-5 border-b border-white/[0.04] bg-black/30">
@@ -33,7 +125,6 @@ export default function SettingsTab({ adminEmail }) {
         </div>
         
         <div className="p-6 space-y-4">
-          
           {/* Active Admin */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between py-3 border-b border-white/[0.02]">
             <span className="text-sm text-gray-500 font-medium">Logged-In Administrator</span>
@@ -71,7 +162,6 @@ export default function SettingsTab({ adminEmail }) {
               Robotics Club Website v3.0.0
             </span>
           </div>
-
         </div>
       </div>
 

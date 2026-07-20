@@ -121,20 +121,23 @@ export const InfiniteMovingCards = ({
               {/* Tags and Link */}
               <div>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {project.tags?.map((tag) => {
+                  {project.tags?.map((tag, tIdx) => {
+                    if (!tag) return null;
+                    const tagLabel = typeof tag === "string" ? tag : tag.label || "";
+                    const tagStyle = typeof tag === "object" ? tag.style : "";
                     const tagStyles = {
                       tagPurple: "bg-purple-500/10 text-purple-400 border-purple-500/20",
                       tagTeal: "bg-teal-500/10 text-teal-400 border-teal-500/20",
                       tagOrange: "bg-orange-500/10 text-orange-400 border-orange-500/20",
                       tagBlue: "bg-blue-500/10 text-blue-400 border-blue-500/20",
                     };
-                    const activeClass = tagStyles[tag.style] || "bg-white/5 text-white/60 border-white/10";
+                    const activeClass = tagStyles[tagStyle] || "bg-white/5 text-white/60 border-white/10";
                     return (
                       <span
-                        key={tag.label}
+                        key={`${tagLabel}-${tIdx}`}
                         className={cn("text-xs font-semibold px-2 py-1 rounded-md border", activeClass)}
                       >
-                        {tag.label}
+                        {tagLabel}
                       </span>
                     );
                   })}
