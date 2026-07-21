@@ -228,10 +228,10 @@ export default function Hero({ isReady }) {
         </div>
 
         <div className={styles.heroVisual}>
-          {deviceType === "mobile" || !webglSupported ? (
+          {!webglSupported ? (
             staticFallback
           ) : isReady && hasBeenViewed ? (
-            // Desktop & Tablet (with WebGL support): Spline 3D Scene wrapped in Error Boundary
+            // Desktop & Tablet & Mobile (with WebGL support): Spline 3D Scene wrapped in Error Boundary
             <SplineErrorBoundary fallback={staticFallback}>
               <div
                 className={styles.splineWrapper}
