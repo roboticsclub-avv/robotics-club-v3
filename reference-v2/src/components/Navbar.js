@@ -8,7 +8,7 @@ import styles from "./Navbar.module.css";
 import { LiquidGlassCard } from "./ui/liquid-glass";
 import ThemeSwitcher from "./ui/ThemeSwitcher";
 import useAuth from "@/hooks/useAuth";
-import UserProfileModal from "@/components/profile/UserProfileModal";
+import UserProfileModal from "@/components/profile/UserProfileModal.jsx";
 
 const NAV_ITEMS = [
   { label: "About", href: "/#about" },
