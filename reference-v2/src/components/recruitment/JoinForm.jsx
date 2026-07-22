@@ -334,13 +334,31 @@ export default function JoinForm() {
       }
 
       // 1. Create Auth Credentials
+      let user = null;
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email.trim(),
         password: formData.password,
       });
 
-      if (signUpError) throw signUpError;
-      const user = signUpData?.user;
+      if (signUpError) {
+        // If user already exists in auth.users (e.g. from an earlier attempt before RLS fix), try signing in
+        if (signUpError.message?.toLowerCase().includes("already registered") || signUpError.message?.toLowerCase().includes("already in use")) {
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email: formData.email.trim(),
+            password: formData.password,
+          });
+
+          if (signInError) {
+            throw new Error("This email is already registered with a different password. Please log in directly or reset your password.");
+          }
+          user = signInData?.user;
+        } else {
+          throw signUpError;
+        }
+      } else {
+        user = signUpData?.user;
+      }
+
       if (!user) throw new Error("Could not retrieve user registration metadata");
 
       // 2. Upload photograph to Supabase Storage (applicants bucket) if user & selectedPhoto exist
@@ -369,7 +387,7 @@ export default function JoinForm() {
 
       setSubmittingMsg("Registering profile details...");
 
-      // 3. Directly insert user profile details into 'users' table
+      // 3. Directly insert/upsert user profile details into 'users' table
       const finalPayload = {
         uid: user.id,
         email: formData.email.trim().toLowerCase(),
@@ -389,7 +407,7 @@ export default function JoinForm() {
 
       const { error: dbError } = await supabase
         .from('users')
-        .insert([finalPayload]);
+        .upsert([finalPayload], { onConflict: 'uid' });
 
       if (dbError) {
         if (dbError.message?.includes("photoURL") || dbError.message?.includes("schema cache")) {
@@ -397,7 +415,7 @@ export default function JoinForm() {
           const { photoURL, ...fallbackPayload } = finalPayload;
           const { error: fallbackError } = await supabase
             .from('users')
-            .insert([fallbackPayload]);
+            .upsert([fallbackPayload], { onConflict: 'uid' });
           if (fallbackError && !fallbackError.message?.toLowerCase().includes("duplicate")) {
             throw fallbackError;
           }
@@ -479,13 +497,30 @@ export default function JoinForm() {
       }
 
       // 1. Create Auth Credentials
+      let user = null;
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: reqFormData.email.trim(),
         password: reqFormData.password,
       });
 
-      if (signUpError) throw signUpError;
-      const user = signUpData?.user;
+      if (signUpError) {
+        if (signUpError.message?.toLowerCase().includes("already registered") || signUpError.message?.toLowerCase().includes("already in use")) {
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email: reqFormData.email.trim(),
+            password: reqFormData.password,
+          });
+
+          if (signInError) {
+            throw new Error("This email is already registered with a different password. Please log in directly or reset your password.");
+          }
+          user = signInData?.user;
+        } else {
+          throw signUpError;
+        }
+      } else {
+        user = signUpData?.user;
+      }
+
       if (!user) throw new Error("Could not retrieve user registration metadata");
 
       // Extract branch and year from email local part
@@ -519,7 +554,7 @@ export default function JoinForm() {
 
       const { error: dbError } = await supabase
         .from('users')
-        .insert([finalPayload]);
+        .upsert([finalPayload], { onConflict: 'uid' });
 
       if (dbError && !dbError.message?.toLowerCase().includes("duplicate")) {
         throw dbError;
