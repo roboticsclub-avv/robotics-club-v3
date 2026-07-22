@@ -21,6 +21,7 @@ export default function JoinForm() {
   const [reqFormData, setReqFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: ""
   });
@@ -38,6 +39,7 @@ export default function JoinForm() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
     year: "",
@@ -392,7 +394,7 @@ export default function JoinForm() {
         uid: user.id,
         email: formData.email.trim().toLowerCase(),
         name: formData.name.trim(),
-        phone: "",
+        phone: formData.phone ? formData.phone.trim() : "",
         branch: formData.branch,
         year: formData.year,
         section: formData.section.trim(),
@@ -540,7 +542,7 @@ export default function JoinForm() {
         uid: user.id,
         email: reqFormData.email.trim().toLowerCase(),
         name: reqFormData.name.trim(),
-        phone: "",
+        phone: reqFormData.phone ? reqFormData.phone.trim() : "",
         branch: branchName,
         year: joiningYear,
         section: "A",
@@ -914,6 +916,20 @@ export default function JoinForm() {
 
           <div>
             <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1.5">
+              Phone / WhatsApp Number
+            </label>
+            <input
+              type="tel"
+              required
+              placeholder="e.g. 9876543210"
+              value={reqFormData.phone}
+              onChange={(e) => setReqFormData({ ...reqFormData, phone: e.target.value })}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1.5">
               Password
             </label>
             <div className="relative">
@@ -1226,40 +1242,64 @@ export default function JoinForm() {
                 </div>
               )}
 
-              {/* ── Step 2: Email ── */}
+              {/* ── Step 2: Email & Phone ── */}
               {currentStep === 2 && (
-                <div className="space-y-5">
-                  <h2
-                    className="font-black font-orbitron leading-tight"
-                    style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
-                  >
-                    Your college{" "}
-                    <span
-                      style={{
-                        background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                      }}
+                <div className="space-y-6">
+                  <div>
+                    <h2
+                      className="font-black font-orbitron leading-tight mb-2"
+                      style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
                     >
-                      email
-                    </span>{" "}
-                    address?
-                  </h2>
-                  <input
-                    ref={inputRef}
-                    type="email"
-                    placeholder="name@student.amrita.edu"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className={inputCls}
-                    style={{
-                      ...inputStyle,
-                      borderBottomColor: formData.email ? "var(--accent-teal)" : undefined,
-                    }}
-                  />
-                  <p className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
-                    Used for application status correspondence.
-                  </p>
+                      Your contact{" "}
+                      <span
+                        style={{
+                          background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                        }}
+                      >
+                        details
+                      </span>
+                    </h2>
+                    <p className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
+                      Used for application status & official correspondence.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                      College Email Address
+                    </label>
+                    <input
+                      ref={inputRef}
+                      type="email"
+                      placeholder="name@student.amrita.edu"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className={inputCls}
+                      style={{
+                        ...inputStyle,
+                        borderBottomColor: formData.email ? "var(--accent-teal)" : undefined,
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                      Mobile Phone / WhatsApp Number
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="e.g. 9876543210"
+                      value={formData.phone || ""}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className={inputCls}
+                      style={{
+                        ...inputStyle,
+                        borderBottomColor: formData.phone ? "var(--accent-teal)" : undefined,
+                      }}
+                    />
+                  </div>
                 </div>
               )}
 
