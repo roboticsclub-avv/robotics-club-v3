@@ -391,8 +391,19 @@ export default function JoinForm() {
         .from('users')
         .insert([finalPayload]);
 
-      if (dbError && !dbError.message?.toLowerCase().includes("duplicate")) {
-        throw dbError;
+      if (dbError) {
+        if (dbError.message?.includes("photoURL") || dbError.message?.includes("schema cache")) {
+          console.warn("photoURL column missing in users table schema, falling back to standard fields insertion...");
+          const { photoURL, ...fallbackPayload } = finalPayload;
+          const { error: fallbackError } = await supabase
+            .from('users')
+            .insert([fallbackPayload]);
+          if (fallbackError && !fallbackError.message?.toLowerCase().includes("duplicate")) {
+            throw fallbackError;
+          }
+        } else if (!dbError.message?.toLowerCase().includes("duplicate")) {
+          throw dbError;
+        }
       }
 
       // Clear draft & set completed
