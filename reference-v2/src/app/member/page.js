@@ -150,7 +150,16 @@ export default function MemberPage() {
               </Link>
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3 md:gap-4">
+              {/* Home Website Shortcut Button */}
+              <Link
+                href="/"
+                className="px-3.5 py-2 border border-cyan-500/30 hover:border-cyan-500 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 rounded-lg text-xs font-orbitron font-bold transition-all flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+                title="Return to Main Website"
+              >
+                <span>🏠</span> <span className="hidden sm:inline">Home Website</span>
+              </Link>
+
               <div className="hidden md:flex flex-col items-end">
                 <span className="text-sm font-semibold text-white">{profile?.name || "Member"}</span>
                 <span className="text-xs text-gray-400 font-mono">{user?.email}</span>
@@ -184,12 +193,21 @@ export default function MemberPage() {
                 </p>
               </div>
 
-              <Link
-                href="/requisition"
-                className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs font-orbitron tracking-wider transition-all shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 text-center"
-              >
-                + NEW REQUISITION REQUEST
-              </Link>
+              <div className="flex items-center gap-3 flex-wrap">
+                <Link
+                  href="/"
+                  className="px-5 py-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-gray-300 hover:text-white font-bold text-xs font-orbitron tracking-wider transition-all flex items-center justify-center gap-2"
+                >
+                  <span>🏠</span> HOME WEBSITE
+                </Link>
+
+                <Link
+                  href="/requisition"
+                  className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs font-orbitron tracking-wider transition-all shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 text-center"
+                >
+                  + NEW REQUISITION
+                </Link>
+              </div>
             </div>
           </div>
 
