@@ -5,7 +5,9 @@ import { motion } from "motion/react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
-import Team from "@/components/Team";
+import FacultyMembers from "@/components/FacultyMembers";
+import StudentMentors from "@/components/StudentMentors";
+import StudentMembers from "@/components/StudentMembers";
 import Events from "@/components/Events";
 import Projects from "@/components/Projects";
 import Gallery from "@/components/Gallery";
@@ -108,7 +110,25 @@ export default function Home() {
             viewport={{ once: true, amount: 0.12 }}
             variants={sectionVariants}
           >
-            <Team />
+            <FacultyMembers />
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.12 }}
+            variants={sectionVariants}
+          >
+            <StudentMentors />
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+            variants={sectionVariants}
+          >
+            <StudentMembers />
           </motion.div>
 
           <motion.div
