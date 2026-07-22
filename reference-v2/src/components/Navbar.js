@@ -8,6 +8,7 @@ import styles from "./Navbar.module.css";
 import { LiquidGlassCard } from "./ui/liquid-glass";
 import ThemeSwitcher from "./ui/ThemeSwitcher";
 import useAuth from "@/hooks/useAuth";
+import UserProfileModal from "@/components/profile/UserProfileModal";
 
 const NAV_ITEMS = [
   { label: "About", href: "/#about" },
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const pathname = usePathname();
   const { user, profile, isAuthenticated, isAdmin, logout } = useAuth();
 
@@ -92,9 +94,28 @@ export default function Navbar() {
               <ThemeSwitcher />
 
               {isAuthenticated ? (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5">
+                  {/* Profile Quick-View Icon Button */}
+                  <button
+                    onClick={() => setShowProfileModal(true)}
+                    className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-white transition-all hover:scale-105"
+                    title="View My Profile & Hardware Time Remaining"
+                  >
+                    <div className="w-6 h-6 rounded-full overflow-hidden bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-[10px] shrink-0">
+                      {profile?.photoURL ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={profile.photoURL} alt={profile.name || "User"} className="w-full h-full object-cover" />
+                      ) : (
+                        <span>{profile?.name ? profile.name[0].toUpperCase() : "👤"}</span>
+                      )}
+                    </div>
+                    <span className="text-xs font-mono font-semibold hidden md:inline truncate max-w-[90px]">
+                      {profile?.name?.split(" ")[0] || "Profile"}
+                    </span>
+                  </button>
+
                   {/* User Role Tag / Badge */}
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase bg-white/[0.04] text-gray-300 border border-white/10 backdrop-blur-sm">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase bg-white/[0.04] text-gray-300 border border-white/10 backdrop-blur-sm hidden lg:inline-block">
                     {profile?.role || (isAdmin ? "ADMIN" : "MEMBER")}
                   </span>
 
@@ -112,7 +133,7 @@ export default function Navbar() {
                   {/* Logout Button */}
                   <button
                     onClick={logout}
-                    className="text-xs text-gray-400 hover:text-red-400 transition px-2 py-1"
+                    className="text-xs text-gray-400 hover:text-red-400 transition px-2 py-1 hidden sm:inline-block"
                     title="Sign Out"
                   >
                     Logout
@@ -166,6 +187,25 @@ export default function Navbar() {
 
         {isAuthenticated && (
           <div className="flex flex-col items-center gap-3 pt-4 border-t border-white/10 w-full max-w-xs text-center">
+            {/* Mobile Profile Trigger Button */}
+            <button
+              onClick={() => {
+                setMobileOpen(false);
+                setShowProfileModal(true);
+              }}
+              className="w-full py-2.5 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 font-semibold text-xs tracking-wide transition-all flex items-center justify-center gap-2"
+            >
+              <div className="w-5 h-5 rounded-full overflow-hidden bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold text-[9px]">
+                {profile?.photoURL ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={profile.photoURL} alt={profile.name || "User"} className="w-full h-full object-cover" />
+                ) : (
+                  <span>👤</span>
+                )}
+              </div>
+              <span>My Profile & Borrowed Hardware</span>
+            </button>
+
             <span className="px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-white/[0.04] text-gray-300 border border-white/10">
               Role: {profile?.role || (isAdmin ? "ADMIN" : "MEMBER")}
             </span>
@@ -200,6 +240,12 @@ export default function Navbar() {
           </div>
         )}
       </div>
+
+      {/* User Quick View Profile Modal */}
+      <UserProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+      />
     </>
   );
 }
