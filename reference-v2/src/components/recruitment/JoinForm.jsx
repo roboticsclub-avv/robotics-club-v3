@@ -343,11 +343,6 @@ export default function JoinForm() {
       const user = signUpData?.user;
       if (!user) throw new Error("Could not retrieve user registration metadata");
 
-      // Supabase returns user with empty identities array if email is already registered in Supabase Auth
-      if (user.identities && user.identities.length === 0) {
-        throw new Error("This email is already registered. Please log in directly or reset your password.");
-      }
-
       // 2. Upload photograph to Supabase Storage (applicants bucket) if user & selectedPhoto exist
       if (user && selectedPhoto) {
         setSubmittingMsg("Uploading profile photo...");
@@ -492,11 +487,6 @@ export default function JoinForm() {
       if (signUpError) throw signUpError;
       const user = signUpData?.user;
       if (!user) throw new Error("Could not retrieve user registration metadata");
-
-      // Supabase returns user with empty identities array if email is already registered in Supabase Auth
-      if (user.identities && user.identities.length === 0) {
-        throw new Error("This email is already registered. Please log in directly or reset your password.");
-      }
 
       // Extract branch and year from email local part
       const localPart = reqFormData.email.split('@')[0];
