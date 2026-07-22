@@ -7,6 +7,7 @@ import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Team from "@/components/Team";
 import Events from "@/components/Events";
+import HardwareRequisitionSection from "@/components/HardwareRequisitionSection";
 import Projects from "@/components/Projects";
 import Gallery from "@/components/Gallery";
 import Footer from "@/components/Footer";
@@ -118,6 +119,16 @@ export default function Home() {
             variants={sectionVariants}
           >
             <Events />
+          </motion.div>
+
+          {/* Embedded Hardware Requisition Section directly below Events */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.12 }}
+            variants={sectionVariants}
+          >
+            <HardwareRequisitionSection />
           </motion.div>
 
           <motion.div

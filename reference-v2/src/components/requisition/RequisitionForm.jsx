@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
-import MemberProfileCard from "./MemberProfileCard";
 import ProjectDetailsSection from "./ProjectDetailsSection";
 import CascadingComponentSelector from "./CascadingComponentSelector";
 import SelectedComponentsTable from "./SelectedComponentsTable";
@@ -14,7 +13,7 @@ import { validateRequisitionForm, generateTempRequestId } from "@/schemas/requis
 import { generateRequisitionPDF } from "@/lib/pdf/generateRequisitionPDF";
 import Link from "next/link";
 
-export default function RequisitionForm() {
+export default function RequisitionForm({ isEmbedded = false }) {
   const router = useRouter();
   const { user, profile, isAuthenticated, loading: authLoading } = useAuth();
 
@@ -35,6 +34,7 @@ export default function RequisitionForm() {
   });
 
   const [selectedItems, setSelectedItems] = useState([]);
+  const [activeComponent, setActiveComponent] = useState(null);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [successPayload, setSuccessPayload] = useState(null);
@@ -97,6 +97,7 @@ export default function RequisitionForm() {
     try {
       const tempId = generateTempRequestId();
 
+      // Silently populate authenticated member details in background payload
       const requestPayload = {
         temp_request_id: tempId,
         user_id: user.id,
@@ -260,57 +261,217 @@ export default function RequisitionForm() {
     );
   }
 
+  // Determine active component for User Manual display (either currently focused or latest selected)
+  const displayManualComponent = activeComponent || (selectedItems.length > 0 ? selectedItems[selectedItems.length - 1] : null);
+  const totalHardwareQty = selectedItems.reduce((acc, i) => acc + (i.qty || 1), 0);
+
   return (
-    <div className="space-y-8 max-w-4xl mx-auto">
-      {/* Page Title Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-extrabold font-orbitron text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-teal-300 to-indigo-400">
-          HARDWARE REQUISITION PORTAL
-        </h1>
-        <p className="text-xs text-gray-400 max-w-xl mx-auto">
-          Request hardware components, sensors, and microcontrollers for your robotics projects.
-          Generated requests require administrator sign-off prior to physical takeaway.
-        </p>
+    <div className="space-y-8 max-w-7xl mx-auto font-inter">
+      {/* Page Title Header (rendered when standalone / non-embedded) */}
+      {!isEmbedded && (
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl sm:text-3xl font-extrabold font-orbitron text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-teal-300 to-indigo-400">
+            HARDWARE REQUISITION PORTAL
+          </h1>
+          <p className="text-xs text-gray-400 max-w-xl mx-auto">
+            Request hardware components, sensors, and microcontrollers for your robotics projects.
+            Generated requests require administrator sign-off prior to physical takeaway.
+          </p>
+        </div>
+      )}
+
+      {/* Main Responsive Grid: Desktop (80/20), Tablet (70/30), Mobile (Stack) */}
+      <div className="grid grid-cols-1 md:grid-cols-10 lg:grid-cols-5 gap-8 items-start">
+        {/* Left Column: Requisition Form Sections (80% Desktop / 70% Tablet) */}
+        <div className="md:col-span-7 lg:col-span-4 space-y-8">
+          {/* Section 1: Project Information */}
+          <ProjectDetailsSection
+            formData={formData}
+            setFormData={setFormData}
+            errors={errors}
+          />
+
+          {/* Section 2: Component Selection */}
+          <CascadingComponentSelector
+            onAddComponent={handleAddComponent}
+            selectedItems={selectedItems}
+            onActiveComponentChange={setActiveComponent}
+          />
+
+          {/* Section 3: Selected Components Table */}
+          <SelectedComponentsTable
+            selectedItems={selectedItems}
+            setSelectedItems={setSelectedItems}
+            errorMsg={errors.items}
+          />
+
+          {/* Section 4: Borrow Duration Picker */}
+          <BorrowDurationPicker
+            formData={formData}
+            setFormData={setFormData}
+            errors={errors}
+          />
+
+          {/* Section 5: Hardware Policies & Mandatory Consent */}
+          <TermsAndSubmitSection
+            formData={formData}
+            setFormData={setFormData}
+            submitting={submitting}
+            onSubmit={handleSubmit}
+            errors={errors}
+          />
+        </div>
+
+        {/* Right Column: Sticky Hardware Request Summary (20% Desktop / 30% Tablet / Mobile Stack) */}
+        <div className="md:col-span-3 lg:col-span-1 space-y-6 lg:sticky lg:top-24">
+          <div className="bg-[#111115]/90 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-5 shadow-2xl space-y-5 font-inter">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+              <h3 className="font-orbitron text-xs font-bold text-gray-200 tracking-wider flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse shadow-[0_0_8px_#a855f7]" />
+                Hardware Request Summary
+              </h3>
+            </div>
+
+            {/* Current Request Status */}
+            <div className="p-3 rounded-xl bg-purple-950/20 border border-purple-500/20 text-xs flex items-center justify-between">
+              <span className="text-gray-400 font-mono text-[11px]">Current Status:</span>
+              <span className="text-purple-400 font-bold font-mono text-[11px]">Pending Approval</span>
+            </div>
+
+            {/* Selected Components List & Totals */}
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between items-center text-gray-400 font-mono text-[11px]">
+                <span>Selected Components:</span>
+                <span className="text-white font-bold">{selectedItems.length} Unique</span>
+              </div>
+              <div className="flex justify-between items-center text-gray-400 font-mono text-[11px]">
+                <span>Total Units Requested:</span>
+                <span className="text-purple-300 font-bold">{totalHardwareQty} Units</span>
+              </div>
+
+              {selectedItems.length > 0 ? (
+                <div className="max-h-40 overflow-y-auto space-y-1.5 pt-1 pr-1 text-[11px]">
+                  {selectedItems.map((item, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => setActiveComponent(item)}
+                      className={`flex justify-between items-center bg-black/40 p-2 rounded-lg border transition cursor-pointer ${
+                        displayManualComponent?.id === item.id
+                          ? "border-purple-500/40 bg-purple-950/20"
+                          : "border-white/[0.04] hover:border-white/10"
+                      }`}
+                    >
+                      <span className="text-gray-200 font-medium truncate max-w-[120px]" title={item.name}>
+                        {item.name}
+                      </span>
+                      <span className="text-purple-400 font-mono font-bold">×{item.qty}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl border border-dashed border-white/10 text-center text-[11px] text-gray-500 leading-relaxed italic">
+                  No hardware selected yet.
+                  <br />
+                  Select components from the inventory to begin your requisition.
+                </div>
+              )}
+            </div>
+
+            {/* Borrow Duration Summary */}
+            <div className="pt-3 border-t border-white/[0.06] space-y-2 text-xs">
+              <span className="text-gray-400 font-mono block text-[11px]">Borrow Duration Summary:</span>
+              <div className="bg-black/40 p-2.5 rounded-xl border border-white/[0.04] space-y-1">
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-gray-500">Takeaway:</span>
+                  <span className="text-gray-300 font-mono">{formData.takeaway_date || "Not Set"}</span>
+                </div>
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-gray-500">Return:</span>
+                  <span className="text-gray-300 font-mono">{formData.return_date || "Not Set"}</span>
+                </div>
+                <div className="flex justify-between text-xs pt-1.5 border-t border-white/[0.04] font-orbitron font-bold">
+                  <span className="text-gray-400">Total Duration:</span>
+                  <span className={formData.total_days > 0 ? "text-purple-400" : "text-gray-600"}>
+                    {formData.total_days > 0 ? `${formData.total_days} Days` : "--"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Current Selected Component Manual */}
+            <div className="pt-3 border-t border-white/[0.06] space-y-2 text-xs">
+              <span className="text-gray-400 font-mono block text-[11px]">Current Selected Component:</span>
+              {displayManualComponent ? (
+                <div className="bg-black/40 p-2.5 rounded-xl border border-white/[0.04] space-y-2">
+                  <div className="text-[11px] font-semibold text-gray-200 truncate" title={displayManualComponent.name}>
+                    {displayManualComponent.name}
+                  </div>
+                  {displayManualComponent.manual_url ? (
+                    <div className="flex flex-col gap-1.5">
+                      <a
+                        href={displayManualComponent.manual_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full text-center px-2.5 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/20 text-[11px] font-medium transition flex items-center justify-center gap-1"
+                      >
+                        📄 View Manual
+                      </a>
+                      <a
+                        href={displayManualComponent.manual_url}
+                        download
+                        className="w-full text-center px-2.5 py-1.5 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 border border-teal-500/20 text-[11px] font-medium transition flex items-center justify-center gap-1"
+                      >
+                        ⬇ Download Manual
+                      </a>
+                    </div>
+                  ) : (
+                    <span className="text-[10px] font-mono text-purple-300/80 block italic">
+                      User Manual Coming Soon
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div className="p-2.5 rounded-xl bg-black/40 border border-white/[0.04] text-[11px] text-gray-500 italic">
+                  User Manual Coming Soon
+                </div>
+              )}
+            </div>
+
+            {/* Registered Profile Notice */}
+            <div className="p-2.5 rounded-xl bg-purple-950/20 border border-purple-500/10 text-[10px] text-purple-300/80 leading-normal font-mono">
+              💡 Your registered profile details will automatically be included in the generated requisition.
+            </div>
+
+            {/* Single Primary Action Button */}
+            <div className="pt-3 border-t border-white/[0.06] space-y-2">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={!formData.agreedToPolicies || selectedItems.length === 0 || submitting}
+                className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs font-orbitron tracking-wider transition-all shadow-lg shadow-purple-600/30 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {submitting ? (
+                  <>
+                    <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                    GENERATING...
+                  </>
+                ) : (
+                  <>
+                    📄 GENERATE HARDWARE REQUEST
+                  </>
+                )}
+              </button>
+
+              {!formData.agreedToPolicies && (
+                <p className="text-[10px] text-amber-400/80 text-center font-mono">
+                  * Must accept hardware policies to generate request
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* Section 1: Member Profile */}
-      <MemberProfileCard profile={profile} />
-
-      {/* Section 2: Project Information */}
-      <ProjectDetailsSection
-        formData={formData}
-        setFormData={setFormData}
-        errors={errors}
-      />
-
-      {/* Section 3: Component Selection */}
-      <CascadingComponentSelector
-        onAddComponent={handleAddComponent}
-        selectedItems={selectedItems}
-      />
-
-      {/* Section 4: Selected Components Table */}
-      <SelectedComponentsTable
-        selectedItems={selectedItems}
-        setSelectedItems={setSelectedItems}
-        errorMsg={errors.items}
-      />
-
-      {/* Section 5: Borrow Duration Picker */}
-      <BorrowDurationPicker
-        formData={formData}
-        setFormData={setFormData}
-        errors={errors}
-      />
-
-      {/* Section 6: Terms & Submit */}
-      <TermsAndSubmitSection
-        formData={formData}
-        setFormData={setFormData}
-        submitting={submitting}
-        onSubmit={handleSubmit}
-        errors={errors}
-      />
     </div>
   );
 }

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 
-export default function CascadingComponentSelector({ onAddComponent, selectedItems }) {
+export default function CascadingComponentSelector({ onAddComponent, selectedItems, onActiveComponentChange }) {
   const [categories, setCategories] = useState([]);
   const [hardwareItems, setHardwareItems] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -61,6 +61,13 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
 
   // Currently selected hardware object
   const activeHardware = hardwareItems.find((h) => h.id === selectedHardwareId);
+
+  // Notify parent of active hardware change for live manual link preview
+  useEffect(() => {
+    if (onActiveComponentChange) {
+      onActiveComponentChange(activeHardware || null);
+    }
+  }, [selectedHardwareId, activeHardware, onActiveComponentChange]);
 
   // Calculate live stock details
   const availableStock = activeHardware ? activeHardware.availableQuantity ?? activeHardware.totalQuantity ?? 0 : 0;

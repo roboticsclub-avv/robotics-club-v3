@@ -14,8 +14,8 @@ const NAV_ITEMS = [
   { label: "About", href: "/#about" },
   { label: "Team", href: "/#team" },
   { label: "Events", href: "/#events" },
+  { label: "Requisition", href: "/#requisition" },
   { label: "Projects", href: "/#projects" },
-  { label: "Requisition", href: "/requisition" },
   { label: "Contact", href: "/#contact" },
 ];
 
