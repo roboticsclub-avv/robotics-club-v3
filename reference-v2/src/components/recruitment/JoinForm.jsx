@@ -39,6 +39,7 @@ export default function JoinForm() {
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
     year: "",
     branch: "",
     section: "",
@@ -46,6 +47,12 @@ export default function JoinForm() {
     reason: "",
     photoURL: "",
   });
+
+  // Password Visibility Toggle States
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showReqPassword, setShowReqPassword] = useState(false);
+  const [showReqConfirmPassword, setShowReqConfirmPassword] = useState(false);
 
   // UI Flow States
   const [currentStep, setCurrentStep] = useState(1);
@@ -247,6 +254,10 @@ export default function JoinForm() {
       case 3:
         validationField = "password";
         validationValue = formData.password;
+        if (formData.password !== formData.confirmPassword) {
+          setErrorMsg("Passwords do not match. Please re-enter your password.");
+          return;
+        }
         break;
       case 4:
         validationField = "year";
@@ -332,22 +343,28 @@ export default function JoinForm() {
       const user = signUpData?.user;
       if (!user) throw new Error("Could not retrieve user registration metadata");
 
-      // 2. Upload photograph to Supabase Storage (applicants bucket) if user exists
-      if (user) {
+      // 2. Upload photograph to Supabase Storage (applicants bucket) if user & selectedPhoto exist
+      if (user && selectedPhoto) {
         setSubmittingMsg("Uploading profile photo...");
-        const fileExt = selectedPhoto.name.split('.').pop() || 'jpg';
-        const fileName = `${user.id}_${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('applicants')
-          .upload(fileName, selectedPhoto, { upsert: true });
+        try {
+          const fileExt = (selectedPhoto && selectedPhoto.name) ? selectedPhoto.name.split('.').pop() : 'jpg';
+          const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('applicants')
+            .upload(fileName, selectedPhoto, { upsert: true });
 
-        if (uploadError) throw uploadError;
-
-        const { data: publicUrlData } = supabase.storage
-          .from('applicants')
-          .getPublicUrl(fileName);
-        uploadedPhotoUrl = publicUrlData.publicUrl;
+          if (uploadError) {
+            console.error("Photo upload warning:", uploadError);
+          } else {
+            const { data: publicUrlData } = supabase.storage
+              .from('applicants')
+              .getPublicUrl(fileName);
+            uploadedPhotoUrl = publicUrlData.publicUrl;
+          }
+        } catch (photoErr) {
+          console.error("Photo processing warning:", photoErr);
+        }
       }
 
       setSubmittingMsg("Registering profile details...");
@@ -382,15 +399,16 @@ export default function JoinForm() {
       localStorage.removeItem(DRAFT_KEY);
       setIsCompleted(true);
     } catch (err) {
-      console.error("Submission failed:", err);
-      const msg = err.message?.toLowerCase() || "";
+      const errMsg = err?.message || err?.error_description || (typeof err === "string" ? err : JSON.stringify(err)) || "Registration failed.";
+      console.error("Submission failed:", errMsg, err);
+      const msg = errMsg.toLowerCase();
 
       if (msg.includes("already registered") || msg.includes("already in use")) {
         setErrorMsg("This email is already registered. Please use a different email or log in.");
       } else if (msg.includes("weak-password")) {
         setErrorMsg("Password is too weak. Please use at least 6 characters.");
       } else {
-        setErrorMsg(err.message || "Registration failed. Please check network settings.");
+        setErrorMsg(errMsg);
       }
     } finally {
       setSubmittingMsg("");
@@ -841,28 +859,66 @@ export default function JoinForm() {
             <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1.5">
               Password
             </label>
-            <input
-              type="password"
-              required
-              placeholder="Min 6 characters"
-              value={reqFormData.password}
-              onChange={(e) => setReqFormData({ ...reqFormData, password: e.target.value })}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
-            />
+            <div className="relative">
+              <input
+                type={showReqPassword ? "text" : "password"}
+                required
+                placeholder="Min 6 characters"
+                value={reqFormData.password}
+                onChange={(e) => setReqFormData({ ...reqFormData, password: e.target.value })}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 pr-10 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
+              />
+              <button
+                type="button"
+                onClick={() => setShowReqPassword(!showReqPassword)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-white transition-colors focus:outline-none"
+                title={showReqPassword ? "Hide password" : "Show password"}
+              >
+                {showReqPassword ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.046 10.046 0 012.122-.063c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21fM3 3l18 18" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           <div>
             <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1.5">
               Confirm Password
             </label>
-            <input
-              type="password"
-              required
-              placeholder="Re-enter password"
-              value={reqFormData.confirmPassword}
-              onChange={(e) => setReqFormData({ ...reqFormData, confirmPassword: e.target.value })}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
-            />
+            <div className="relative">
+              <input
+                type={showReqConfirmPassword ? "text" : "password"}
+                required
+                placeholder="Re-enter password"
+                value={reqFormData.confirmPassword}
+                onChange={(e) => setReqFormData({ ...reqFormData, confirmPassword: e.target.value })}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 pr-10 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
+              />
+              <button
+                type="button"
+                onClick={() => setShowReqConfirmPassword(!showReqConfirmPassword)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-white transition-colors focus:outline-none"
+                title={showReqConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showReqConfirmPassword ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.046 10.046 0 012.122-.063c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21fM3 3l18 18" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="flex gap-3 pt-3">
@@ -1152,37 +1208,109 @@ export default function JoinForm() {
 
               {/* ── Step 3: Password ── */}
               {currentStep === 3 && (
-                <div className="space-y-5">
-                  <h2
-                    className="font-black font-orbitron leading-tight"
-                    style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
-                  >
-                    Create a secure{" "}
-                    <span
-                      style={{
-                        background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                      }}
+                <div className="space-y-6">
+                  <div>
+                    <h2
+                      className="font-black font-orbitron leading-tight mb-2"
+                      style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
                     >
-                      password
-                    </span>
-                  </h2>
-                  <input
-                    ref={inputRef}
-                    type="password"
-                    placeholder="••••••••••"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className={inputCls}
-                    style={{
-                      ...inputStyle,
-                      borderBottomColor: formData.password ? "var(--accent-teal)" : undefined,
-                    }}
-                  />
-                  <p className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
-                    Minimum 6 characters. Store securely.
-                  </p>
+                      Create a secure{" "}
+                      <span
+                        style={{
+                          background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                        }}
+                      >
+                        password
+                      </span>
+                    </h2>
+                    <p className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
+                      Minimum 6 characters. Store securely.
+                    </p>
+                  </div>
+
+                  {/* Create Password Field */}
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                      Create Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        ref={inputRef}
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••••"
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        className={`${inputCls} pr-12`}
+                        style={{
+                          ...inputStyle,
+                          borderBottomColor: formData.password ? "var(--accent-teal)" : undefined,
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-white transition-colors focus:outline-none"
+                        title={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.046 10.046 0 012.122-.063c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21fM3 3l18 18" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Re-enter Password Field */}
+                  <div className="space-y-2 pt-2">
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                      Re-enter Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Re-enter password"
+                        value={formData.confirmPassword || ""}
+                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                        className={`${inputCls} pr-12`}
+                        style={{
+                          ...inputStyle,
+                          borderBottomColor: formData.confirmPassword
+                            ? formData.password === formData.confirmPassword
+                              ? "var(--accent-teal)"
+                              : "#ef4444"
+                            : undefined,
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-white transition-colors focus:outline-none"
+                        title={showConfirmPassword ? "Hide password" : "Show password"}
+                      >
+                        {showConfirmPassword ? (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.046 10.046 0 012.122-.063c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21fM3 3l18 18" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                    {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                      <p className="font-mono text-xs text-red-400 mt-1">Passwords do not match.</p>
+                    )}
+                  </div>
                 </div>
               )}
 
