@@ -107,29 +107,37 @@ export default function Navbar() {
                   )}
 
                   {/* Rightmost Profile Button (Integrated Admin Tag & Logout Modal Trigger) */}
-                  <button
-                    onClick={() => setShowProfileModal(true)}
-                    className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/15 text-white transition-all hover:scale-105 shadow-sm group"
-                    title="View Profile, Settings, Logout & Hardware Status"
-                  >
-                    <div className="w-6 h-6 rounded-full overflow-hidden bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 font-bold text-[10px] shrink-0">
-                      {profile?.photoURL ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={profile.photoURL} alt={profile.name || "User"} className="w-full h-full object-cover" />
-                      ) : (
-                        <span>{profile?.name ? profile.name[0].toUpperCase() : "👤"}</span>
-                      )}
-                    </div>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowProfileModal(!showProfileModal)}
+                      className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/15 text-white transition-all hover:scale-105 shadow-sm group"
+                      title="View Profile, Settings, Logout & Hardware Status"
+                    >
+                      <div className="w-6 h-6 rounded-full overflow-hidden bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 font-bold text-[10px] shrink-0">
+                        {profile?.photoURL ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={profile.photoURL} alt={profile.name || "User"} className="w-full h-full object-cover" />
+                        ) : (
+                          <span>{profile?.name ? profile.name[0].toUpperCase() : "👤"}</span>
+                        )}
+                      </div>
 
-                    <span className="text-xs font-mono font-bold hidden md:inline truncate max-w-[90px]">
-                      {profile?.name?.split(" ")[0] || "Profile"}
-                    </span>
+                      <span className="text-xs font-mono font-bold hidden md:inline truncate max-w-[90px]">
+                        {profile?.name?.split(" ")[0] || "Profile"}
+                      </span>
 
-                    {/* Integrated Role Tag (ADMIN / MEMBER inside Profile Button) */}
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-cyan-500/15 border border-cyan-500/30 text-cyan-300">
-                      {profile?.role || (isAdmin ? "ADMIN" : "MEMBER")}
-                    </span>
-                  </button>
+                      {/* Integrated Role Tag (ADMIN / MEMBER inside Profile Button) */}
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-cyan-500/15 border border-cyan-500/30 text-cyan-300">
+                        {profile?.role || (isAdmin ? "ADMIN" : "MEMBER")}
+                      </span>
+                    </button>
+
+                    {/* Popover Dropdown Overlay */}
+                    <UserProfileModal
+                      isOpen={showProfileModal}
+                      onClose={() => setShowProfileModal(false)}
+                    />
+                  </div>
                 </div>
               ) : (
                 <>
@@ -221,12 +229,6 @@ export default function Navbar() {
           </div>
         )}
       </div>
-
-      {/* User Quick View Profile Modal */}
-      <UserProfileModal
-        isOpen={showProfileModal}
-        onClose={() => setShowProfileModal(false)}
-      />
     </>
   );
 }
