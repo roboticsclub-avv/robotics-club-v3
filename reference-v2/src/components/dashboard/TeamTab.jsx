@@ -53,7 +53,11 @@ export default function TeamTab() {
   }, []);
 
   const handleChange = (e) => {
-    const value = e.target.type === 'number' ? parseInt(e.target.value, 10) : e.target.value;
+    let value = e.target.value;
+    if (e.target.type === 'number') {
+      const parsed = parseInt(value, 10);
+      value = isNaN(parsed) ? "" : parsed;
+    }
     setFormData({ ...formData, [e.target.name]: value });
   };
 
@@ -328,7 +332,7 @@ export default function TeamTab() {
                 <input
                   type="number"
                   name="display_order"
-                  value={formData.display_order}
+                  value={isNaN(formData.display_order) ? "" : (formData.display_order ?? "")}
                   onChange={handleChange}
                   className="w-16 bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:border-cyan-500 text-center font-mono"
                 />
