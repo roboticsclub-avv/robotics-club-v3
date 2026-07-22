@@ -343,6 +343,11 @@ export default function JoinForm() {
       const user = signUpData?.user;
       if (!user) throw new Error("Could not retrieve user registration metadata");
 
+      // Supabase returns user with empty identities array if email is already registered in Supabase Auth
+      if (user.identities && user.identities.length === 0) {
+        throw new Error("This email is already registered. Please log in directly or reset your password.");
+      }
+
       // 2. Upload photograph to Supabase Storage (applicants bucket) if user & selectedPhoto exist
       if (user && selectedPhoto) {
         setSubmittingMsg("Uploading profile photo...");
@@ -414,8 +419,13 @@ export default function JoinForm() {
       console.error("Submission failed:", errMsg, err);
       const msg = errMsg.toLowerCase();
 
-      if (msg.includes("already registered") || msg.includes("already in use")) {
-        setErrorMsg("This email is already registered. Please use a different email or log in.");
+      if (
+        msg.includes("already registered") ||
+        msg.includes("already in use") ||
+        msg.includes("users_uid_fkey") ||
+        msg.includes("foreign key")
+      ) {
+        setErrorMsg("This email is already registered. Please log in directly or reset your password.");
       } else if (msg.includes("weak-password")) {
         setErrorMsg("Password is too weak. Please use at least 6 characters.");
       } else {
@@ -483,6 +493,11 @@ export default function JoinForm() {
       const user = signUpData?.user;
       if (!user) throw new Error("Could not retrieve user registration metadata");
 
+      // Supabase returns user with empty identities array if email is already registered in Supabase Auth
+      if (user.identities && user.identities.length === 0) {
+        throw new Error("This email is already registered. Please log in directly or reset your password.");
+      }
+
       // Extract branch and year from email local part
       const localPart = reqFormData.email.split('@')[0];
       const parts = localPart.split('.');
@@ -523,11 +538,17 @@ export default function JoinForm() {
       setReqSuccess(true);
     } catch (err) {
       console.error("Hardware Requisition signup failed:", err);
-      const msg = err.message?.toLowerCase() || "";
-      if (msg.includes("already registered") || msg.includes("already in use")) {
-        setErrorMsg("This email is already registered. Please log in directly.");
+      const errMsg = err?.message || err?.error_description || (typeof err === "string" ? err : JSON.stringify(err)) || "Sign up failed.";
+      const msg = errMsg.toLowerCase();
+      if (
+        msg.includes("already registered") ||
+        msg.includes("already in use") ||
+        msg.includes("users_uid_fkey") ||
+        msg.includes("foreign key")
+      ) {
+        setErrorMsg("This email is already registered. Please log in directly or reset your password.");
       } else {
-        setErrorMsg(err.message || "Sign up failed. Please check network settings.");
+        setErrorMsg(errMsg);
       }
     } finally {
       setReqSubmitting(false);
