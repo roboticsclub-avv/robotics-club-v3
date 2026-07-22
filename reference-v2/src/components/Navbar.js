@@ -94,7 +94,7 @@ export default function Navbar() {
               {isAuthenticated ? (
                 <div className="flex items-center gap-3">
                   {/* User Role Tag / Badge */}
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase bg-white/[0.04] text-purple-300 border border-purple-500/20 backdrop-blur-sm">
                     {profile?.role || (isAdmin ? "ADMIN" : "MEMBER")}
                   </span>
 
@@ -102,9 +102,14 @@ export default function Navbar() {
                   {isAdmin || ["admin", "technical", "ops", "data", "media", "secretary", "it"].includes(profile?.role) ? (
                     <Link
                       href="/dashboard"
-                      className="px-3.5 py-1.5 rounded-full bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 font-orbitron font-bold text-xs tracking-wider transition shadow-[0_0_12px_rgba(168,85,247,0.2)] flex items-center gap-1.5"
+                      className={styles.btnSecondary}
+                      style={{
+                        borderColor: "rgba(168, 85, 247, 0.3)",
+                        background: "rgba(168, 85, 247, 0.12)",
+                        color: "var(--text-primary)",
+                      }}
                     >
-                      🔑 Admin Portal
+                      <span>🔑</span> Admin Portal
                     </Link>
                   ) : (
                     <Link href="/member" className={styles.btnSecondary}>
@@ -115,7 +120,7 @@ export default function Navbar() {
                   {/* Logout Button */}
                   <button
                     onClick={logout}
-                    className="text-xs text-gray-400 hover:text-red-400 font-mono transition px-2 py-1"
+                    className="text-xs text-gray-400 hover:text-red-400 transition px-2 py-1"
                     title="Sign Out"
                   >
                     Logout
@@ -169,7 +174,7 @@ export default function Navbar() {
 
         {isAuthenticated && (
           <div className="flex flex-col items-center gap-3 pt-4 border-t border-white/10 w-full max-w-xs text-center">
-            <span className="px-3 py-1 rounded-full text-xs font-mono font-bold uppercase bg-purple-500/10 text-purple-400 border border-purple-500/20">
+            <span className="px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-white/[0.04] text-purple-300 border border-purple-500/20">
               Role: {profile?.role || (isAdmin ? "ADMIN" : "MEMBER")}
             </span>
 
@@ -177,7 +182,7 @@ export default function Navbar() {
               <Link
                 href="/dashboard"
                 onClick={() => setMobileOpen(false)}
-                className="w-full py-2.5 rounded-xl bg-purple-600 text-white font-orbitron font-bold text-xs tracking-wider"
+                className="w-full py-2.5 rounded-full bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-white font-semibold text-xs tracking-wide transition-all"
               >
                 🔑 Admin Portal
               </Link>
@@ -185,7 +190,7 @@ export default function Navbar() {
               <Link
                 href="/member"
                 onClick={() => setMobileOpen(false)}
-                className="w-full py-2.5 rounded-xl bg-purple-600 text-white font-orbitron font-bold text-xs tracking-wider"
+                className="w-full py-2.5 rounded-full bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-white font-semibold text-xs tracking-wide transition-all"
               >
                 Member Portal
               </Link>
