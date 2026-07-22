@@ -165,6 +165,8 @@ export default function Navbar() {
             <div className={styles.navActions}>
               <ThemeSwitcher />
 
+              {isAuthenticated ? (
+                <div className="flex items-center gap-2.5">
                   {/* Portal Shortcut Button */}
                   {isAdmin || ["admin", "technical", "ops", "data", "media", "secretary", "it"].includes(profile?.role) ? (
                     <Link href="/dashboard" className={styles.btnSecondary}>
@@ -303,19 +305,10 @@ export default function Navbar() {
         )}
       </div>
 
-<<<<<<< HEAD
-      {/* User Quick View Profile Modal */}
-      <UserProfileModal
-        isOpen={showProfileModal}
-        onClose={() => setShowProfileModal(false)}
-        user={user}
-        profile={profile}
-=======
       {/* High Z-Index Overlay Popover Card ON TOP */}
       <UserProfileModal
         isOpen={showProfileModal}
         onClose={() => setShowProfileModal(false)}
->>>>>>> 3cf50f8 (style(profile): render popover overlay card with fixed z-[9999] top-20 right-4 positioning to float ON TOP of all navbar glass layers)
       />
     </>
   );
