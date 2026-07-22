@@ -165,32 +165,6 @@ export default function Navbar() {
             <div className={styles.navActions}>
               <ThemeSwitcher />
 
-              {isAuthenticated ? (
-                <div className="flex items-center gap-2.5">
-                  {/* Profile Quick-View Icon Button */}
-                  <button
-                    onClick={() => setShowProfileModal(true)}
-                    className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-white transition-all hover:scale-105"
-                    title="View My Profile & Hardware Time Remaining"
-                  >
-                    <div className="w-6 h-6 rounded-full overflow-hidden bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-[10px] shrink-0">
-                      {profile?.photoURL ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={profile.photoURL} alt={profile.name || "User"} className="w-full h-full object-cover" />
-                      ) : (
-                        <span>{profile?.name ? profile.name[0].toUpperCase() : "👤"}</span>
-                      )}
-                    </div>
-                    <span className="text-xs font-mono font-semibold hidden md:inline truncate max-w-[90px]">
-                      {profile?.name?.split(" ")[0] || "Profile"}
-                    </span>
-                  </button>
-
-                  {/* User Role Tag / Badge */}
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase bg-white/[0.04] text-gray-300 border border-white/10 backdrop-blur-sm hidden lg:inline-block">
-                    {profile?.role || (isAdmin ? "ADMIN" : "MEMBER")}
-                  </span>
-
                   {/* Portal Shortcut Button */}
                   {isAdmin || ["admin", "technical", "ops", "data", "media", "secretary", "it"].includes(profile?.role) ? (
                     <Link href="/dashboard" className={styles.btnSecondary}>
@@ -202,13 +176,29 @@ export default function Navbar() {
                     </Link>
                   )}
 
-                  {/* Logout Button */}
+                  {/* Rightmost Profile Button (Integrated Admin Tag & Logout Overlay Trigger) */}
                   <button
-                    onClick={logout}
-                    className="text-xs text-gray-400 hover:text-red-400 transition px-2 py-1 hidden sm:inline-block"
-                    title="Sign Out"
+                    onClick={() => setShowProfileModal(!showProfileModal)}
+                    className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/15 text-white transition-all hover:scale-105 shadow-sm group"
+                    title="View Profile, Settings, Logout & Hardware Status"
                   >
-                    Logout
+                    <div className="w-6 h-6 rounded-full overflow-hidden bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 font-bold text-[10px] shrink-0">
+                      {profile?.photoURL ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={profile.photoURL} alt={profile.name || "User"} className="w-full h-full object-cover" />
+                      ) : (
+                        <span>{profile?.name ? profile.name[0].toUpperCase() : "👤"}</span>
+                      )}
+                    </div>
+
+                    <span className="text-xs font-mono font-bold hidden md:inline truncate max-w-[90px]">
+                      {profile?.name?.split(" ")[0] || "Profile"}
+                    </span>
+
+                    {/* Integrated Role Tag (ADMIN / MEMBER inside Profile Button) */}
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-cyan-500/15 border border-cyan-500/30 text-cyan-300">
+                      {profile?.role || (isAdmin ? "ADMIN" : "MEMBER")}
+                    </span>
                   </button>
                 </div>
               ) : (
@@ -313,12 +303,19 @@ export default function Navbar() {
         )}
       </div>
 
+<<<<<<< HEAD
       {/* User Quick View Profile Modal */}
       <UserProfileModal
         isOpen={showProfileModal}
         onClose={() => setShowProfileModal(false)}
         user={user}
         profile={profile}
+=======
+      {/* High Z-Index Overlay Popover Card ON TOP */}
+      <UserProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+>>>>>>> 3cf50f8 (style(profile): render popover overlay card with fixed z-[9999] top-20 right-4 positioning to float ON TOP of all navbar glass layers)
       />
     </>
   );
