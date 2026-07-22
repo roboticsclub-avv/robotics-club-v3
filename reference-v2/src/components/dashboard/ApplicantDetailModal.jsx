@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { formatDate } from "@/utils/formatters";
-import { updateAdminNotes, updateUserRole, deleteUser, updateUserEmail } from "@/lib/supabase/dashboardService";
+import { updateAdminNotes, updateUserRole, deleteUser, updateUserEmail, updateUserMemberId } from "@/lib/supabase/dashboardService";
 import useAuth from "@/hooks/useAuth";
 
 export default function ApplicantDetailModal({ applicant, onClose, onUpdateApplicant, onDeleteApplicant }) {
@@ -17,11 +17,15 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
   const [emailInput, setEmailInput] = useState(applicant ? applicant.email || "" : "");
   const [savingEmail, setSavingEmail] = useState(false);
 
+  const [memberIdInput, setMemberIdInput] = useState(applicant ? applicant.memberId || "PENDING" : "PENDING");
+  const [savingMemberId, setSavingMemberId] = useState(false);
+
   // Sync state when applicant changes
   useEffect(() => {
     if (applicant) {
       setSelectedRole(applicant.role || "member");
       setEmailInput(applicant.email || "");
+      setMemberIdInput(applicant.memberId || "PENDING");
     }
   }, [applicant]);
 
@@ -127,6 +131,30 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
     }
   };
 
+  const handleUpdateMemberId = async () => {
+    if (!memberIdInput.trim()) {
+      alert("Member ID cannot be empty.");
+      return;
+    }
+    const formatted = memberIdInput.trim().toUpperCase();
+    const confirmChange = window.confirm(`[ADMIN] Are you sure you want to change this member's ID to "${formatted}"?`);
+    if (!confirmChange) return;
+
+    try {
+      setSavingMemberId(true);
+      await updateUserMemberId(applicant.id, formatted);
+      alert("Member ID updated successfully!");
+      if (onUpdateApplicant) {
+        onUpdateApplicant({ ...applicant, memberId: formatted });
+      }
+    } catch (err) {
+      console.error("Error updating Member ID:", err);
+      alert(`Failed to update Member ID: ${err.message || err}`);
+    } finally {
+      setSavingMemberId(false);
+    }
+  };
+
   const handleDeleteUser = async () => {
     const confirmDelete = window.confirm(
       `[SUPER ADMIN] Are you sure you want to permanently delete user "${name}" (${email})? This action cannot be undone.`
@@ -219,14 +247,31 @@ export default function ApplicantDetailModal({ applicant, onClose, onUpdateAppli
           
           {/* Assigned Member ID, Role & Email Badge */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block">Assigned Member ID</span>
+            <div className="bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">
+              <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block mb-1">
+                Assigned Member ID (RC ID)
+              </span>
+              {isAdmin ? (
+                <div className="flex items-center gap-1.5 mt-1">
+                  <input
+                    type="text"
+                    value={memberIdInput}
+                    onChange={(e) => setMemberIdInput(e.target.value)}
+                    disabled={savingMemberId}
+                    placeholder="e.g. RC-0001"
+                    className="bg-black/60 border border-white/10 rounded px-2.5 py-1 text-xs text-cyan-400 font-mono font-bold focus:outline-none focus:border-cyan-500 w-full uppercase"
+                  />
+                  <button
+                    onClick={handleUpdateMemberId}
+                    disabled={savingMemberId || memberIdInput.trim().toUpperCase() === (applicant.memberId || "").toUpperCase()}
+                    className="px-2.5 py-1 bg-cyan-600/30 hover:bg-cyan-600/50 disabled:opacity-40 border border-cyan-500/40 rounded text-[10px] font-mono text-cyan-300 font-bold transition-all whitespace-nowrap"
+                  >
+                    {savingMemberId ? "Saving..." : "Save"}
+                  </button>
+                </div>
+              ) : (
                 <span className="text-lg font-mono font-bold text-cyan-400 mt-1 block">{memberId}</span>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 font-mono text-xs">
-                #
-              </div>
+              )}
             </div>
 
             <div className="bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">

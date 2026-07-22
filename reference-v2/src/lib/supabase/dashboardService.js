@@ -23,12 +23,11 @@ export async function fetchApplicants() {
 }
 
 /**
- * Generate the next sequential Member ID in the format RC-YY-NNN.
- * Scans existing user rows to find the highest sequence number for the current 2-digit year.
+ * Generate the next sequential Member ID in the format RC-XXXX (e.g. RC-0001).
+ * Scans existing user rows to find the highest sequence number.
  */
 export async function generateNextMemberId() {
   try {
-    const year2Digit = new Date().getFullYear().toString().slice(-2); // "26"
     const { data, error } = await supabase
       .from('users')
       .select('memberId');
@@ -39,8 +38,8 @@ export async function generateNextMemberId() {
     
     (data || []).forEach((row) => {
       if (row.memberId && typeof row.memberId === "string") {
-        // Match pattern RC-YY-NNNN (e.g. RC-26-0001)
-        const match = row.memberId.match(new RegExp(`^RC-${year2Digit}-(\\d{4})$`));
+        // Matches pattern RC-XXXX (e.g. RC-0001) or legacy RC-YY-XXXX (e.g. RC-26-0001)
+        const match = row.memberId.match(/^RC-(?:2\d-)?(\d{4})$/i) || row.memberId.match(/^RC-(\d{4})$/i);
         if (match) {
           const seq = parseInt(match[1], 10);
           if (seq > maxSeq) {
@@ -52,11 +51,10 @@ export async function generateNextMemberId() {
     
     const nextSeq = maxSeq + 1;
     const paddedSeq = String(nextSeq).padStart(4, "0");
-    return `RC-${year2Digit}-${paddedSeq}`;
+    return `RC-${paddedSeq}`;
   } catch (error) {
     console.error("[supabase/dashboardService] Error generating sequential member ID:", error);
-    const year2Digit = new Date().getFullYear().toString().slice(-2);
-    return `RC-${year2Digit}-9999`;
+    return `RC-0001`;
   }
 }
 
@@ -142,6 +140,25 @@ export async function updateUserEmail(uid, newEmail) {
     return true;
   } catch (error) {
     console.error("[supabase/dashboardService] Error updating user email:", error);
+    throw error;
+  }
+}
+
+/**
+ * Update a user's member ID (RC ID) in the database.
+ */
+export async function updateUserMemberId(uid, newMemberId) {
+  try {
+    const formatted = newMemberId.trim().toUpperCase();
+    const { error } = await supabase
+      .from('users')
+      .update({ memberId: formatted })
+      .eq('uid', uid);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error("[supabase/dashboardService] Error updating user memberId:", error);
     throw error;
   }
 }

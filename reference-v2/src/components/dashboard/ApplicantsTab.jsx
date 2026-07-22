@@ -221,15 +221,10 @@ export default function ApplicantsTab() {
     const branchMatch = a.branch ? a.branch.toLowerCase().includes(query) : false;
     const memberIdMatch = a.memberId ? a.memberId.toLowerCase().includes(query) : false;
 
-    // Improved Search: automatically fill RC-year (RC-26-)
-    const currentYear2Digit = new Date().getFullYear().toString().slice(-2); // "26"
+    // Smart RC ID Search matching (handles RC-0001, RC-6982, etc.)
     let searchId = query;
     if (/^\d+$/.test(query)) {
-      // e.g. search "5" -> fills "rc-26-0005"
-      searchId = `rc-${currentYear2Digit}-${query.padStart(4, "0")}`;
-    } else if (/^\d{2}-\d+$/.test(query)) {
-      // e.g. search "26-0005" -> fills "rc-26-0005"
-      searchId = `rc-${query}`;
+      searchId = `rc-${query.padStart(4, "0")}`;
     }
     const smartIdMatch = a.memberId ? a.memberId.toLowerCase().includes(searchId) : false;
 
