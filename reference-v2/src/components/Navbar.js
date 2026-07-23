@@ -237,11 +237,8 @@ export default function Navbar() {
       <UserProfileModal
         isOpen={showProfileModal}
         onClose={() => setShowProfileModal(false)}
-<<<<<<< HEAD
         user={user}
         profile={profile}
-=======
->>>>>>> 8502a3f0134988634aa2837fcb431d77aa42ca5b
       />
     </>
   );
