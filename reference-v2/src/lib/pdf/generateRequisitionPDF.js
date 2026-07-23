@@ -2,10 +2,12 @@
  * Client-Side PDF Generator for Official Hardware Requisition Form
  * Robotics Club AVV Website V3
  *
- * Renders 1:1 official club Hardware Requisition & Consent Form across 3 pages:
- * Page 1: Header, Section A (Applicant Details), Section B (Hardware Requested 5-row table)
- * Page 2: Section C (Terms & Conditions, Signature), Section D (Approval - Office Use), Tear line
- * Page 3: Section E (Return & Clearance Form, Return Table), Final Clearance (Inspection & Charges)
+ * Renders 1:1 official club Hardware Requisition & Consent Form with dynamic pagination:
+ * - Removes 5-component cap (renders ALL requested components across Section B & Section E).
+ * - Section A includes both University Roll Number and RC Member ID independently.
+ * - Section B dynamically paginates with repeated table headers on continuation pages.
+ * - Section E return table matches Section B component list and paginates dynamically.
+ * - Preserves logo, layout, typography, margins, signature blocks, and approval sections.
  */
 
 export async function generateRequisitionPDF(requestData, itemsData = []) {
@@ -21,7 +23,9 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
 
     const marginX = 18;
     const pageWidth = 210;
+    const pageHeight = 297;
     const contentWidth = pageWidth - marginX * 2; // 174mm
+    const marginBottom = 20;
 
     // Date formatting helper
     const formatDate = (dateStr) => {
@@ -43,7 +47,18 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
     const reqId = requestData.temp_request_id || requestData.requisition_id || "REQ-TEMP-2026";
     const returnDate = formatDate(requestData.return_date);
 
-    // Load Logo Image as base64 or HTMLImageElement
+    // Independent extraction of University Roll Number and RC Member ID
+    const universityRollNumber =
+      requestData.roll_number && requestData.roll_number !== "N/A"
+        ? requestData.roll_number
+        : "Not Provided";
+
+    const rcMemberId =
+      requestData.member_id && requestData.member_id !== "N/A"
+        ? requestData.member_id
+        : "Not Assigned";
+
+    // Load Logo Image
     let logoLoaded = false;
     let logoImg = null;
     if (typeof window !== "undefined") {
@@ -76,12 +91,11 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
     // PAGE 1: HEADER, SECTION A, SECTION B
     // ==========================================
 
-    // 1. Header Logo & Title Block
     const topY = 16;
 
     // Logo on Top-Left
     if (logoLoaded && logoImg) {
-      doc.setFillColor(15, 23, 42); // Dark Navy Background Box for Logo
+      doc.setFillColor(15, 23, 42); // Dark Navy Box
       doc.rect(marginX, topY, 28, 28, "F");
       try {
         doc.addImage(logoImg, "PNG", marginX + 2, topY + 2, 24, 24);
@@ -114,7 +128,6 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
     doc.setFontSize(14);
     doc.text("HARDWARE REQUISITION & CONSENT FORM", pageWidth / 2, curY, { align: "center" });
 
-    // Underline below main title
     const titleWidth = doc.getTextWidth("HARDWARE REQUISITION & CONSENT FORM");
     doc.setLineWidth(0.5);
     doc.line((pageWidth - titleWidth) / 2, curY + 1.5, (pageWidth + titleWidth) / 2, curY + 1.5);
@@ -126,7 +139,6 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
     doc.setFontSize(10.5);
     doc.text("Date of Issue: ", marginX, curY);
 
-    // Draw Line for Date of Issue
     const issueLabelW = doc.getTextWidth("Date of Issue: ");
     doc.setLineWidth(0.2);
     doc.line(marginX + issueLabelW, curY + 1, marginX + 85, curY + 1);
@@ -148,7 +160,7 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
     drawLine(curY);
     curY += 8;
 
-    // SECTION A: APPLICANT DETAILS
+    // SECTION A: APPLICANT DETAILS (6 Fields including Roll No. AND Member ID)
     doc.setFont("times", "bold");
     doc.setFontSize(11);
     doc.setTextColor(0, 0, 0);
@@ -156,11 +168,12 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
     curY += 2;
     doc.setLineWidth(0.4);
     doc.line(marginX, curY, marginX + contentWidth, curY);
-    curY += 8;
+    curY += 7;
 
     const applicantFields = [
       { label: "Name of Applicant", value: requestData.user_name || "N/A" },
-      { label: "Roll Number", value: requestData.roll_number || requestData.member_id || "N/A" },
+      { label: "University Roll Number", value: universityRollNumber },
+      { label: "RC Member ID", value: rcMemberId },
       { label: "Project / Team Name", value: requestData.project_title || "N/A" },
       { label: "Contact Number", value: requestData.phone || "N/A" },
       { label: "Expected Date of Return", value: returnDate || "N/A" },
@@ -168,25 +181,23 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
 
     applicantFields.forEach((field) => {
       doc.setFont("times", "normal");
-      doc.setFontSize(10.5);
+      doc.setFontSize(10);
       doc.text(field.label, marginX, curY);
 
-      // Line for input value
-      curY += 6;
-      doc.setLineWidth(0.25);
+      curY += 5;
+      doc.setLineWidth(0.2);
       doc.line(marginX, curY, marginX + contentWidth, curY);
 
-      // Value text written right above line
       doc.setFont("times", "bold");
-      doc.setFontSize(10.5);
-      doc.text(field.value, marginX + 2, curY - 1.5);
+      doc.setFontSize(10);
+      doc.text(field.value, marginX + 2, curY - 1.2);
 
-      curY += 7;
+      curY += 6;
     });
 
-    curY += 4;
+    curY += 3;
 
-    // SECTION B: HARDWARE REQUESTED
+    // SECTION B: HARDWARE REQUESTED (Fully Dynamic Table - 0 Truncation)
     doc.setFont("times", "bold");
     doc.setFontSize(11);
     doc.text("SECTION B: HARDWARE REQUESTED", marginX, curY);
@@ -200,9 +211,10 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
     doc.text("To be filled by the Applicant at the time of issue.", marginX, curY);
     curY += 4;
 
-    // Hardware Table (5 Rows)
+    // Build Table Rows for ALL items (minimum 5 rows for paper form completeness)
+    const totalBRows = Math.max(5, itemsData.length);
     const tableBodyPage1 = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < totalBRows; i++) {
       const item = itemsData[i];
       if (item) {
         tableBodyPage1.push([
@@ -217,6 +229,8 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
       }
     }
 
+    const sectionBStartPage = doc.internal.getNumberOfPages();
+
     autoTable(doc, {
       startY: curY,
       head: [["S.No.", "Component Name", "Specifications / Model", "Serial No. / ID", "Quantity"]],
@@ -224,11 +238,12 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
       theme: "plain",
       styles: {
         font: "times",
-        fontSize: 10,
+        fontSize: 9.5,
         textColor: [0, 0, 0],
         lineColor: [0, 0, 0],
         lineWidth: 0.3,
-        cellPadding: 3.5,
+        cellPadding: 3,
+        overflow: "linebreak",
       },
       headStyles: {
         fontStyle: "bold",
@@ -242,14 +257,29 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
         3: { cellWidth: 36 },
         4: { cellWidth: 18, halign: "center" },
       },
-      margin: { left: marginX, right: marginX },
+      margin: { top: 22, left: marginX, right: marginX, bottom: 20 },
+      didDrawPage: (data) => {
+        if (data.pageNumber > sectionBStartPage) {
+          doc.setFont("times", "bold");
+          doc.setFontSize(11);
+          doc.setTextColor(0, 0, 0);
+          doc.text("SECTION B: HARDWARE REQUESTED (Continued)", marginX, 15);
+          doc.setLineWidth(0.4);
+          doc.line(marginX, 17, marginX + contentWidth, 17);
+        }
+      },
     });
 
-    // ==========================================
-    // PAGE 2: SECTION C (TERMS) & SECTION D (APPROVAL)
-    // ==========================================
-    doc.addPage();
-    curY = 20;
+    curY = doc.lastAutoTable.finalY + 8;
+
+    // Check remaining vertical space for Section C & Section D (~85mm)
+    if (pageHeight - marginBottom - curY < 85) {
+      doc.addPage();
+      curY = 20;
+    } else {
+      drawLine(curY);
+      curY += 8;
+    }
 
     // SECTION C: TERMS AND CONDITIONS
     doc.setFont("times", "bold");
@@ -269,7 +299,6 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
     doc.text(linesP1, marginX, curY);
     curY += linesP1.length * 4.5 + 2;
 
-    // Official Bullets List
     const bullets = [
       {
         title: "Care of Assets: ",
@@ -334,7 +363,6 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
 
     curY += 2;
 
-    // Applicant Acceptance Statement
     doc.setFont("times", "bold");
     doc.setFontSize(9.5);
     const acceptance =
@@ -343,7 +371,6 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
     doc.text(accLines, marginX, curY);
     curY += accLines.length * 4.5 + 8;
 
-    // Signature of Applicant Line
     doc.setFont("times", "normal");
     doc.setFontSize(10);
     doc.text("Signature of Applicant: ", marginX, curY);
@@ -351,7 +378,6 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
     doc.setLineWidth(0.2);
     doc.line(marginX + sigLabelW, curY + 1, marginX + 115, curY + 1);
 
-    // Auto-fill typed applicant name / verification
     doc.setFont("times", "italic");
     doc.setFontSize(9.5);
     doc.text(requestData.user_name || "Digitally Signed", marginX + sigLabelW + 4, curY);
@@ -376,7 +402,6 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
     doc.line(marginX, curY, marginX + contentWidth, curY);
     curY += 8;
 
-    // Checkboxes
     doc.setFont("times", "normal");
     doc.setFontSize(10);
     doc.text("Status:   [  ] Approved   [  ] Rejected", marginX, curY);
@@ -394,7 +419,6 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
     drawLine(curY);
     curY += 8;
 
-    // Tear-off notice
     doc.setFont("times", "italic");
     doc.setFontSize(9.5);
     doc.text("(TEAR HERE OR PRINT ON BACK FOR RETURN)", pageWidth / 2, curY, { align: "center" });
@@ -403,12 +427,11 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
     drawDoubleLine(curY);
 
     // ==========================================
-    // PAGE 3: SECTION E (RETURN & CLEARANCE FORM)
+    // SECTION E: RETURN & CLEARANCE FORM (Starts on fresh page)
     // ==========================================
     doc.addPage();
     curY = 20;
 
-    // SECTION E: RETURN & CLEARANCE FORM
     doc.setFont("times", "bold");
     doc.setFontSize(11);
     doc.setTextColor(0, 0, 0);
@@ -431,29 +454,33 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
 
     curY += 8;
 
-    // Return Table (5 Rows)
-    const tableBodyPage3 = [];
-    for (let i = 0; i < 5; i++) {
+    // Build Return Table for ALL items (matching Section B count)
+    const totalERows = Math.max(5, itemsData.length);
+    const tableBodySectionE = [];
+    for (let i = 0; i < totalERows; i++) {
       const item = itemsData[i];
       if (item) {
-        tableBodyPage3.push([(i + 1).toString(), item.name || item.hardware_name || "", "", "", ""]);
+        tableBodySectionE.push([(i + 1).toString(), item.name || item.hardware_name || "", "", "", ""]);
       } else {
-        tableBodyPage3.push([(i + 1).toString(), "", "", "", ""]);
+        tableBodySectionE.push([(i + 1).toString(), "", "", "", ""]);
       }
     }
+
+    const sectionEStartPage = doc.internal.getNumberOfPages();
 
     autoTable(doc, {
       startY: curY,
       head: [["S.No.", "Component Name", "Returned Qty", "Condition upon Return", "Remarks"]],
-      body: tableBodyPage3,
+      body: tableBodySectionE,
       theme: "plain",
       styles: {
         font: "times",
-        fontSize: 10,
+        fontSize: 9.5,
         textColor: [0, 0, 0],
         lineColor: [0, 0, 0],
         lineWidth: 0.3,
-        cellPadding: 3.5,
+        cellPadding: 3,
+        overflow: "linebreak",
       },
       headStyles: {
         fontStyle: "bold",
@@ -467,12 +494,29 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
         3: { cellWidth: 42 },
         4: { cellWidth: 30 },
       },
-      margin: { left: marginX, right: marginX },
+      margin: { top: 22, left: marginX, right: marginX, bottom: 20 },
+      didDrawPage: (data) => {
+        if (data.pageNumber > sectionEStartPage) {
+          doc.setFont("times", "bold");
+          doc.setFontSize(11);
+          doc.setTextColor(0, 0, 0);
+          doc.text("SECTION E: RETURN & CLEARANCE FORM (Continued)", marginX, 15);
+          doc.setLineWidth(0.4);
+          doc.line(marginX, 17, marginX + contentWidth, 17);
+        }
+      },
     });
 
-    curY = doc.lastAutoTable.finalY + 10;
-    drawLine(curY);
-    curY += 8;
+    curY = doc.lastAutoTable.finalY + 8;
+
+    // Check remaining space for FINAL CLEARANCE block (~55mm)
+    if (pageHeight - marginBottom - curY < 55) {
+      doc.addPage();
+      curY = 20;
+    } else {
+      drawLine(curY);
+      curY += 8;
+    }
 
     // FINAL CLEARANCE
     doc.setFont("times", "bold");
@@ -508,7 +552,6 @@ export async function generateRequisitionPDF(requestData, itemsData = []) {
     curY += 14;
     drawDoubleLine(curY);
 
-    // Save and download PDF
     const filename = `Official_Hardware_Requisition_${reqId}.pdf`;
     doc.save(filename);
     return true;
