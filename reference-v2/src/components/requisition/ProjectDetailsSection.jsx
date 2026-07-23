@@ -9,23 +9,23 @@ export default function ProjectDetailsSection({ formData, setFormData, errors })
   };
 
   return (
-    <div className="bg-[#111115]/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 shadow-xl space-y-6 font-inter">
-      <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
-        <h3 className="font-orbitron text-sm font-bold text-gray-200 tracking-wider flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-teal-400" />
+    <div className="bg-[var(--bg-card)] border border-[var(--border-card)] backdrop-blur-md rounded-2xl p-6 sm:p-8 shadow-xl space-y-6 font-inter">
+      <div className="flex items-center justify-between border-b border-[var(--border-card)] pb-4">
+        <h3 className="font-orbitron text-base sm:text-lg font-bold text-[var(--text-primary)] tracking-wider flex items-center gap-2.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-teal)] shadow-sm" />
           PROJECT & RESEARCH INFORMATION
         </h3>
-        <span className="text-xs text-gray-500">Step 1 of 3</span>
+        <span className="text-xs sm:text-sm text-[var(--text-secondary)] font-mono">Step 1 of 3</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Project Title */}
-        <div className="md:col-span-2 space-y-1.5">
-          <div className="flex justify-between items-center text-xs">
-            <label className="text-gray-300 font-medium">
+        <div className="md:col-span-2 space-y-2">
+          <div className="flex justify-between items-center text-xs sm:text-sm">
+            <label className="text-[var(--text-primary)] font-semibold font-inter">
               Project Title <span className="text-red-400">*</span>
             </label>
-            <span className="text-gray-500 font-mono">
+            <span className="text-[var(--text-secondary)] font-mono text-xs">
               {(formData.project_title || "").length} / {REQUISITION_LIMITS.PROJECT_TITLE_MAX}
             </span>
           </div>
@@ -35,44 +35,44 @@ export default function ProjectDetailsSection({ formData, setFormData, errors })
             placeholder="e.g. Autonomous Maze Solving Micromouse Robot"
             value={formData.project_title || ""}
             onChange={(e) => handleChange("project_title", e.target.value)}
-            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition"
+            className="w-full bg-[var(--bg-secondary)] border border-[var(--border-card)] rounded-xl px-4 py-3 text-sm sm:text-base text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-purple)] focus:ring-1 focus:ring-[var(--accent-purple)] transition duration-200"
           />
           {errors?.project_title && (
-            <p className="text-xs text-red-400">{errors.project_title}</p>
+            <p className="text-xs sm:text-sm text-red-400 font-medium">{errors.project_title}</p>
           )}
         </div>
 
         {/* Project Type Dropdown */}
-        <div className="space-y-1.5">
-          <label className="text-xs text-gray-300 font-medium block">
+        <div className="space-y-2">
+          <label className="text-xs sm:text-sm text-[var(--text-primary)] font-semibold block font-inter">
             Project Type <span className="text-red-400">*</span>
           </label>
           <select
             value={formData.project_type || ""}
             onChange={(e) => handleChange("project_type", e.target.value)}
-            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition"
+            className="w-full bg-[var(--bg-secondary)] border border-[var(--border-card)] rounded-xl px-4 py-3 text-sm sm:text-base text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-purple)] focus:ring-1 focus:ring-[var(--accent-purple)] transition duration-200"
           >
-            <option value="" disabled className="bg-gray-900 text-gray-400">
+            <option value="" disabled className="bg-[var(--bg-primary)] text-[var(--text-secondary)]">
               -- Select Project Category --
             </option>
             {PROJECT_TYPES.map((type) => (
-              <option key={type} value={type} className="bg-gray-900 text-white">
+              <option key={type} value={type} className="bg-[var(--bg-primary)] text-[var(--text-primary)]">
                 {type}
               </option>
             ))}
           </select>
           {errors?.project_type && (
-            <p className="text-xs text-red-400">{errors.project_type}</p>
+            <p className="text-xs sm:text-sm text-red-400 font-medium">{errors.project_type}</p>
           )}
         </div>
 
         {/* Faculty Mentor */}
-        <div className="space-y-1.5">
-          <div className="flex justify-between items-center text-xs">
-            <label className="text-gray-300 font-medium">
-              Faculty Mentor <span className="text-gray-500">(Optional)</span>
+        <div className="space-y-2">
+          <div className="flex justify-between items-center text-xs sm:text-sm">
+            <label className="text-[var(--text-primary)] font-semibold font-inter">
+              Faculty Mentor <span className="text-[var(--text-muted)] font-normal">(Optional)</span>
             </label>
-            <span className="text-gray-500 font-mono">
+            <span className="text-[var(--text-secondary)] font-mono text-xs">
               {(formData.faculty_mentor || "").length} / {REQUISITION_LIMITS.FACULTY_MENTOR_MAX}
             </span>
           </div>
@@ -82,17 +82,17 @@ export default function ProjectDetailsSection({ formData, setFormData, errors })
             placeholder="e.g. Dr. Rajesh Kumar (Dept. of Robotics)"
             value={formData.faculty_mentor || ""}
             onChange={(e) => handleChange("faculty_mentor", e.target.value)}
-            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition"
+            className="w-full bg-[var(--bg-secondary)] border border-[var(--border-card)] rounded-xl px-4 py-3 text-sm sm:text-base text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-purple)] focus:ring-1 focus:ring-[var(--accent-purple)] transition duration-200"
           />
         </div>
 
         {/* Project Description */}
-        <div className="md:col-span-2 space-y-1.5">
-          <div className="flex justify-between items-center text-xs">
-            <label className="text-gray-300 font-medium">
+        <div className="md:col-span-2 space-y-2">
+          <div className="flex justify-between items-center text-xs sm:text-sm">
+            <label className="text-[var(--text-primary)] font-semibold font-inter">
               Project Description <span className="text-red-400">*</span>
             </label>
-            <span className="text-gray-500 font-mono">
+            <span className="text-[var(--text-secondary)] font-mono text-xs">
               {(formData.project_desc || "").length} / {REQUISITION_LIMITS.PROJECT_DESC_MAX}
             </span>
           </div>
@@ -102,20 +102,20 @@ export default function ProjectDetailsSection({ formData, setFormData, errors })
             placeholder="Provide a concise summary of the project scope, technical approach, and key milestones..."
             value={formData.project_desc || ""}
             onChange={(e) => handleChange("project_desc", e.target.value)}
-            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition resize-none"
+            className="w-full bg-[var(--bg-secondary)] border border-[var(--border-card)] rounded-xl px-4 py-3 text-sm sm:text-base text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-purple)] focus:ring-1 focus:ring-[var(--accent-purple)] transition duration-200 resize-none"
           />
           {errors?.project_desc && (
-            <p className="text-xs text-red-400">{errors.project_desc}</p>
+            <p className="text-xs sm:text-sm text-red-400 font-medium">{errors.project_desc}</p>
           )}
         </div>
 
         {/* Purpose of Hardware */}
-        <div className="space-y-1.5">
-          <div className="flex justify-between items-center text-xs">
-            <label className="text-gray-300 font-medium">
+        <div className="space-y-2">
+          <div className="flex justify-between items-center text-xs sm:text-sm">
+            <label className="text-[var(--text-primary)] font-semibold font-inter">
               Purpose of Hardware <span className="text-red-400">*</span>
             </label>
-            <span className="text-gray-500 font-mono">
+            <span className="text-[var(--text-secondary)] font-mono text-xs">
               {(formData.purpose || "").length} / {REQUISITION_LIMITS.PURPOSE_MAX}
             </span>
           </div>
@@ -125,20 +125,20 @@ export default function ProjectDetailsSection({ formData, setFormData, errors })
             placeholder="Explain why these specific components are required for the project..."
             value={formData.purpose || ""}
             onChange={(e) => handleChange("purpose", e.target.value)}
-            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition resize-none"
+            className="w-full bg-[var(--bg-secondary)] border border-[var(--border-card)] rounded-xl px-4 py-3 text-sm sm:text-base text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-purple)] focus:ring-1 focus:ring-[var(--accent-purple)] transition duration-200 resize-none"
           />
           {errors?.purpose && (
-            <p className="text-xs text-red-400">{errors.purpose}</p>
+            <p className="text-xs sm:text-sm text-red-400 font-medium">{errors.purpose}</p>
           )}
         </div>
 
         {/* Expected Outcome */}
-        <div className="space-y-1.5">
-          <div className="flex justify-between items-center text-xs">
-            <label className="text-gray-300 font-medium">
+        <div className="space-y-2">
+          <div className="flex justify-between items-center text-xs sm:text-sm">
+            <label className="text-[var(--text-primary)] font-semibold font-inter">
               Expected Outcome <span className="text-red-400">*</span>
             </label>
-            <span className="text-gray-500 font-mono">
+            <span className="text-[var(--text-secondary)] font-mono text-xs">
               {(formData.expected_outcome || "").length} / {REQUISITION_LIMITS.EXPECTED_OUTCOME_MAX}
             </span>
           </div>
@@ -148,10 +148,10 @@ export default function ProjectDetailsSection({ formData, setFormData, errors })
             placeholder="Describe the physical deliverable or test results expected upon completion..."
             value={formData.expected_outcome || ""}
             onChange={(e) => handleChange("expected_outcome", e.target.value)}
-            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition resize-none"
+            className="w-full bg-[var(--bg-secondary)] border border-[var(--border-card)] rounded-xl px-4 py-3 text-sm sm:text-base text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-purple)] focus:ring-1 focus:ring-[var(--accent-purple)] transition duration-200 resize-none"
           />
           {errors?.expected_outcome && (
-            <p className="text-xs text-red-400">{errors.expected_outcome}</p>
+            <p className="text-xs sm:text-sm text-red-400 font-medium">{errors.expected_outcome}</p>
           )}
         </div>
       </div>

@@ -19,12 +19,10 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
       try {
         setLoading(true);
 
-        // Fetch categories
         const { data: catData } = await supabase.from("inventory_categories").select("*");
         if (catData && catData.length > 0) {
           setCategories(catData);
         } else {
-          // Default fallback categories
           setCategories([
             { id: "cat-1", name: "Microcontrollers", slug: "microcontrollers" },
             { id: "cat-2", name: "Sensors", slug: "sensors" },
@@ -34,8 +32,7 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
           ]);
         }
 
-        // Fetch hardware items
-        const { data: hwData, error } = await supabase.from("hardware").select("*");
+        const { data: hwData } = await supabase.from("hardware").select("*");
         if (hwData) {
           setHardwareItems(hwData);
         }
@@ -49,7 +46,6 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
     fetchData();
   }, []);
 
-  // Filter hardware by selected category name/id
   const filteredHardware = hardwareItems.filter((item) => {
     if (!selectedCategory) return true;
     return (
@@ -59,20 +55,16 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
     );
   });
 
-  // Currently selected hardware object
   const activeHardware = hardwareItems.find((h) => h.id === selectedHardwareId);
 
-  // Notify parent of active hardware change for live manual link preview
   useEffect(() => {
     if (onActiveComponentChange) {
       onActiveComponentChange(activeHardware || null);
     }
   }, [selectedHardwareId, activeHardware, onActiveComponentChange]);
 
-  // Calculate live stock details
   const availableStock = activeHardware ? activeHardware.availableQuantity ?? activeHardware.totalQuantity ?? 0 : 0;
 
-  // Calculate how many of this item have already been added in the form table
   const alreadyAddedQty = selectedItems
     .filter((i) => i.id === selectedHardwareId)
     .reduce((sum, i) => sum + i.qty, 0);
@@ -91,7 +83,7 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
       name: activeHardware.name,
       category: activeHardware.category || selectedCategory || "General",
       availableQuantity: availableStock,
-      available_at_request_time: availableStock, // Snapshot requirement
+      available_at_request_time: availableStock,
       qty: requestQty,
       remarks: itemRemarks,
       image: activeHardware.image,
@@ -99,26 +91,25 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
       specs: activeHardware.specs,
     });
 
-    // Reset selector inputs
     setSelectedHardwareId("");
     setRequestQty(1);
     setItemRemarks("");
   };
 
   return (
-    <div className="bg-[#111115]/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 shadow-xl space-y-6 font-inter">
-      <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
-        <h3 className="font-orbitron text-sm font-bold text-gray-200 tracking-wider flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-purple-500" />
+    <div className="bg-[var(--bg-card)] border border-[var(--border-card)] backdrop-blur-md rounded-2xl p-6 sm:p-8 shadow-xl space-y-6 font-inter">
+      <div className="flex items-center justify-between border-b border-[var(--border-card)] pb-4">
+        <h3 className="font-orbitron text-base sm:text-lg font-bold text-[var(--text-primary)] tracking-wider flex items-center gap-2.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-purple)]" />
           COMPONENT SELECTION & INVENTORY CATALOG
         </h3>
-        <span className="text-xs text-gray-500">Step 2 of 3</span>
+        <span className="text-xs sm:text-sm text-[var(--text-secondary)] font-mono">Step 2 of 3</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Dropdown 1: Category */}
-        <div className="space-y-1.5">
-          <label className="text-xs text-gray-300 font-medium block">
+        <div className="space-y-2">
+          <label className="text-xs sm:text-sm text-[var(--text-primary)] font-semibold block font-inter">
             1. Select Component Category
           </label>
           <select
@@ -127,13 +118,13 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
               setSelectedCategory(e.target.value);
               setSelectedHardwareId("");
             }}
-            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition"
+            className="w-full bg-[var(--bg-secondary)] border border-[var(--border-card)] rounded-xl px-4 py-3 text-sm sm:text-base text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-purple)] focus:ring-1 focus:ring-[var(--accent-purple)] transition duration-200"
           >
-            <option value="" className="bg-gray-900 text-gray-400">
+            <option value="" className="bg-[var(--bg-primary)] text-[var(--text-secondary)]">
               -- All Inventory Categories ({categories.length}) --
             </option>
             {categories.map((cat) => (
-              <option key={cat.id || cat.slug} value={cat.name} className="bg-gray-900 text-white">
+              <option key={cat.id || cat.slug} value={cat.name} className="bg-[var(--bg-primary)] text-[var(--text-primary)]">
                 {cat.name}
               </option>
             ))}
@@ -141,8 +132,8 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
         </div>
 
         {/* Dropdown 2: Specific Component */}
-        <div className="space-y-1.5">
-          <label className="text-xs text-gray-300 font-medium block">
+        <div className="space-y-2">
+          <label className="text-xs sm:text-sm text-[var(--text-primary)] font-semibold block font-inter">
             2. Select Hardware Component
           </label>
           <select
@@ -152,9 +143,9 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
               setSelectedHardwareId(e.target.value);
               setRequestQty(1);
             }}
-            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition disabled:opacity-50"
+            className="w-full bg-[var(--bg-secondary)] border border-[var(--border-card)] rounded-xl px-4 py-3 text-sm sm:text-base text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-purple)] focus:ring-1 focus:ring-[var(--accent-purple)] transition duration-200 disabled:opacity-50"
           >
-            <option value="" disabled className="bg-gray-900 text-gray-400">
+            <option value="" disabled className="bg-[var(--bg-primary)] text-[var(--text-secondary)]">
               {loading
                 ? "Loading Hardware Catalog..."
                 : filteredHardware.length === 0
@@ -162,7 +153,7 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
                 : "-- Choose Component --"}
             </option>
             {filteredHardware.map((item) => (
-              <option key={item.id} value={item.id} className="bg-gray-900 text-white">
+              <option key={item.id} value={item.id} className="bg-[var(--bg-primary)] text-[var(--text-primary)]">
                 {item.name} (Available: {item.availableQuantity ?? item.totalQuantity ?? 0})
               </option>
             ))}
@@ -172,11 +163,10 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
 
       {/* Selected Hardware Details Card */}
       {activeHardware && (
-        <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 space-y-4">
+        <div className="bg-[var(--bg-secondary)] border border-[var(--border-card)] rounded-xl p-5 space-y-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              {/* Component Thumbnail with Graceful Fallback */}
-              <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-white/10 bg-black/40 flex-shrink-0 flex items-center justify-center">
+              <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-[var(--border-card)] bg-[var(--bg-primary)] flex-shrink-0 flex items-center justify-center">
                 {activeHardware.image ? (
                   <Image
                     src={activeHardware.image}
@@ -185,19 +175,19 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
                     className="object-cover"
                   />
                 ) : (
-                  <div className="text-2xl text-purple-400 font-mono font-bold">
+                  <div className="text-2xl text-[var(--accent-purple)] font-mono font-bold">
                     ⚙️
                   </div>
                 )}
               </div>
 
               <div>
-                <h4 className="text-white font-bold text-sm">{activeHardware.name}</h4>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Category: <span className="text-purple-300">{activeHardware.category || "General"}</span>
+                <h4 className="text-[var(--text-primary)] font-bold text-base">{activeHardware.name}</h4>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-0.5 font-inter">
+                  Category: <span className="text-[var(--accent-purple)] font-semibold">{activeHardware.category || "General"}</span>
                 </p>
                 {activeHardware.specs && (
-                  <p className="text-xs font-mono text-gray-500 mt-1">{activeHardware.specs}</p>
+                  <p className="text-xs font-mono text-[var(--text-muted)] mt-1">{activeHardware.specs}</p>
                 )}
               </div>
             </div>
@@ -210,20 +200,20 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
                     href={activeHardware.manual_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-purple-500/10 text-purple-300 border border-purple-500/20 hover:bg-purple-500/20 transition"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg bg-[var(--accent-purple-glow)] text-[var(--accent-purple)] border border-[var(--border-card)] hover:opacity-90 transition"
                   >
                     📄 View Manual
                   </a>
                   <a
                     href={activeHardware.manual_url}
                     download
-                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-teal-500/10 text-teal-300 border border-teal-500/20 hover:bg-teal-500/20 transition"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg bg-[var(--accent-teal-glow)] text-[var(--accent-teal)] border border-[var(--border-card)] hover:opacity-90 transition"
                   >
                     ⬇ Download
                   </a>
                 </div>
               ) : (
-                <span className="text-xs font-mono text-gray-500 px-3 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                <span className="text-xs font-mono text-[var(--text-muted)] px-3 py-1.5 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-card)]">
                   User Manual Coming Soon
                 </span>
               )}
@@ -231,22 +221,22 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
           </div>
 
           {/* Live Stock Information Badge Bar */}
-          <div className="grid grid-cols-3 gap-3 pt-3 border-t border-white/[0.04] text-center text-xs">
-            <div className="bg-black/30 p-2.5 rounded-lg border border-white/[0.04]">
-              <span className="text-gray-500 block">Available Stock</span>
-              <span className="text-green-400 font-mono font-bold text-sm">{availableStock}</span>
+          <div className="grid grid-cols-3 gap-3 pt-3 border-t border-[var(--border-card)] text-center text-xs sm:text-sm">
+            <div className="bg-[var(--bg-primary)] p-3 rounded-xl border border-[var(--border-card)]">
+              <span className="text-[var(--text-secondary)] block text-xs">Available Stock</span>
+              <span className="text-emerald-500 font-mono font-bold text-base sm:text-lg">{availableStock}</span>
             </div>
 
-            <div className="bg-black/30 p-2.5 rounded-lg border border-white/[0.04]">
-              <span className="text-gray-500 block">Requested</span>
-              <span className="text-purple-400 font-mono font-bold text-sm">{requestQty}</span>
+            <div className="bg-[var(--bg-primary)] p-3 rounded-xl border border-[var(--border-card)]">
+              <span className="text-[var(--text-secondary)] block text-xs">Requested</span>
+              <span className="text-[var(--accent-purple)] font-mono font-bold text-base sm:text-lg">{requestQty}</span>
             </div>
 
-            <div className="bg-black/30 p-2.5 rounded-lg border border-white/[0.04]">
-              <span className="text-gray-500 block">Remaining Stock</span>
+            <div className="bg-[var(--bg-primary)] p-3 rounded-xl border border-[var(--border-card)]">
+              <span className="text-[var(--text-secondary)] block text-xs">Remaining Stock</span>
               <span
-                className={`font-mono font-bold text-sm ${
-                  remainingStock < 0 ? "text-red-400" : "text-teal-400"
+                className={`font-mono font-bold text-base sm:text-lg ${
+                  remainingStock < 0 ? "text-red-400" : "text-[var(--accent-teal)]"
                 }`}
               >
                 {remainingStock}
@@ -257,7 +247,7 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
           {/* Quantity Input & Remarks */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
             <div>
-              <label className="text-xs text-gray-300 font-medium block mb-1">
+              <label className="text-xs sm:text-sm text-[var(--text-primary)] font-semibold block mb-1">
                 Select Quantity
               </label>
               <input
@@ -266,20 +256,20 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
                 max={availableStock - alreadyAddedQty}
                 value={requestQty}
                 onChange={(e) => setRequestQty(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500"
+                className="w-full bg-[var(--bg-primary)] border border-[var(--border-card)] rounded-xl px-3 py-2.5 text-sm sm:text-base text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-purple)]"
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="text-xs text-gray-300 font-medium block mb-1">
-                Component Remarks / Specific Model Notes <span className="text-gray-500">(Optional)</span>
+              <label className="text-xs sm:text-sm text-[var(--text-primary)] font-semibold block mb-1">
+                Component Remarks / Specific Model Notes <span className="text-[var(--text-muted)] font-normal">(Optional)</span>
               </label>
               <input
                 type="text"
                 placeholder="e.g. Need 16MHz DIP package version with header pins"
                 value={itemRemarks}
                 onChange={(e) => setItemRemarks(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500"
+                className="w-full bg-[var(--bg-primary)] border border-[var(--border-card)] rounded-xl px-3 py-2.5 text-sm sm:text-base text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-purple)]"
               />
             </div>
           </div>
@@ -290,7 +280,7 @@ export default function CascadingComponentSelector({ onAddComponent, selectedIte
               type="button"
               onClick={handleAdd}
               disabled={requestQty > availableStock - alreadyAddedQty || availableStock <= 0}
-              className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-medium text-xs font-orbitron tracking-wider transition disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-purple-600/20"
+              className="px-6 py-3 rounded-xl bg-[var(--accent-purple)] hover:brightness-110 text-[var(--bg-primary)] font-bold text-xs sm:text-sm font-orbitron tracking-wider transition disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-[var(--accent-purple-glow)] cursor-pointer active:scale-[0.98]"
             >
               + ADD COMPONENT TO REQUISITION
             </button>

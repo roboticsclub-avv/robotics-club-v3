@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 
 export default function TermsAndSubmitSection({
   formData,
@@ -15,18 +15,18 @@ export default function TermsAndSubmitSection({
   };
 
   return (
-    <div className="bg-[#111115]/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 shadow-xl space-y-6 font-inter">
-      <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
-        <h3 className="font-orbitron text-sm font-bold text-gray-200 tracking-wider flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-orange-400" />
+    <div className="bg-[var(--bg-card)] border border-[var(--border-card)] backdrop-blur-md rounded-2xl p-6 sm:p-8 shadow-xl space-y-6 font-inter">
+      <div className="flex items-center justify-between border-b border-[var(--border-card)] pb-4">
+        <h3 className="font-orbitron text-base sm:text-lg font-bold text-[var(--text-primary)] tracking-wider flex items-center gap-2.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)]" />
           TERMS & HARDWARE USAGE POLICIES
         </h3>
       </div>
 
       {/* Terms & Usage Policies */}
-      <div className="bg-black/40 border border-white/[0.04] rounded-xl p-4 space-y-3 text-xs text-gray-300 max-h-40 overflow-y-auto">
-        <h4 className="font-bold text-white font-mono">Robotics Club Hardware Usage Regulations:</h4>
-        <ul className="list-disc list-inside space-y-1 text-gray-400 leading-relaxed">
+      <div className="bg-[var(--bg-secondary)] border border-[var(--border-card)] rounded-xl p-4 sm:p-5 space-y-3 text-xs sm:text-sm text-[var(--text-primary)] max-h-44 overflow-y-auto">
+        <h4 className="font-bold text-[var(--text-primary)] font-mono text-sm">Robotics Club Hardware Usage Regulations:</h4>
+        <ul className="list-disc list-inside space-y-1.5 text-[var(--text-secondary)] leading-relaxed font-inter">
           <li>Requisitioned hardware must be used strictly for approved club or academic project activities.</li>
           <li>Members are held personally accountable for hardware condition. Damage due to miswiring, overvoltage, or short-circuiting must be reported immediately.</li>
           <li>Components must be returned on or before the specified Expected Return Date. Overdue items will restrict future requisitions.</li>
@@ -42,14 +42,14 @@ export default function TermsAndSubmitSection({
           id="policy-consent"
           checked={!!formData.agreedToPolicies}
           onChange={handleCheckboxChange}
-          className="mt-0.5 w-4 h-4 rounded border-white/20 bg-black/40 text-purple-600 focus:ring-purple-500 focus:ring-offset-0 cursor-pointer"
+          className="mt-1 w-5 h-5 rounded border-[var(--border-card)] bg-[var(--bg-secondary)] text-[var(--accent-purple)] focus:ring-[var(--accent-purple)] cursor-pointer"
         />
-        <label htmlFor="policy-consent" className="text-xs text-gray-300 cursor-pointer select-none">
-          I have read and agree to all <span className="text-purple-400 font-semibold">Robotics Club Hardware Usage Policies</span>. I accept full responsibility for the proper care and timely return of all issued components.
+        <label htmlFor="policy-consent" className="text-xs sm:text-sm text-[var(--text-primary)] cursor-pointer select-none leading-relaxed font-inter">
+          I have read and agree to all <span className="text-[var(--accent-purple)] font-semibold">Robotics Club Hardware Usage Policies</span>. I accept full financial and disciplinary responsibility for the proper care and timely return of all issued components.
         </label>
       </div>
       {errors?.agreedToPolicies && (
-        <p className="text-xs text-red-400">{errors.agreedToPolicies}</p>
+        <p className="text-xs sm:text-sm text-red-400 font-medium">{errors.agreedToPolicies}</p>
       )}
     </div>
   );
