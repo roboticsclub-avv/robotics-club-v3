@@ -41,8 +41,10 @@ export default function useEvents(options = {}) {
     if (typeof window !== "undefined") {
       const cached = sessionStorage.getItem("cached_events");
       if (cached) {
-        setEvents(JSON.parse(cached));
-        setLoading(false);
+        setTimeout(() => {
+          setEvents(JSON.parse(cached));
+          setLoading(false);
+        }, 0);
       }
     }
     fetchEvents();

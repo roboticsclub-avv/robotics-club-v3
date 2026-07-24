@@ -17,9 +17,6 @@ export const InfiniteMovingCards = ({
   const scrollerRef = useRef(null);
   const [start, setStart] = useState(false);
 
-  useEffect(() => {
-    addAnimation();
-  }, []);
 
   function addAnimation() {
     if (containerRef.current && scrollerRef.current) {
@@ -65,6 +62,11 @@ export const InfiniteMovingCards = ({
       }
     }
   };
+
+  useEffect(() => {
+    addAnimation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div
