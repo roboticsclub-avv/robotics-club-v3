@@ -1,1126 +1,457 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { showAlert, showConfirm } from "@/lib/alert-store";
+import { supabase } from "@/lib/supabase";
+import useAuth from "@/hooks/useAuth";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { formatDate } from "@/utils/formatters";
 
-// ─── Inline style constants using CSS variables from globals.css ─────────────
-const S = {
-  page: {
-    minHeight: "100vh",
-    background: "var(--bg-primary)",
-    color: "var(--text-primary)",
-    fontFamily: "var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    position: "relative",
-    overflowX: "hidden",
-  },
-  orb1: {
-    position: "fixed",
-    top: "-200px",
-    right: "-200px",
-    width: "600px",
-    height: "600px",
-    borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(255,107,53,0.07) 0%, transparent 70%)",
-    pointerEvents: "none",
-    zIndex: 0,
-  },
-  orb2: {
-    position: "fixed",
-    bottom: "-200px",
-    left: "-200px",
-    width: "500px",
-    height: "500px",
-    borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 70%)",
-    pointerEvents: "none",
-    zIndex: 0,
-  },
-  inner: {
-    maxWidth: "1100px",
-    margin: "0 auto",
-    padding: "0 32px",
-    position: "relative",
-    zIndex: 10,
-  },
-  // ── Header ──
-  header: {
-    borderBottom: "1px solid var(--border-subtle)",
-    background: "rgba(10,10,10,0.85)",
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
-    position: "sticky",
-    top: 0,
-    zIndex: 100,
-  },
-  headerInner: {
-    maxWidth: "1100px",
-    margin: "0 auto",
-    padding: "0 32px",
-    height: "72px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: "16px",
-  },
-  headerLeft: {
-    display: "flex",
-    alignItems: "center",
-    gap: "16px",
-  },
-  logoBar: {
-    width: "3px",
-    height: "28px",
-    background: "linear-gradient(180deg, var(--accent-orange) 0%, #7c3aed 100%)",
-    borderRadius: "2px",
-    flexShrink: 0,
-  },
-  portalLabel: {
-    fontSize: "0.65rem",
-    fontWeight: 700,
-    letterSpacing: "0.18em",
-    textTransform: "uppercase",
-    color: "var(--accent-orange)",
-    lineHeight: 1,
-  },
-  memberName: {
-    fontSize: "1rem",
-    fontWeight: 600,
-    color: "var(--text-primary)",
-    lineHeight: 1.2,
-  },
-  memberIdBadge: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "6px",
-    padding: "4px 12px",
-    background: "rgba(255,107,53,0.1)",
-    border: "1px solid rgba(255,107,53,0.25)",
-    borderRadius: "100px",
-    fontSize: "0.72rem",
-    fontWeight: 600,
-    color: "var(--accent-orange)",
-    letterSpacing: "0.08em",
-  },
-  logoutBtn: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "8px",
-    padding: "8px 20px",
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid var(--border-subtle)",
-    borderRadius: "var(--radius-sm)",
-    color: "var(--text-secondary)",
-    fontSize: "0.82rem",
-    fontWeight: 500,
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-    letterSpacing: "0.03em",
-  },
-  // ── Main content ──
-  main: {
-    paddingTop: "48px",
-    paddingBottom: "80px",
-  },
-  greeting: {
-    marginBottom: "48px",
-  },
-  sectionLabel: {
-    fontSize: "0.65rem",
-    fontWeight: 700,
-    letterSpacing: "0.18em",
-    textTransform: "uppercase",
-    color: "var(--accent-orange)",
-    marginBottom: "8px",
-    display: "block",
-  },
-  pageTitle: {
-    fontSize: "clamp(1.6rem, 3vw, 2.2rem)",
-    fontWeight: 700,
-    color: "var(--text-primary)",
-    lineHeight: 1.2,
-    marginBottom: "8px",
-  },
-  pageSubtitle: {
-    fontSize: "0.9rem",
-    color: "var(--text-secondary)",
-    lineHeight: 1.6,
-  },
-  // ── Section headings ──
-  sectionWrapper: {
-    marginBottom: "48px",
-  },
-  sectionHead: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    marginBottom: "24px",
-  },
-  sectionIcon: {
-    width: "36px",
-    height: "36px",
-    borderRadius: "10px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "1rem",
-    flexShrink: 0,
-  },
-  sectionIconOrange: {
-    background: "rgba(255,107,53,0.12)",
-    border: "1px solid rgba(255,107,53,0.2)",
-  },
-  sectionIconPurple: {
-    background: "rgba(124,58,237,0.12)",
-    border: "1px solid rgba(124,58,237,0.2)",
-  },
-  sectionTitle: {
-    fontSize: "1.1rem",
-    fontWeight: 600,
-    color: "var(--text-primary)",
-    lineHeight: 1.2,
-  },
-  sectionCount: {
-    marginLeft: "auto",
-    padding: "3px 10px",
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid var(--border-subtle)",
-    borderRadius: "100px",
-    fontSize: "0.72rem",
-    color: "var(--text-muted)",
-    fontWeight: 500,
-  },
-  // ── Glass card ──
-  card: {
-    background: "var(--bg-card)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: "var(--radius-lg)",
-    backdropFilter: "blur(12px)",
-    WebkitBackdropFilter: "blur(12px)",
-    overflow: "hidden",
-  },
-  // ── Allocations table ──
-  tableWrapper: {
-    overflowX: "auto",
-  },
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-    fontSize: "0.875rem",
-  },
-  th: {
-    padding: "14px 20px",
-    textAlign: "left",
-    fontSize: "0.65rem",
-    fontWeight: 700,
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
-    color: "var(--text-muted)",
-    borderBottom: "1px solid var(--border-subtle)",
-    whiteSpace: "nowrap",
-  },
-  td: {
-    padding: "16px 20px",
-    color: "var(--text-secondary)",
-    borderBottom: "1px solid rgba(255,255,255,0.04)",
-    verticalAlign: "middle",
-  },
-  tdName: {
-    color: "var(--text-primary)",
-    fontWeight: 500,
-  },
-  statusBadge: (status) => ({
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "5px",
-    padding: "3px 10px",
-    borderRadius: "100px",
-    fontSize: "0.7rem",
-    fontWeight: 600,
-    letterSpacing: "0.05em",
-    textTransform: "uppercase",
-    ...(status === "issued"
-      ? {
-          background: "rgba(6,182,212,0.1)",
-          border: "1px solid rgba(6,182,212,0.25)",
-          color: "#06b6d4",
-        }
-      : {
-          background: "rgba(34,197,94,0.1)",
-          border: "1px solid rgba(34,197,94,0.25)",
-          color: "#22c55e",
-        }),
-  }),
-  returnBtn: {
-    padding: "6px 14px",
-    background: "rgba(255,107,53,0.08)",
-    border: "1px solid rgba(255,107,53,0.2)",
-    borderRadius: "var(--radius-sm)",
-    color: "var(--accent-orange)",
-    fontSize: "0.75rem",
-    fontWeight: 600,
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-    letterSpacing: "0.04em",
-  },
-  emptyState: {
-    padding: "48px 24px",
-    textAlign: "center",
-    color: "var(--text-muted)",
-    fontSize: "0.875rem",
-  },
-  emptyIcon: {
-    fontSize: "2rem",
-    marginBottom: "12px",
-    opacity: 0.4,
-  },
-  // ── Request form ──
-  formCard: {
-    background: "var(--bg-card)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: "var(--radius-lg)",
-    padding: "32px",
-    backdropFilter: "blur(12px)",
-    WebkitBackdropFilter: "blur(12px)",
-  },
-  formGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "20px",
-    marginBottom: "24px",
-  },
-  formGroup: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-  },
-  formLabel: {
-    fontSize: "0.7rem",
-    fontWeight: 700,
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
-    color: "var(--text-muted)",
-  },
-  formSelect: {
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    borderRadius: "var(--radius-sm)",
-    padding: "12px 16px",
-    color: "var(--text-primary)",
-    fontSize: "0.875rem",
-    outline: "none",
-    cursor: "pointer",
-    transition: "border-color 0.2s ease",
-    appearance: "none",
-    WebkitAppearance: "none",
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23a0a0a0' d='M1 1l5 5 5-5'/%3E%3C/svg%3E")`,
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "right 14px center",
-  },
-  formInput: {
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    borderRadius: "var(--radius-sm)",
-    padding: "12px 16px",
-    color: "var(--text-primary)",
-    fontSize: "0.875rem",
-    outline: "none",
-    transition: "border-color 0.2s ease",
-    colorScheme: "dark",
-  },
-  submitBtn: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "8px",
-    padding: "12px 28px",
-    background: "linear-gradient(135deg, var(--accent-orange) 0%, #d4522a 100%)",
-    border: "none",
-    borderRadius: "var(--radius-sm)",
-    color: "#fff",
-    fontSize: "0.875rem",
-    fontWeight: 700,
-    cursor: "pointer",
-    transition: "opacity 0.2s ease, transform 0.2s ease",
-    letterSpacing: "0.04em",
-    boxShadow: "0 4px 20px rgba(255,107,53,0.25)",
-  },
-  // ── Success / Error banners ──
-  banner: (type) => ({
-    padding: "14px 20px",
-    borderRadius: "var(--radius-sm)",
-    fontSize: "0.85rem",
-    fontWeight: 500,
-    marginBottom: "20px",
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    ...(type === "success"
-      ? {
-          background: "rgba(34,197,94,0.08)",
-          border: "1px solid rgba(34,197,94,0.2)",
-          color: "#22c55e",
-        }
-      : {
-          background: "rgba(239,68,68,0.08)",
-          border: "1px solid rgba(239,68,68,0.2)",
-          color: "#f87171",
-        }),
-  }),
-  // ── Loading ──
-  loadingScreen: {
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "var(--bg-primary)",
-    flexDirection: "column",
-    gap: "16px",
-  },
-  spinner: {
-    width: "40px",
-    height: "40px",
-    border: "3px solid rgba(255,255,255,0.08)",
-    borderTopColor: "var(--accent-orange)",
-    borderRadius: "50%",
-    animation: "spin 0.8s linear infinite",
-  },
-};
-
-const ROLE_RESPONSIBILITIES = {
-  admin: {
-    title: "Administrator",
-    desc: "Full administrative access: Manage club settings, override allocations, add core team members, and view dashboard analytics."
-  },
-  technical: {
-    title: "Technical Team",
-    desc: "All technical related access: Hardware design, project prototyping, technical workshop mentorship, and software integrations."
-  },
-  ops: {
-    title: "Operations Team",
-    desc: "Event management: Organizing hackathons, scheduling workshops, managing event logistics, and coordinating public relations."
-  },
-  data: {
-    title: "Data Team",
-    desc: "Hardware inventory and Allocation records: Registering hardware items, reconciling stock levels, and audit trail of issued/returned hardware."
-  },
-  secretary: {
-    title: "Secretary",
-    desc: "Applications: Reviewing registration applications, admitting new club members, managing applicant statuses, and club communications."
-  },
-  member: {
-    title: "Club Member",
-    desc: "Learning and Collaboration: Participate in workshops, contribute to repository projects, follow hardware safety guidelines, and innovate."
-  }
-};
-
-export default function MemberPortalPage() {
+export default function MemberPage() {
+  const { user, profile, loading: authLoading, logout } = useAuth();
   const router = useRouter();
 
-  // ── Auth / user state ─────────────────────────────────────────────────────
-  const [authLoading, setAuthLoading] = useState(true);
-  const [userData, setUserData] = useState(null);
+  // Tab State: "requisition" | "borrowed"
+  const [activeTab, setActiveTab] = useState("requisition");
 
-  // ── Allocations state ─────────────────────────────────────────────────────
+  // Data States
   const [allocations, setAllocations] = useState([]);
-  const [allocLoading, setAllocLoading] = useState(false);
+  const [hardware, setHardware] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // ── Hardware state (for request form) ────────────────────────────────────
-  const [hardwareList, setHardwareList] = useState([]);
-  const [selectedItemId, setSelectedItemId] = useState("");
+  // Requisition Modal State
+  const [selectedItem, setSelectedItem] = useState(null);
   const [expectedReturn, setExpectedReturn] = useState("");
-  const [formLoading, setFormLoading] = useState(false);
-  const [formMsg, setFormMsg] = useState(null); // { type: 'success'|'error', text }
+  const [quantity, setQuantity] = useState(1);
+  const [modalSubmitting, setModalSubmitting] = useState(false);
+  const [modalError, setModalError] = useState("");
 
-  // Secretary data states
-  const [memberPoints, setMemberPoints] = useState(0);
-  const [pointsHistory, setPointsHistory] = useState([]);
-  const [announcements, setAnnouncements] = useState([]);
+  const fetchData = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      // 1. Fetch User's Allocations
+      const { data: allocData, error: allocError } = await supabase
+        .from("allocations")
+        .select("*")
+        .eq("userId", user.id);
+      
+      if (allocError) throw allocError;
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 1. On mount: check session & fetch user profile
-  // ─────────────────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const init = async () => {
-      // Check active session
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        router.replace("/login");
-        return;
-      }
-
-      // Fetch user profile from users table
-      const { data: profile, error: profileError } = await supabase
-        .from("users")
-        .select("uid, email, memberId, role, name, phone, branch, year, section, status")
-        .eq("uid", session.user.id)
-        .single();
-
-      if (profileError || !profile) {
-        await supabase.auth.signOut();
-        router.replace("/login");
-        return;
-      }
-
-      // Reject pending / rejected users
-      if (profile.status !== "accepted") {
-        await supabase.auth.signOut();
-        router.replace("/login");
-        return;
-      }
-
-      // Fetch secretary database for points and announcements
-      try {
-        const dbRes = await fetch("/api/secretary/db");
-        if (dbRes.ok) {
-          const dbData = await dbRes.json();
-          const userPointsObj = dbData.points[profile.uid] || { total: 0, history: [] };
-          setMemberPoints(userPointsObj.total);
-          setPointsHistory(userPointsObj.history);
-
-          const filteredMails = dbData.mails.filter(mail => 
-            mail.target === 'all' || mail.target === profile.role
-          );
-          setAnnouncements(filteredMails);
+      // Sort: Active 'issued' items first (newest first), then 'returned' items
+      const sortedAllocs = (allocData || []).sort((a, b) => {
+        if (a.status === b.status) {
+          return new Date(b.issuedAt || 0) - new Date(a.issuedAt || 0);
         }
-      } catch (err) {
-        console.error("Error fetching secretary database:", err);
+        return a.status === "issued" ? -1 : 1;
+      });
+      setAllocations(sortedAllocs);
+
+      // 2. Fetch Available Hardware
+      const { data: hwData, error: hwError } = await supabase
+        .from("hardware")
+        .select("*");
+      
+      if (hwError) throw hwError;
+      setHardware(hwData || []);
+    } catch (err) {
+      console.error("[MemberPortal] Error loading data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      fetchData();
+    }
+  }, [user, authLoading]);
+
+  // Handle Hardware Requisition Request
+  const handleOpenRequestModal = (item) => {
+    setSelectedItem(item);
+    setExpectedReturn("");
+    setQuantity(1);
+    setModalError("");
+  };
+
+  const handleCloseRequestModal = () => {
+    setSelectedItem(null);
+    setExpectedReturn("");
+    setQuantity(1);
+    setModalError("");
+  };
+
+  const handleSubmitRequisition = async (e) => {
+    e.preventDefault();
+    if (!selectedItem || !expectedReturn) {
+      setModalError("Please specify an expected return date.");
+      return;
+    }
+
+    setModalSubmitting(true);
+    setModalError("");
+
+    try {
+      const requestQty = parseInt(quantity, 10);
+      if (isNaN(requestQty) || requestQty <= 0) {
+        throw new Error("Please enter a valid quantity.");
       }
 
-      setUserData(profile);
-      setAuthLoading(false);
-    };
+      // Double check availability
+      const { data: freshItem, error: getHwError } = await supabase
+        .from("hardware")
+        .select("availableQuantity, name")
+        .eq("id", selectedItem.id)
+        .single();
+      
+      if (getHwError) throw getHwError;
 
-    init();
-  }, [router]);
+      if (!freshItem || freshItem.availableQuantity < requestQty) {
+        throw new Error(`Insufficient stock. Only ${freshItem?.availableQuantity || 0} available.`);
+      }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 2. Once user is loaded, fetch their allocations & available hardware
-  // ─────────────────────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!userData) return;
-    fetchAllocations();
-    fetchHardware();
-  }, [userData]);
+      // 1. Insert allocation record
+      const { error: allocError } = await supabase
+        .from("allocations")
+        .insert([{
+          userId: user.id,
+          userName: profile?.name || user.email?.split("@")[0] || "Student",
+          memberId: profile?.memberId || "STUDENT",
+          itemId: selectedItem.id,
+          itemName: freshItem.name,
+          expectedReturn: expectedReturn,
+          quantity: requestQty,
+          status: "pending",
+          issuedAt: null
+        }]);
 
-  const fetchAllocations = async () => {
-    setAllocLoading(true);
-    const { data, error } = await supabase
-      .from("allocations")
-      .select(
-        'id, userId, userName, memberId, itemId, itemName, expectedReturn, status, issuedAt, returnedAt'
-      )
-      .eq("userId", userData.uid)
-      .order("issuedAt", { ascending: false });
+      if (allocError) throw allocError;
 
-    if (!error && data) setAllocations(data);
-    setAllocLoading(false);
-  };
-
-  const fetchHardware = async () => {
-    const { data, error } = await supabase
-      .from("hardware")
-      .select('id, name, category, totalQuantity, availableQuantity')
-      .gt("availableQuantity", 0);
-
-    if (!error && data) {
-      setHardwareList(data);
-      if (data.length > 0) setSelectedItemId(data[0].id);
+      // Reset and reload
+      handleCloseRequestModal();
+      await fetchData();
+      alert("Hardware requisition submitted successfully!");
+    } catch (err) {
+      console.error("[MemberPortal] Requisition failed:", err);
+      setModalError(err.message || "Failed to submit requisition request.");
+    } finally {
+      setModalSubmitting(false);
     }
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 3. Return a hardware item
-  // ─────────────────────────────────────────────────────────────────────────
-  const handleReturn = async (allocationId, itemId) => {
-    const isConfirmed = await showConfirm("Confirm return of this hardware?", "Return Item");
-    if (!isConfirmed) return;
-
-    const now = new Date().toISOString();
-
-    // Update allocation status
-    const { error: allocErr } = await supabase
-      .from("allocations")
-      .update({ status: "returned", returnedAt: now })
-      .eq("id", allocationId);
-
-    if (allocErr) {
-      await showAlert("Failed to process return. Please try again.", "Return Failed");
+  // Handle return of allocated hardware
+  const handleReturnItem = async (allocation) => {
+    if (!window.confirm(`Are you sure you want to log return for "${allocation.itemName}"?`)) {
       return;
     }
 
-    // Increment hardware availableQuantity
-    const hwItem = hardwareList.find((h) => h.id === itemId) ||
-      allocations.find((a) => a.itemId === itemId);
+    setLoading(true);
+    try {
+      // 1. Update allocation status
+      const { error: allocError } = await supabase
+        .from("allocations")
+        .update({
+          status: "returned",
+          returnedAt: new Date().toISOString()
+        })
+        .eq("id", allocation.id);
 
-    if (hwItem) {
-      await supabase.rpc("increment_available_quantity", { item_id: itemId }).catch(() => {
-        // RPC might not exist – silently fail; admin can reconcile
-      });
+      if (allocError) throw allocError;
+
+      await fetchData();
+      alert("Hardware return updated successfully.");
+    } catch (err) {
+      console.error("[MemberPortal] Return process failed:", err);
+      alert("Failed to process hardware return: " + err.message);
+      setLoading(false);
     }
-
-    // Refresh allocations list
-    fetchAllocations();
   };
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // 4. Submit hardware request
-  // ─────────────────────────────────────────────────────────────────────────
-  const handleRequest = async (e) => {
-    e.preventDefault();
-    setFormMsg(null);
-
-    if (!selectedItemId) {
-      setFormMsg({ type: "error", text: "Please select a hardware item." });
-      return;
-    }
-    if (!expectedReturn) {
-      setFormMsg({ type: "error", text: "Please select an expected return date." });
-      return;
-    }
-
-    const selectedHw = hardwareList.find((h) => String(h.id) === String(selectedItemId));
-    if (!selectedHw) {
-      setFormMsg({ type: "error", text: "Selected item not found. Please refresh." });
-      return;
-    }
-
-    setFormLoading(true);
-
-    const { error } = await supabase.from("allocations").insert({
-      userId: userData.uid,
-      userName: userData.name || userData.email,
-      memberId: userData.memberId || null,
-      itemId: String(selectedHw.id),
-      itemName: selectedHw.name,
-      expectedReturn,
-      status: "issued",
-      issuedAt: new Date().toISOString(),
-      returnedAt: null,
-    });
-
-    if (error) {
-      setFormMsg({ type: "error", text: "Request failed: " + error.message });
-    } else {
-      setFormMsg({ type: "success", text: `Hardware "${selectedHw.name}" allocated successfully!` });
-      setExpectedReturn("");
-      fetchAllocations();
-      fetchHardware();
-    }
-
-    setFormLoading(false);
-  };
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // 5. Logout
-  // ─────────────────────────────────────────────────────────────────────────
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/login");
-  };
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Loading / redirect guard
-  // ─────────────────────────────────────────────────────────────────────────
-  if (authLoading) {
-    return (
-      <>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        <div style={S.loadingScreen}>
-          <div style={S.spinner} />
-          <span style={{ color: "var(--text-muted)", fontSize: "0.85rem", letterSpacing: "0.1em" }}>
-            AUTHENTICATING…
-          </span>
-        </div>
-      </>
-    );
-  }
-
-  if (!userData) return null;
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────────────────────────────────────
-  const issuedAllocations = allocations.filter((a) => a.status === "issued");
-  const returnedAllocations = allocations.filter((a) => a.status === "returned");
 
   return (
-    <>
-      {/* Global keyframe injected via style tag */}
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .portal-animate { animation: fadeUp 0.5s ease forwards; }
-        .portal-animate-delay { animation: fadeUp 0.5s 0.12s ease both; }
-        .portal-animate-delay2 { animation: fadeUp 0.5s 0.24s ease both; }
-
-        .logout-btn:hover {
-          background: rgba(255,255,255,0.08) !important;
-          border-color: rgba(255,255,255,0.15) !important;
-          color: var(--text-primary) !important;
-        }
-        .return-btn:hover {
-          background: rgba(255,107,53,0.18) !important;
-          border-color: rgba(255,107,53,0.4) !important;
-        }
-        .submit-btn:hover:not(:disabled) {
-          opacity: 0.88;
-          transform: translateY(-1px);
-        }
-        .submit-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .form-select:focus, .form-input:focus {
-          border-color: rgba(255,107,53,0.45) !important;
-          box-shadow: 0 0 0 3px rgba(255,107,53,0.08);
-        }
-        .hw-row:hover td {
-          background: rgba(255,255,255,0.02);
-        }
-        @media (max-width: 640px) {
-          .form-grid { grid-template-columns: 1fr !important; }
-          .header-inner { padding: 0 20px !important; }
-          .page-inner { padding: 0 20px !important; }
-        }
-      `}</style>
-
-      <div style={S.page}>
-        {/* Background orbs */}
-        <div style={S.orb1} />
-        <div style={S.orb2} />
-
-        {/* ── HEADER ──────────────────────────────────────────────── */}
-        <header style={S.header}>
-          <div style={S.headerInner} className="header-inner">
-            <div style={S.headerLeft}>
-              <div style={S.logoBar} />
-              <div>
-                <span style={S.portalLabel}>Member Portal</span>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "2px" }}>
-                  <span style={S.memberName}>{userData.name || userData.email}</span>
-                  {userData.memberId && (
-                    <span style={S.memberIdBadge}>
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                        <rect x="0.5" y="0.5" width="9" height="9" rx="1.5" stroke="currentColor" strokeOpacity="0.7"/>
-                        <rect x="2.5" y="3" width="5" height="1" rx="0.5" fill="currentColor"/>
-                        <rect x="2.5" y="5" width="3.5" height="1" rx="0.5" fill="currentColor"/>
-                      </svg>
-                      {userData.memberId}
-                    </span>
-                  )}
-                </div>
+    <ProtectedRoute>
+      <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col font-inter">
+        {/* Navigation Header */}
+        <header className="border-b border-white/[0.05] bg-black/40 backdrop-blur-md sticky top-0 z-55">
+          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center font-orbitron text-cyan-400 font-black text-lg">
+                R
               </div>
+              <span className="font-orbitron font-bold tracking-widest text-sm text-gray-200">
+                ROBOTICS CLUB PORTAL
+              </span>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              {userData && ['admin', 'technical', 'ops', 'data', 'secretary'].includes(userData.role) && (
-                <button
-                  style={{ ...S.logoutBtn, color: "#a78bfa", borderColor: "rgba(167,139,250,0.25)", background: "rgba(167,139,250,0.07)" }}
-                  onClick={() => router.push('/dashboard')}
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "4px" }}>
-                    <rect x="3" y="3" width="7" height="9" stroke="currentColor" />
-                    <rect x="14" y="3" width="7" height="5" stroke="currentColor" />
-                    <rect x="14" y="12" width="7" height="9" stroke="currentColor" />
-                    <rect x="3" y="16" width="7" height="5" stroke="currentColor" />
-                  </svg>
-                  Dashboard
-                </button>
-              )}
+            <div className="flex items-center gap-6">
+              <div className="hidden md:flex flex-col items-end">
+                <span className="text-sm font-semibold text-white">{profile?.name || "Student"}</span>
+                <span className="text-xs text-gray-400 font-mono">{user?.email}</span>
+              </div>
               <button
-                style={{ ...S.logoutBtn, color: "var(--accent-orange)", borderColor: "rgba(255,107,53,0.25)", background: "rgba(255,107,53,0.07)" }}
-                onClick={() => router.push('/')}
+                onClick={logout}
+                className="px-4 py-2 border border-red-500/20 hover:border-red-500 bg-red-950/10 hover:bg-red-950/30 text-red-400 rounded-lg text-xs font-orbitron transition-all"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M3 12L12 3l9 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M9 21V12h6v9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Home
-              </button>
-              <button
-                className="logout-btn"
-                style={S.logoutBtn}
-                onClick={handleLogout}
-              >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M5 2H2.5A1.5 1.5 0 001 3.5v7A1.5 1.5 0 002.5 12H5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-                  <path d="M9.5 10L13 7m0 0L9.5 4M13 7H5.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Logout
+                LOGOUT
               </button>
             </div>
           </div>
         </header>
 
-        {/* ── MAIN ────────────────────────────────────────────────── */}
-        <main style={{ ...S.main }}>
-          <div style={S.inner} className="page-inner">
+        {/* Main Content Area */}
+        <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-12">
+          
+          {/* Welcome Dashboard */}
+          <div className="mb-10 bg-gradient-to-r from-slate-900 to-black border border-white/[0.04] p-8 rounded-2xl relative overflow-hidden shadow-xl">
+            <div className="absolute right-0 top-0 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
+            <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest bg-cyan-500/5 border border-cyan-500/20 px-3 py-1 rounded-full">
+              COLLEGE STUDENT MEMBER ENVIRONMENT
+            </span>
+            <h1 className="text-3xl font-bold font-orbitron mt-4 tracking-wider uppercase text-white">
+              Welcome back, {profile?.name || "Student"}
+            </h1>
+            <p className="text-sm text-gray-400 mt-2 max-w-xl leading-relaxed">
+              Access the campus lab hardware stock to requisition components for projects, or track items currently in your possession.
+            </p>
+          </div>
 
-            {/* Greeting */}
-            <div style={S.greeting} className="portal-animate">
-              <span style={S.sectionLabel}>Welcome back</span>
-              <h1 style={S.pageTitle}>
-                Hey, {userData.name?.split(" ")[0] || "Member"} 👋
-              </h1>
-              <p style={S.pageSubtitle}>
-                Manage your hardware allocations and submit new requests below.
-                {userData.branch && ` • ${userData.branch}`}
-                {userData.year && ` Year ${userData.year}`}
-                {userData.section && ` — Section ${userData.section}`}
-              </p>
-            </div>
-
-            {/* Responsibilities Banner */}
-            {ROLE_RESPONSIBILITIES[userData.role] && (
-              <div 
-                style={{
-                  ...S.card,
-                  padding: "20px 24px",
-                  marginBottom: "32px",
-                  background: "rgba(255, 255, 255, 0.01)",
-                  border: "1px solid rgba(255, 255, 255, 0.05)",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "6px"
-                }} 
-                className="portal-animate-delay"
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span style={{ fontSize: "1rem" }}>⚡</span>
-                  <span style={{ 
-                    fontSize: "0.68rem", 
-                    fontWeight: 700, 
-                    letterSpacing: "0.15em", 
-                    textTransform: "uppercase", 
-                    color: "var(--accent-orange)"
-                  }}>
-                    Your Responsibilities ({ROLE_RESPONSIBILITIES[userData.role].title})
-                  </span>
-                </div>
-                <p style={{ 
-                  fontSize: "0.85rem", 
-                  color: "var(--text-secondary)", 
-                  lineHeight: "1.5",
-                  margin: 0 
-                }}>
-                  {ROLE_RESPONSIBILITIES[userData.role].desc}
-                </p>
-              </div>
-            )}
-
-            {/* Announcements and Points Grid */}
-            <div 
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-                gap: "24px",
-                marginBottom: "40px"
-              }}
-              className="portal-animate-delay"
+          {/* Navigation Tabs */}
+          <div className="flex gap-4 mb-8 border-b border-white/[0.05] pb-px">
+            <button
+              onClick={() => setActiveTab("requisition")}
+              className={`pb-4 text-sm font-orbitron font-bold tracking-wider relative transition-all ${
+                activeTab === "requisition" ? "text-cyan-400" : "text-gray-400 hover:text-gray-200"
+              }`}
             >
-              {/* Card 1: Attendance Points */}
-              <div 
-                style={{
-                  ...S.card,
-                  padding: "24px",
-                  display: "flex",
-                  flexDirection: "column",
-                  background: "rgba(255, 255, 255, 0.01)",
-                  border: "1px solid rgba(255, 255, 255, 0.05)"
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ fontSize: "1.2rem" }}>🎯</span>
-                    <span style={{ fontSize: "0.85rem", fontWeight: 700, letterSpacing: "0.05em", color: "var(--text-primary)" }}>
-                      ATTENDANCE SCORE
-                    </span>
-                  </div>
-                  <span 
-                    style={{ 
-                      fontSize: "1.25rem", 
-                      fontWeight: 800, 
-                      color: memberPoints >= 0 ? "rgba(34, 197, 94, 0.9)" : "rgba(239, 68, 68, 0.9)",
-                      fontFamily: "monospace" 
-                    }}
-                  >
-                    {memberPoints >= 0 ? `+${memberPoints}` : memberPoints} pts
-                  </span>
+              HARDWARE REQUISITION
+              {activeTab === "requisition" && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab("borrowed")}
+              className={`pb-4 text-sm font-orbitron font-bold tracking-wider relative transition-all ${
+                activeTab === "borrowed" ? "text-cyan-400" : "text-gray-400 hover:text-gray-200"
+              }`}
+            >
+              MY BORROWED HARDWARE
+              {activeTab === "borrowed" && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500" />
+              )}
+            </button>
+          </div>
+
+          {/* Tab Views */}
+          {loading ? (
+            <div className="text-center py-20 text-cyan-400 font-orbitron animate-pulse uppercase tracking-widest text-sm">
+              Syncing Portal database...
+            </div>
+          ) : activeTab === "requisition" ? (
+            /* Hardware Requisition Roster */
+            <div>
+              {hardware.length === 0 ? (
+                <div className="text-center py-20 bg-slate-900/10 border border-white/[0.04] rounded-2xl text-gray-500 font-mono text-sm">
+                  No hardware items are cataloged in the inventory system.
                 </div>
-                
-                <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "14px", flexGrow: 1 }}>
-                  <div style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: "8px" }}>
-                    Recent Activity Log
-                  </div>
-                  {pointsHistory.length === 0 ? (
-                    <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontStyle: "italic", marginTop: "8px", margin: 0 }}>
-                      No points adjustments recorded yet.
-                    </p>
-                  ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxHeight: "120px", overflowY: "auto" }}>
-                      {pointsHistory.slice(0, 3).map(h => (
-                        <div key={h.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "start", fontSize: "0.78rem" }}>
-                          <div style={{ paddingRight: "10px" }}>
-                            <div style={{ color: "var(--text-secondary)", fontWeight: 500, lineHeight: 1.3 }}>{h.reason}</div>
-                            <div style={{ fontSize: "0.65rem", color: "var(--text-muted)", marginTop: "2px" }}>{h.date}</div>
-                          </div>
-                          <span style={{ 
-                            fontWeight: 700, 
-                            fontFamily: "monospace",
-                            color: h.pointsChange >= 0 ? "#22c55e" : "#ef4444",
-                            whiteSpace: "nowrap"
-                          }}>
-                            {h.pointsChange >= 0 ? `+${h.pointsChange}` : h.pointsChange}
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {hardware.map((item) => {
+                    const isAvailable = item.availableQuantity > 0;
+                    return (
+                      <div
+                        key={item.id}
+                        className="glass-card border border-white/[0.05] hover:border-cyan-500/30 rounded-2xl overflow-hidden transition-all flex flex-col justify-between"
+                      >
+                        {/* Thumbnail image */}
+                        <div className="aspect-video bg-slate-950/60 relative overflow-hidden flex items-center justify-center border-b border-white/[0.04]">
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="text-slate-700 font-orbitron text-xs font-semibold uppercase">
+                              NO THUMBNAIL
+                            </div>
+                          )}
+                          <span
+                            className={`absolute top-3 right-3 text-[9px] font-mono font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border ${
+                              isAvailable
+                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                : "bg-red-500/10 text-red-400 border-red-500/20"
+                            }`}
+                          >
+                            {isAvailable ? `In Stock (${item.availableQuantity})` : "Out of Stock"}
                           </span>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Card 2: Recent Announcements */}
-              <div 
-                style={{
-                  ...S.card,
-                  padding: "24px",
-                  display: "flex",
-                  flexDirection: "column",
-                  background: "rgba(255, 255, 255, 0.01)",
-                  border: "1px solid rgba(255, 255, 255, 0.05)"
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-                  <span style={{ fontSize: "1.2rem" }}>📢</span>
-                  <span style={{ fontSize: "0.85rem", fontWeight: 700, letterSpacing: "0.05em", color: "var(--text-primary)" }}>
-                    LATEST ANNOUNCEMENTS
-                  </span>
-                </div>
-
-                <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "14px", flexGrow: 1 }}>
-                  {announcements.length === 0 ? (
-                    <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontStyle: "italic", margin: 0 }}>
-                      No announcements posted for you.
-                    </p>
-                  ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "120px", overflowY: "auto" }}>
-                      {announcements.slice(0, 2).map(ann => (
-                        <div key={ann.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)", paddingBottom: "10px" }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                            <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--accent-orange)" }}>
-                              {ann.subject}
+                        {/* Title and details */}
+                        <div className="p-5 flex-1 flex flex-col justify-between gap-4">
+                          <div>
+                            <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest bg-cyan-500/5 px-2 py-0.5 rounded border border-cyan-500/10">
+                              {item.category || "General"}
                             </span>
-                            <span style={{ fontSize: "0.62rem", color: "var(--text-muted)", fontFamily: "monospace" }}>
-                              {ann.date}
+                            <h3 className="font-orbitron font-bold text-white text-base mt-2.5">
+                              {item.name}
+                            </h3>
+                          </div>
+
+                          <button
+                            onClick={() => handleOpenRequestModal(item)}
+                            disabled={!isAvailable}
+                            className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-orbitron font-bold text-xs rounded-xl tracking-wider transition-colors disabled:opacity-30 disabled:hover:bg-cyan-600"
+                          >
+                            REQUEST REQUISITION
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ) : (
+            /* My Borrowed Hardware List */
+            <div>
+              {allocations.length === 0 ? (
+                <div className="text-center py-20 bg-slate-900/10 border border-white/[0.04] rounded-2xl text-gray-500 font-mono text-sm">
+                  You have not requisitioned any hardware items.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {allocations.map((alloc) => {
+                    const isIssued = alloc.status === "issued";
+                    return (
+                      <div
+                        key={alloc.id}
+                        className="glass-card p-5 border border-white/[0.04] hover:border-cyan-500/20 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-6 transition-all"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-orbitron font-bold text-white text-base">
+                              {alloc.itemName}
+                            </h3>
+                            <span
+                              className={`text-[9px] font-mono font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full border ${
+                                isIssued
+                                  ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                  : "bg-gray-500/10 text-gray-400 border-gray-500/20"
+                              }`}
+                            >
+                              {alloc.status}
                             </span>
                           </div>
-                          <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", lineHeight: "1.4", margin: 0 }}>
-                            {ann.body}
-                          </p>
+
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4 text-xs font-mono text-gray-400">
+                            <div>
+                              <span className="block text-[10px] text-gray-600 uppercase">Issued On</span>
+                              <span className="text-gray-300">{formatDate(alloc.issuedAt)}</span>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] text-gray-600 uppercase">Expected Return</span>
+                              <span className="text-gray-300">{alloc.expectedReturn || "N/A"}</span>
+                            </div>
+                            {alloc.returnedAt && (
+                              <div>
+                                <span className="block text-[10px] text-gray-600 uppercase">Returned On</span>
+                                <span className="text-gray-300">{formatDate(alloc.returnedAt)}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
 
-            {/* ── SECTION: MY HARDWARE ────────────────────────────── */}
-            <div style={S.sectionWrapper} className="portal-animate-delay">
-              <div style={S.sectionHead}>
-                <div style={{ ...S.sectionIcon, ...S.sectionIconOrange }}>📦</div>
-                <span style={S.sectionTitle}>My Hardware</span>
-                <span style={S.sectionCount}>
-                  {allocLoading ? "…" : `${issuedAllocations.length} active`}
-                </span>
-              </div>
-
-              <div style={S.card}>
-                {allocLoading ? (
-                  <div style={S.emptyState}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
-                      <div style={{ ...S.spinner, width: "20px", height: "20px", borderWidth: "2px" }} />
-                      <span>Loading allocations…</span>
-                    </div>
-                  </div>
-                ) : allocations.length === 0 ? (
-                  <div style={S.emptyState}>
-                    <div style={S.emptyIcon}>📭</div>
-                    <p style={{ color: "var(--text-muted)", marginBottom: "4px" }}>No hardware allocated yet</p>
-                    <p style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>
-                      Use the form below to request items.
-                    </p>
-                  </div>
-                ) : (
-                  <div style={S.tableWrapper}>
-                    <table style={S.table}>
-                      <thead>
-                        <tr>
-                          <th style={S.th}>Item</th>
-                          <th style={S.th}>Qty</th>
-                          <th style={S.th}>Expected Return</th>
-                          <th style={S.th}>Issued At</th>
-                          <th style={S.th}>Status</th>
-                          <th style={S.th}>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {allocations.map((alloc) => (
-                          <tr key={alloc.id} className="hw-row" style={{ transition: "background 0.15s ease" }}>
-                            <td style={{ ...S.td, ...S.tdName }}>{alloc.itemName || "—"}</td>
-                            <td style={S.td}>1</td>
-                            <td style={S.td}>
-                              {alloc.expectedReturn
-                                ? new Date(alloc.expectedReturn).toLocaleDateString("en-IN", {
-                                    day: "2-digit",
-                                    month: "short",
-                                    year: "numeric",
-                                  })
-                                : "—"}
-                            </td>
-                            <td style={S.td}>
-                              {alloc.issuedAt
-                                ? new Date(alloc.issuedAt).toLocaleDateString("en-IN", {
-                                    day: "2-digit",
-                                    month: "short",
-                                    year: "numeric",
-                                  })
-                                : "—"}
-                            </td>
-                            <td style={S.td}>
-                              <span style={S.statusBadge(alloc.status)}>
-                                {alloc.status === "issued" ? "⬤" : "✓"}&nbsp;{alloc.status}
-                              </span>
-                            </td>
-                            <td style={S.td}>
-                              {alloc.status === "issued" ? (
-                                <button
-                                  className="return-btn"
-                                  style={S.returnBtn}
-                                  onClick={() => handleReturn(alloc.id, alloc.itemId)}
-                                >
-                                  Return
-                                </button>
-                              ) : (
-                                <span style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>
-                                  Returned {alloc.returnedAt
-                                    ? new Date(alloc.returnedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })
-                                    : ""}
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* ── SECTION: REQUEST HARDWARE ────────────────────────── */}
-            <div style={S.sectionWrapper} className="portal-animate-delay2">
-              <div style={S.sectionHead}>
-                <div style={{ ...S.sectionIcon, ...S.sectionIconPurple }}>🔧</div>
-                <span style={S.sectionTitle}>Request Hardware</span>
-              </div>
-
-              <div style={S.formCard}>
-                {/* Form banner */}
-                {formMsg && (
-                  <div style={S.banner(formMsg.type)}>
-                    {formMsg.type === "success" ? "✓" : "⚠"}&nbsp;{formMsg.text}
-                  </div>
-                )}
-
-                {hardwareList.length === 0 ? (
-                  <div style={{ ...S.emptyState, padding: "32px 0" }}>
-                    <div style={S.emptyIcon}>🚫</div>
-                    <p style={{ color: "var(--text-muted)" }}>No hardware available at the moment.</p>
-                  </div>
-                ) : (
-                  <form onSubmit={handleRequest}>
-                    <div style={S.formGrid} className="form-grid">
-                      {/* Item selector */}
-                      <div style={S.formGroup}>
-                        <label style={S.formLabel}>Select Item</label>
-                        <select
-                          className="form-select"
-                          style={S.formSelect}
-                          value={selectedItemId}
-                          onChange={(e) => setSelectedItemId(e.target.value)}
-                          required
-                        >
-                          {hardwareList.map((hw) => (
-                            <option
-                              key={hw.id}
-                              value={hw.id}
-                              style={{ background: "#111", color: "#f5f5f5" }}
+                        {isIssued && (
+                          <div className="shrink-0 flex items-center">
+                            <button
+                              onClick={() => handleReturnItem(alloc)}
+                              className="px-4 py-2 border border-emerald-500/20 hover:border-emerald-500 bg-emerald-950/10 hover:bg-emerald-950/30 text-emerald-400 rounded-lg text-xs font-orbitron transition-all"
                             >
-                              {hw.name}
-                              {hw.category ? ` (${hw.category})` : ""}
-                              {" — "}
-                              {hw.availableQuantity} available
-                            </option>
-                          ))}
-                        </select>
+                              RETURN ITEM
+                            </button>
+                          </div>
+                        )}
                       </div>
-
-                      {/* Expected return date */}
-                      <div style={S.formGroup}>
-                        <label style={S.formLabel}>Expected Return Date</label>
-                        <input
-                          type="date"
-                          className="form-input"
-                          style={S.formInput}
-                          value={expectedReturn}
-                          min={new Date().toISOString().split("T")[0]}
-                          onChange={(e) => setExpectedReturn(e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    {/* Hint */}
-                    <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "20px" }}>
-                      You are responsible for returning items by the selected date. Late returns may affect future access.
-                    </p>
-
-                    <button
-                      type="submit"
-                      className="submit-btn"
-                      style={S.submitBtn}
-                      disabled={formLoading}
-                    >
-                      {formLoading ? (
-                        <>
-                          <div style={{ ...S.spinner, width: "14px", height: "14px", borderWidth: "2px" }} />
-                          Submitting…
-                        </>
-                      ) : (
-                        <>
-                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <path d="M7 1v12M1 7h12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                          </svg>
-                          Request Hardware
-                        </>
-                      )}
-                    </button>
-                  </form>
-                )}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-
-          </div>
+          )}
         </main>
+
+        {/* Requisition Request Modal */}
+        {selectedItem && (
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div className="w-full max-w-md bg-[#0d0d11] border border-white/[0.08] p-6 rounded-2xl shadow-2xl relative">
+              <h3 className="font-orbitron font-bold text-white text-lg mb-2">
+                REQUISITION HARDWARE
+              </h3>
+              <p className="text-xs text-gray-400 mb-6 font-mono">
+                Item: {selectedItem.name}
+              </p>
+
+              {modalError && (
+                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-mono">
+                  {modalError}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmitRequisition} className="space-y-5">
+                <div>
+                  <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">
+                    Quantity
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    max={selectedItem.availableQuantity || 1}
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
+                  />
+                  <p className="text-[10px] text-gray-500 mt-1">
+                    Available stock: {selectedItem.availableQuantity || 0}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">
+                    Expected Return Date
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    min={new Date().toISOString().split("T")[0]}
+                    value={expectedReturn}
+                    onChange={(e) => setExpectedReturn(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleCloseRequestModal}
+                    className="flex-1 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 text-gray-300 font-orbitron text-xs rounded-xl transition-all"
+                  >
+                    CANCEL
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={modalSubmitting}
+                    className="flex-1 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-orbitron font-bold text-xs rounded-xl tracking-wider transition-colors disabled:opacity-50"
+                  >
+                    {modalSubmitting ? "PROCESSING..." : "SUBMIT"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
-    </>
+    </ProtectedRoute>
   );
 }

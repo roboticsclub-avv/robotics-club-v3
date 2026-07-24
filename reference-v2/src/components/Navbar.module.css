@@ -94,8 +94,8 @@
     font-size: 0.825rem;
     font-weight: 500;
     color: var(--text-secondary);
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-subtle);
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
     transition: all var(--transition-fast);
     display: flex;
     align-items: center;
@@ -104,24 +104,26 @@
 
 .btnSecondary:hover {
     color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.09);
-    border-color: rgba(255, 255, 255, 0.15);
+    background: var(--bg-card-hover);
+    border-color: var(--accent-purple);
 }
 
 .btnPrimary {
-    padding: 8px 18px;
-    border-radius: var(--radius-pill);
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
     font-size: 0.825rem;
     font-weight: 600;
-    color: #000;
-    background: var(--text-primary);
-    transition: all var(--transition-fast);
+    color: #0B0F19;
+    background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%);
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
 }
 
 .btnPrimary:hover {
-    background: #ffffff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(0, 242, 254, 0.6);
 }
 
 .hamburger {
@@ -172,7 +174,7 @@
         left: 0;
         width: 100%;
         height: 100vh;
-        background: rgba(10, 10, 10, 0.97);
+        background: var(--bg-secondary);
         backdrop-filter: blur(20px);
         z-index: 999;
         flex-direction: column;

@@ -54,12 +54,9 @@ export default function About() {
                             classname="section-title"
                             direction="down"
                         />
-                        <TextAnimation
-                            as="p"
-                            text="We're a community of passionate engineers, designers, and innovators working together to push the boundaries of what robots can do. From autonomous drones to AI-powered assistants, we turn ideas into reality."
-                            classname="section-description"
-                            direction="down"
-                        />
+                        <p className="section-description">
+                            We're a community of passionate engineers, designers, and innovators working together to push the boundaries of what robots can do. From autonomous drones to AI-powered assistants, we turn ideas into reality.
+                        </p>
 
                         <div className={styles.stats}>
                             {STATS.map((stat) => (

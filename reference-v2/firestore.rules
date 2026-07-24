@@ -1,0 +1,105 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Fetch logged-in user's role from users collection
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    // Helper functions for role-based authorization
+    function isAdmin() {
+      return request.auth != null && getUserRole() == 'admin';
+    }
+
+    // Any staff member (admin, technical, ops, data, secretary, media)
+    function isStaff() {
+      return request.auth != null && (
+        getUserRole() == 'admin' || 
+        getUserRole() == 'technical' || 
+        getUserRole() == 'ops' || 
+        getUserRole() == 'data' || 
+        getUserRole() == 'secretary' ||
+        getUserRole() == 'media'
+      );
+    }
+
+    function isMedia() {
+      return request.auth != null && (getUserRole() == 'admin' || getUserRole() == 'media');
+    }
+
+    function isOps() {
+      return request.auth != null && (getUserRole() == 'admin' || getUserRole() == 'ops');
+    }
+
+    // data role can manage hardware and allocations
+    function isData() {
+      return request.auth != null && (getUserRole() == 'admin' || getUserRole() == 'data');
+    }
+
+    // technical role can manage core team hub
+    function isTechnical() {
+      return request.auth != null && (getUserRole() == 'admin' || getUserRole() == 'technical');
+    }
+
+    match /users/{userId} {
+      // Users can read their own profile, staff can read all users
+      allow read: if request.auth != null && (request.auth.uid == userId || isStaff());
+      
+      // Users can create their own profile upon registration
+      // Enforce default fields: role must be 'member' and status 'pending'
+      allow create: if request.auth != null 
+                    && request.auth.uid == userId
+                    && request.resource.data.role == 'member'
+                    && request.resource.data.status == 'pending';
+                    
+      // Only admins can update profiles (e.g. approve/reject, promote) or delete
+      allow update, delete: if isAdmin();
+    }
+
+    match /events/{eventId} {
+      // Anyone can see events
+      allow read: if true;
+      // Admin and Ops can manage events
+      allow write: if isOps();
+    }
+
+    match /hardware/{hwId} {
+      // Anyone logged in can see hardware
+      allow read: if request.auth != null;
+      // Admin and Data staff can manage inventory
+      allow write: if isData();
+    }
+
+    match /allocations/{allocationId} {
+      // Admins and Data staff can read all, members can read their own
+      allow read: if request.auth != null && (request.auth.uid == resource.data.userId || isData());
+      // Admin and Data staff can manage allocations
+      allow write: if isData();
+    }
+
+    match /core_team/{memberId} {
+      // Anyone can read team members
+      allow read: if true;
+      // Admin and Technical staff can manage core team roster
+      allow write: if isTechnical();
+    }
+
+    match /gallery/{imageId} {
+      allow read: if true;
+      allow write: if isMedia();
+    }
+
+    match /settings/{settingId} {
+      // Anyone can read settings (like recruitment toggles)
+      allow read: if true;
+      // Only admins can write settings
+      allow write: if isAdmin();
+    }
+
+    // Catch-all: deny everything not explicitly covered
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import styles from "./Projects.module.css";
 import TextAnimation from "./ui/scroll-text";
 import { InfiniteMovingCards } from "./ui/infinite-moving-cards";
@@ -64,6 +66,29 @@ const PROJECTS = [
 ];
 
 export default function Projects() {
+    const [projectList, setProjectList] = useState([]);
+
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from("projects")
+                    .select("*")
+                    .order("createdAt", { ascending: false });
+                if (error) throw error;
+                if (data && data.length > 0) {
+                    setProjectList(data);
+                } else {
+                    setProjectList(PROJECTS);
+                }
+            } catch (err) {
+                console.error("Error loading projects:", err);
+                setProjectList(PROJECTS);
+            }
+        };
+        fetchProjects();
+    }, []);
+
     return (
         <section className={`section ${styles.projects}`} id="projects">
             <div className="container">
@@ -82,18 +107,16 @@ export default function Projects() {
                         classname="section-title"
                         direction="down"
                     />
-                    <TextAnimation
-                        as="p"
-                        text="From concept to competition — explore the projects our members have designed, built, and deployed."
-                        classname="section-description"
-                        direction="down"
-                        style={{ margin: "0 auto" }}
-                    />
+                    <p className="section-description" style={{ margin: "0 auto" }}>
+                        From concept to competition — explore the projects our members have designed, built, and deployed.
+                    </p>
                 </div>
 
                 {/* Infinite Moving Cards Carousel containing actual Projects */}
                 <div className="mt-16 w-full relative flex items-center justify-center">
-                  <InfiniteMovingCards items={PROJECTS} direction="right" speed="slow" />
+                  {projectList.length > 0 && (
+                    <InfiniteMovingCards items={projectList} direction="right" speed="slow" />
+                  )}
                 </div>
             </div>
         </section>

@@ -5,9 +5,12 @@ import { motion } from "motion/react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
-import Team from "@/components/Team";
+import FacultyMembers from "@/components/FacultyMembers";
+import StudentMentors from "@/components/StudentMentors";
+import StudentMembers from "@/components/StudentMembers";
 import Events from "@/components/Events";
 import Projects from "@/components/Projects";
+import Gallery from "@/components/Gallery";
 import Footer from "@/components/Footer";
 import LoadingScreen from "@/components/LoadingScreen";
 import Lenis from "lenis";
@@ -25,26 +28,18 @@ const sectionVariants = {
 };
 
 export default function Home() {
-  // Start false on both server and client to avoid hydration mismatch.
-  const [isLoading, setIsLoading] = useState(false);
-
-  // After hydration, check sessionStorage and show intro if not yet seen this session
-  useEffect(() => {
-    if (sessionStorage.getItem('intro_seen') !== 'true') {
-      setIsLoading(true);
-    }
-  }, []);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (isLoading) return;
 
-    // Initialize Lenis smooth scroll engine
+    // Initialize Lenis — tuned for snappy high-FPS buttery feel
     const lenis = new Lenis({
-      duration: 0.85,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      lerp: 0.12,            // Higher = more responsive, lower = more floaty/laggy
       smoothWheel: true,
-      wheelMultiplier: 1.0,
-      touchMultiplier: 1.5,
+      wheelMultiplier: 1.2,  // Slightly higher for immediate wheel response
+      touchMultiplier: 2.0,  // Snappier on touch/trackpad
+      infinite: false,
     });
     window.lenis = lenis;
 
@@ -79,7 +74,11 @@ export default function Home() {
   }, [isLoading]);
 
   const handleLoadingFinish = () => {
-    sessionStorage.setItem('intro_seen', 'true');
+    try {
+      sessionStorage.setItem('intro_seen', 'true');
+    } catch (e) {
+      console.warn("Session storage disabled:", e);
+    }
     setIsLoading(false);
   };
 
@@ -111,7 +110,25 @@ export default function Home() {
             viewport={{ once: true, amount: 0.12 }}
             variants={sectionVariants}
           >
-            <Team />
+            <FacultyMembers />
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.12 }}
+            variants={sectionVariants}
+          >
+            <StudentMentors />
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+            variants={sectionVariants}
+          >
+            <StudentMembers />
           </motion.div>
 
           <motion.div
@@ -130,6 +147,15 @@ export default function Home() {
             variants={sectionVariants}
           >
             <Projects />
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.12 }}
+            variants={sectionVariants}
+          >
+            <Gallery />
           </motion.div>
 
           <motion.div

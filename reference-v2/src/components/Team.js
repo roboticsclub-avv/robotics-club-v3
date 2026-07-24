@@ -44,14 +44,12 @@ export default function Team() {
 
                 if (error) throw error;
 
-                if (data) {
-                    const fac = data.filter(m => m.type === 'faculty');
-                    const mem = data.filter(m => m.type === 'member');
-                    setFaculty(fac);
-                    setMembers(mem);
-                    sessionStorage.setItem('cached_faculty', JSON.stringify(fac));
-                    sessionStorage.setItem('cached_members', JSON.stringify(mem));
-                }
+                const fac = (data || []).filter(m => m.type === 'faculty');
+                const mem = (data || []).filter(m => m.type === 'member');
+                setFaculty(fac);
+                setMembers(mem);
+                sessionStorage.setItem('cached_faculty', JSON.stringify(fac));
+                sessionStorage.setItem('cached_members', JSON.stringify(mem));
             } catch (error) {
                 console.error("Failed to load core team:", error);
                 setErrorMsg(error.message);
@@ -65,6 +63,22 @@ export default function Team() {
     const closeModal = () => {
         setSelectedMember(null);
     };
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") {
+                closeModal();
+            }
+        };
+        if (selectedMember) {
+            window.addEventListener("keydown", handleKeyDown);
+            document.body.style.overflow = "hidden";
+        }
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+            document.body.style.overflow = "";
+        };
+    }, [selectedMember]);
 
     return (
         <>
@@ -85,13 +99,9 @@ export default function Team() {
                             classname="section-title"
                             direction="down"
                         />
-                        <TextAnimation
-                            as="p"
-                            text="The minds behind the machines."
-                            classname="section-description"
-                            direction="down"
-                            style={{ margin: "0 auto" }}
-                        />
+                        <p className="section-description" style={{ margin: "0 auto" }}>
+                            The minds behind the machines.
+                        </p>
                     </div>
 
                     {loading ? (
@@ -108,7 +118,7 @@ export default function Team() {
                         <>
                             {faculty.length > 0 && (
                                 <div className="mb-16">
-                                    <h3 className="text-2xl font-orbitron text-white text-center mb-10 tracking-widest border-b border-purple-500/30 pb-4 inline-block mx-auto">FACULTY MEMBERS</h3>
+                                    <h3 className="text-2xl font-orbitron text-center mb-10 tracking-widest border-b border-purple-500/30 pb-4 inline-block mx-auto" style={{ color: "var(--text-primary)" }}>FACULTY MEMBERS</h3>
                                     <div>
                                         {faculty.map((member) => (
                                             <div key={member.id} className={`${styles.facultyCard} glass-card`}>
@@ -167,7 +177,7 @@ export default function Team() {
 
                             {members.length > 0 && (
                                 <div>
-                                    <h3 className="text-2xl font-orbitron text-white text-center mb-10 tracking-widest border-b border-cyan-500/30 pb-4 inline-block mx-auto">STUDENT MEMBERS</h3>
+                                    <h3 className="text-2xl font-orbitron text-center mb-10 tracking-widest border-b border-cyan-500/30 pb-4 inline-block mx-auto" style={{ color: "var(--text-primary)" }}>STUDENT MEMBERS</h3>
                                     <div className={styles.teamGrid}>
                                         {members.map((member) => (
                                             <div key={member.id} className={`${styles.teamCard} glass-card`}>
@@ -204,54 +214,56 @@ export default function Team() {
             </section>
 
             {/* View Profile Modal - Using createPortal to append to body so it escapes CSS transforms */}
-            {mounted && selectedMember && createPortal(
-                <div className={styles.modalOverlay} onClick={closeModal}>
+            {mounted && createPortal(
+                <div className={`${styles.modalOverlay} ${selectedMember ? styles.open : ""}`} onClick={closeModal}>
                     <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                         <button className={styles.modalCloseBtn} onClick={closeModal}>×</button>
 
-                        <div className={styles.modalBody}>
-                            <div className={styles.modalImageWrapper}>
-                                <Image
-                                    src={getImageUrl(selectedMember.image_url)}
-                                    alt={selectedMember.name}
-                                    className={styles.modalImage}
-                                    fill
-                                    style={{ objectFit: 'cover' }}
-                                    sizes="(max-width: 768px) 100vw, 40vw"
-                                />
-                            </div>
+                        {selectedMember && (
+                            <div className={styles.modalBody}>
+                                <div className={styles.modalImageWrapper}>
+                                    <Image
+                                        src={getImageUrl(selectedMember.image_url)}
+                                        alt={selectedMember.name}
+                                        className={styles.modalImage}
+                                        fill
+                                        style={{ objectFit: 'cover' }}
+                                        sizes="(max-width: 768px) 100vw, 40vw"
+                                    />
+                                </div>
 
-                            <div className={styles.modalInfo}>
-                                <h3 className={styles.modalName}>{selectedMember.name}</h3>
-                                <p className={styles.modalRole}>{selectedMember.role}</p>
+                                <div className={styles.modalInfo}>
+                                    <h3 className={styles.modalName}>{selectedMember.name}</h3>
+                                    <p className={styles.modalRole}>{selectedMember.role}</p>
 
-                                {selectedMember.quote && selectedMember.quote !== "null" && (
-                                    <blockquote className="border-l-2 border-purple-500 pl-4 py-1 italic text-slate-400 mb-6 text-lg tracking-wide">
-                                        &quot;{selectedMember.quote}&quot;
-                                    </blockquote>
-                                )}
+                                    {selectedMember.quote && selectedMember.quote !== "null" && (
+                                        <blockquote className="border-l-2 border-purple-500 pl-4 py-1 italic text-slate-400 mb-6 text-lg tracking-wide">
+                                            &quot;{selectedMember.quote}&quot;
+                                        </blockquote>
+                                    )}
 
-                                {selectedMember.bio && (
-                                    <div className={styles.modalSection}>
-                                        <h4 className={styles.modalSectionTitle}>BIO</h4>
-                                        <p className={styles.modalSectionText}>{selectedMember.bio}</p>
-                                    </div>
-                                )}
-
-                                {selectedMember.research && (
-                                    <div className={styles.modalSection}>
-                                        <h4 className={styles.modalSectionTitle}>RESEARCH INTERESTS</h4>
-                                        <div className={styles.interestsList}>
-                                            {selectedMember.research.split(',').map((interest, idx) => (
-                                                <span key={idx} className={styles.interestTag}>
-                                                    {interest.trim()}
-                                                </span>
-                                            ))}
+                                    {selectedMember.bio && (
+                                        <div className={styles.modalSection}>
+                                            <h4 className={styles.modalSectionTitle}>BIO</h4>
+                                            <p className={styles.modalSectionText}>{selectedMember.bio}</p>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+
+                                    {selectedMember.research && (
+                                        <div className={styles.modalSection}>
+                                            <h4 className={styles.modalSectionTitle}>RESEARCH INTERESTS</h4>
+                                            <div className={styles.interestsList}>
+                                                {selectedMember.research.split(',').map((interest, idx) => (
+                                                    <span key={idx} className={styles.interestTag}>
+                                                        {interest.trim()}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>,
                 document.body

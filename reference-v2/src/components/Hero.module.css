@@ -16,13 +16,15 @@
     align-items: center;
     gap: 60px;
     position: relative;
-    z-index: 1;
+    z-index: 3;
 }
 
 .heroContent {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    position: relative;
+    z-index: 3;
 }
 
 .badge {
@@ -109,22 +111,24 @@
 }
 
 .ctaPrimary {
-    padding: 14px 32px;
-    border-radius: var(--radius-pill);
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
     font-size: 0.95rem;
     font-weight: 600;
-    color: #000;
-    background: var(--text-primary);
-    transition: all var(--transition-fast);
+    color: #0B0F19;
+    background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%);
+    transition: all 0.3s ease;
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    border: none;
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
 }
 
 .ctaPrimary:hover {
-    background: #ffffff;
+    filter: brightness(1.1);
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 25px rgba(0, 242, 254, 0.6);
 }
 
 .ctaSecondary {
@@ -140,8 +144,8 @@
 
 .ctaSecondary:hover {
     color: var(--text-primary);
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--accent-purple);
+    background: var(--accent-purple-glow);
 }
 
 .shortcut {
@@ -178,16 +182,17 @@
 
 .splineWrapper {
     width: 100%;
-    height: 500px;
+    aspect-ratio: 3 / 2;
+    height: auto;
     position: relative;
-    background: #0a0a0a;
+    background: var(--bg-primary);
 }
 
 .splineWrapper spline-viewer,
 .splineWrapper canvas {
     width: 100%;
     height: 100%;
-    background: #0a0a0a !important;
+    background: var(--bg-primary) !important;
 }
 
 /* CSS 3D Cube Placeholder */
@@ -328,37 +333,114 @@
         min-height: 300px;
     }
 
-    .cubeScene {
-        width: 200px;
-        height: 200px;
+    .robotImageWrapper {
+        width: 100%;
+        max-width: 320px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
     }
 
-    .cubeFace {
-        width: 200px;
-        height: 200px;
+    .staticRobotImage {
+        width: 100%;
+        height: auto;
+        max-height: 320px;
+        object-fit: contain;
+        animation: floatRobot 6s ease-in-out infinite;
     }
+}
 
-    .front {
-        transform: translateZ(100px);
+/* Static Robot Placeholder styling */
+.placeholderContainer {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.placeholderImage {
+    max-height: 420px;
+    object-fit: contain;
+    animation: floatRobot 6s ease-in-out infinite;
+    z-index: 2;
+}
+
+.placeholderGlow {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.12) 0%, transparent 70%);
+    z-index: 1;
+    filter: blur(20px);
+}
+
+.robotImageWrapper {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.staticRobotImage {
+    max-height: 450px;
+    object-fit: contain;
+    animation: floatRobot 6s ease-in-out infinite;
+}
+
+@keyframes floatRobot {
+    0%, 100% {
+        transform: translateY(0);
     }
-
-    .back {
-        transform: rotateY(180deg) translateZ(100px);
+    50% {
+        transform: translateY(-15px);
     }
+}
 
-    .right {
-        transform: rotateY(90deg) translateZ(100px);
+/* Scroll Cue Styles */
+.scrollCue {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+
+.scrollCueLink {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-secondary);
+    font-family: var(--font-inter), sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.scrollCueLink:hover {
+    color: var(--accent-orange);
+}
+
+.scrollCueArrow {
+    font-size: 1.1rem;
+}
+
+@keyframes bounceArrow {
+    0%, 100% {
+        transform: translateY(0);
     }
-
-    .left {
-        transform: rotateY(-90deg) translateZ(100px);
-    }
-
-    .top {
-        transform: rotateX(90deg) translateZ(100px);
-    }
-
-    .bottom {
-        transform: rotateX(-90deg) translateZ(100px);
+    50% {
+        transform: translateY(6px);
     }
 }
