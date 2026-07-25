@@ -8,7 +8,7 @@ import styles from "./Navbar.module.css";
 import { LiquidGlassCard } from "./ui/liquid-glass";
 import ThemeSwitcher from "./ui/ThemeSwitcher";
 import useAuth from "@/hooks/useAuth";
-import UserProfileModal from "@/components/profile/UserProfileModal.jsx";
+import ProfileDrawer from "@/components/profile/ProfileDrawer.jsx";
 
 const NAV_ITEMS = [
   { label: "About", href: "/#about" },
@@ -233,12 +233,10 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* High Z-Index Overlay Popover Card ON TOP */}
-      <UserProfileModal
+      {/* Profile Drawer (Desktop Right Drawer & Mobile Sheet) */}
+      <ProfileDrawer
         isOpen={showProfileModal}
         onClose={() => setShowProfileModal(false)}
-        user={user}
-        profile={profile}
       />
     </>
   );

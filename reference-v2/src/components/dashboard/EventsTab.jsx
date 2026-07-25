@@ -4,11 +4,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { showAlert, showConfirm } from "@/lib/alert-store";
 import { formatDate } from "@/utils/formatters";
+import EventAttendanceManager from "./EventAttendanceManager";
 
 export default function EventsTab() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [selectedAttendanceEvent, setSelectedAttendanceEvent] = useState(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -161,6 +163,15 @@ export default function EventsTab() {
     setImageFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
+
+  if (selectedAttendanceEvent) {
+    return (
+      <EventAttendanceManager
+        event={selectedAttendanceEvent}
+        onBack={() => setSelectedAttendanceEvent(null)}
+      />
+    );
+  }
 
   return (
     <div className="space-y-8 font-inter">
@@ -346,7 +357,14 @@ export default function EventsTab() {
                         <span className="text-[9px] text-gray-600 font-mono">NO LINK</span>
                       )}
 
-                      <div className="space-x-2 shrink-0">
+                      <div className="space-x-1.5 shrink-0 flex items-center">
+                        <button
+                          onClick={() => setSelectedAttendanceEvent(event)}
+                          className="px-2 py-1 bg-cyan-950/40 hover:bg-cyan-600 text-cyan-300 hover:text-white text-[9px] font-orbitron font-bold rounded tracking-wider border border-cyan-500/30 transition-colors"
+                          title="Manage Event Checkpoints & Attendance Scanner"
+                        >
+                          ATTENDANCE
+                        </button>
                         <button
                           onClick={() => handleEdit(event)}
                           className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-white text-[9px] font-orbitron font-bold rounded tracking-wider border border-slate-700 transition-colors"
