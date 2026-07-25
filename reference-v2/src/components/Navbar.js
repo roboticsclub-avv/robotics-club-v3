@@ -102,7 +102,7 @@ export default function Navbar() {
                     </Link>
                   ) : (
                     <Link href="/member" className={styles.btnSecondary}>
-                      Member Portal
+                      Member Hub
                     </Link>
                   )}
 
@@ -216,7 +216,7 @@ export default function Navbar() {
                 onClick={() => setMobileOpen(false)}
                 className="w-full py-2.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-white font-semibold text-xs tracking-wide transition-all"
               >
-                Member Portal
+                Member Hub
               </Link>
             )}
 

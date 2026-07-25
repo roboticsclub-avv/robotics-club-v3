@@ -271,7 +271,7 @@ export default function RequisitionForm({ isEmbedded = false }) {
               href="/member"
               className="px-6 py-3 rounded-xl bg-[var(--accent-purple)] hover:brightness-110 text-[var(--bg-primary)] font-bold text-xs sm:text-sm font-orbitron transition shadow-lg shadow-[var(--accent-purple-glow)]"
             >
-              GO TO MEMBER PORTAL
+              GO TO MEMBER HUB
             </Link>
           </div>
         </div>
@@ -327,7 +327,7 @@ export default function RequisitionForm({ isEmbedded = false }) {
               href="/member"
               className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[var(--accent-purple)] hover:brightness-110 text-[var(--bg-primary)] font-bold text-xs sm:text-sm font-orbitron transition shadow-lg shadow-[var(--accent-purple-glow)]"
             >
-              TRACK IN MEMBER PORTAL →
+              TRACK IN MEMBER HUB →
             </Link>
           </div>
         </div>

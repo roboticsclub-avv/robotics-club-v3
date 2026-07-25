@@ -9,7 +9,7 @@ export default function HardwareRequisitionSection() {
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         <div className="text-center space-y-3">
           <span className="section-label font-orbitron text-xs sm:text-sm tracking-widest uppercase font-bold block text-[var(--accent-orange)]">
-            HARDWARE REQUISITION PORTAL
+            HARDWARE REQUISITION
           </span>
           <h2 className="section-title text-3xl sm:text-5xl font-extrabold font-orbitron text-[var(--text-primary)] tracking-tight">
             Request Components & Equipment

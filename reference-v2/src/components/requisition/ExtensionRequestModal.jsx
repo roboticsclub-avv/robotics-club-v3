@@ -51,20 +51,20 @@ export default function ExtensionRequestModal({ request, user, onClose, onSucces
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md font-inter">
-      <div className="bg-[#111115] border border-white/10 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative">
+      <div className="bg-[var(--bg-secondary)] border border-[var(--border-card)] rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative text-[var(--text-primary)]">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold"
+          className="absolute top-4 right-4 text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-lg font-bold"
         >
           ✕
         </button>
 
-        <div className="border-b border-white/[0.06] pb-3">
-          <h3 className="font-orbitron text-sm font-bold text-white tracking-wider flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-purple-400" />
+        <div className="border-b border-[var(--border-subtle)] pb-3">
+          <h3 className="font-orbitron text-sm font-bold text-[var(--text-primary)] tracking-wider flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[var(--accent-purple)]" />
             REQUEST BORROW EXTENSION
           </h3>
-          <p className="text-xs text-gray-400 mt-1 font-mono">
+          <p className="text-xs text-[var(--text-secondary)] mt-1 font-mono">
             Requisition ID: {request.final_requisition_id || request.temp_request_id}
           </p>
         </div>
@@ -77,19 +77,19 @@ export default function ExtensionRequestModal({ request, user, onClose, onSucces
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="text-gray-300 font-medium block mb-1">
+            <label className="text-[var(--text-secondary)] font-medium block mb-1">
               Current Return Date
             </label>
             <input
               type="text"
               readOnly
               value={request.return_date || "N/A"}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-gray-400 font-mono"
+              className="w-full bg-[var(--bg-card)] border border-[var(--border-card)] rounded-xl px-3 py-2 text-[var(--text-muted)] font-mono"
             />
           </div>
 
           <div>
-            <label className="text-gray-300 font-medium block mb-1">
+            <label className="text-[var(--text-secondary)] font-medium block mb-1">
               New Requested Return Date <span className="text-red-400">*</span>
             </label>
             <input
@@ -97,12 +97,12 @@ export default function ExtensionRequestModal({ request, user, onClose, onSucces
               min={minDate}
               value={newReturnDate}
               onChange={(e) => setNewReturnDate(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
+              className="w-full bg-[var(--bg-card)] border border-[var(--border-card)] rounded-xl px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-purple)]"
             />
           </div>
 
           <div>
-            <label className="text-gray-300 font-medium block mb-1">
+            <label className="text-[var(--text-secondary)] font-medium block mb-1">
               Reason for Extension <span className="text-red-400">*</span>
             </label>
             <textarea
@@ -110,7 +110,7 @@ export default function ExtensionRequestModal({ request, user, onClose, onSucces
               placeholder="Explain why extra time is required to complete testing or project milestones..."
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500 resize-none"
+              className="w-full bg-[var(--bg-card)] border border-[var(--border-card)] rounded-xl px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-purple)] resize-none"
             />
           </div>
 
@@ -118,14 +118,14 @@ export default function ExtensionRequestModal({ request, user, onClose, onSucces
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-medium"
+              className="px-4 py-2 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] text-[var(--text-secondary)] font-medium border border-[var(--border-card)]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold font-orbitron transition shadow-lg shadow-purple-600/20 disabled:opacity-50"
+              className="px-5 py-2 rounded-xl bg-[var(--accent-purple)] hover:brightness-110 text-[var(--bg-primary)] font-bold font-orbitron transition shadow-lg shadow-[var(--accent-purple-glow)] disabled:opacity-50"
             >
               {submitting ? "Submitting..." : "Submit Extension Request"}
             </button>
