@@ -9,6 +9,7 @@ import FacultyMembers from "@/components/FacultyMembers";
 import StudentMentors from "@/components/StudentMentors";
 import StudentMembers from "@/components/StudentMembers";
 import Events from "@/components/Events";
+import HardwareRequisitionSection from "@/components/HardwareRequisitionSection";
 import Projects from "@/components/Projects";
 import Gallery from "@/components/Gallery";
 import Footer from "@/components/Footer";
@@ -138,6 +139,16 @@ export default function Home() {
             variants={sectionVariants}
           >
             <Events />
+          </motion.div>
+
+          {/* Embedded Hardware Requisition Section directly below Events */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.12 }}
+            variants={sectionVariants}
+          >
+            <HardwareRequisitionSection />
           </motion.div>
 
           <motion.div

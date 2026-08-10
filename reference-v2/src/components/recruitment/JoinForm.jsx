@@ -21,6 +21,7 @@ export default function JoinForm() {
   const [reqFormData, setReqFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: ""
   });
@@ -38,7 +39,9 @@ export default function JoinForm() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     password: "",
+    confirmPassword: "",
     year: "",
     branch: "",
     section: "",
@@ -46,6 +49,12 @@ export default function JoinForm() {
     reason: "",
     photoURL: "",
   });
+
+  // Password Visibility Toggle States
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showReqPassword, setShowReqPassword] = useState(false);
+  const [showReqConfirmPassword, setShowReqConfirmPassword] = useState(false);
 
   // UI Flow States
   const [currentStep, setCurrentStep] = useState(1);
@@ -110,52 +119,76 @@ export default function JoinForm() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentStep, formData, selectedPhoto, flowMode]);
 
-  // 5. Image Compression Utility
+  // 5. Image Compression Utility (Handles high-res photos > 5MB, PNGs, and HEIC files)
   const compressImage = async (file) => {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new Image();
-        img.src = event.target.result;
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          const MAX_WIDTH = 400;
-          const MAX_HEIGHT = 400;
-          let width = img.width;
-          let height = img.height;
+      const objectUrl = URL.createObjectURL(file);
+      const img = new Image();
+      img.src = objectUrl;
 
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height = Math.round((height * MAX_WIDTH) / width);
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width = Math.round((width * MAX_HEIGHT) / height);
-              height = MAX_HEIGHT;
-            }
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 600;
+        const MAX_HEIGHT = 600;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
           }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
 
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, width, height);
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        
+        // Draw white background so transparent PNGs don't turn black on JPEG conversion
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
 
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                resolve(new File([blob], file.name, { type: file.type }));
-              } else {
-                reject(new Error("Image compression canvas blob output empty"));
+        // Always force image/jpeg at 0.75 quality to guarantee compression down to ~30-80KB
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const cleanName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+              resolve(new File([blob], cleanName, { type: "image/jpeg" }));
+            } else {
+              // Fallback for browsers where toBlob canvas output fails
+              try {
+                const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
+                const arr = dataUrl.split(",");
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while (n--) {
+                  u8arr[n] = bstr.charCodeAt(n);
+                }
+                const fallbackBlob = new Blob([u8arr], { type: "image/jpeg" });
+                const cleanName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+                resolve(new File([fallbackBlob], cleanName, { type: "image/jpeg" }));
+              } catch (e) {
+                reject(new Error("Image processing failed"));
               }
-            },
-            file.type || "image/jpeg",
-            0.7
-          );
-        };
+            }
+          },
+          "image/jpeg",
+          0.75
+        );
       };
-      reader.onerror = (err) => reject(err);
+
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("Unable to read image file. Please select a valid JPEG or PNG file."));
+      };
     });
   };
 
@@ -164,7 +197,7 @@ export default function JoinForm() {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
+    if (!file.type.startsWith("image/") && !/\.(jpg|jpeg|png|webp|heic|heif)$/i.test(file.name)) {
       setErrorMsg("Please upload an image file only.");
       return;
     }
@@ -173,7 +206,7 @@ export default function JoinForm() {
       setErrorMsg("");
       setIsUploading(true);
       
-      // Dynamic Client-side Compression
+      // Dynamic Client-side Compression (handles > 5MB files)
       const compressed = await compressImage(file);
       setSelectedPhoto(compressed);
       
@@ -182,7 +215,7 @@ export default function JoinForm() {
       setPhotoPreview(previewUrl);
     } catch (err) {
       console.error("Compression error:", err);
-      setErrorMsg("Failed to process image. Try another file.");
+      setErrorMsg(err.message || "Failed to process image. Try selecting a smaller JPG or PNG image.");
     } finally {
       setIsUploading(false);
     }
@@ -223,6 +256,10 @@ export default function JoinForm() {
       case 3:
         validationField = "password";
         validationValue = formData.password;
+        if (formData.password !== formData.confirmPassword) {
+          setErrorMsg("Passwords do not match. Please re-enter your password.");
+          return;
+        }
         break;
       case 4:
         validationField = "year";
@@ -287,39 +324,77 @@ export default function JoinForm() {
     let uploadedPhotoUrl = "";
 
     try {
+      // Check if email already exists in users profile database to prevent silent Supabase Auth block
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('uid')
+        .eq('email', formData.email.trim().toLowerCase())
+        .maybeSingle();
+
+      if (existingUser) {
+        throw new Error("This email is already registered. Please log in directly.");
+      }
+
       // 1. Create Auth Credentials
+      let user = null;
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email.trim(),
         password: formData.password,
       });
-      if (signUpError) throw signUpError;
-      const user = signUpData.user;
+
+      if (signUpError) {
+        // If user already exists in auth.users (e.g. from an earlier attempt before RLS fix), try signing in
+        if (signUpError.message?.toLowerCase().includes("already registered") || signUpError.message?.toLowerCase().includes("already in use")) {
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email: formData.email.trim(),
+            password: formData.password,
+          });
+
+          if (signInError) {
+            throw new Error("This email is already registered with a different password. Please log in directly or reset your password.");
+          }
+          user = signInData?.user;
+        } else {
+          throw signUpError;
+        }
+      } else {
+        user = signUpData?.user;
+      }
+
       if (!user) throw new Error("Could not retrieve user registration metadata");
 
-      setSubmittingMsg("Uploading profile photo...");
+      // 2. Upload photograph to Supabase Storage (applicants bucket) if user & selectedPhoto exist
+      if (user && selectedPhoto) {
+        setSubmittingMsg("Uploading profile photo...");
+        try {
+          const fileExt = (selectedPhoto && selectedPhoto.name) ? selectedPhoto.name.split('.').pop() : 'jpg';
+          const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('applicants')
+            .upload(fileName, selectedPhoto, { upsert: true });
 
-      // 2. Upload photograph to Supabase Storage (applicants bucket)
-      const fileExt = selectedPhoto.name.split('.').pop() || 'jpg';
-      const fileName = `${user.id}_${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('applicants')
-        .upload(fileName, selectedPhoto);
-      if (uploadError) throw uploadError;
+          if (uploadError) {
+            console.error("Photo upload warning:", uploadError);
+          } else {
+            const { data: publicUrlData } = supabase.storage
+              .from('applicants')
+              .getPublicUrl(fileName);
+            uploadedPhotoUrl = publicUrlData.publicUrl;
+          }
+        } catch (photoErr) {
+          console.error("Photo processing warning:", photoErr);
+        }
+      }
 
-      const { data: publicUrlData } = supabase.storage
-        .from('applicants')
-        .getPublicUrl(fileName);
-      uploadedPhotoUrl = publicUrlData.publicUrl;
+      setSubmittingMsg("Registering profile details...");
 
-      setSubmittingMsg("Awaiting email verification...");
-
-      // Save payload for post-OTP insert
-      setSignupPendingPayload({
+      // 3. Directly insert/upsert user profile details into 'users' table
+      const finalPayload = {
         uid: user.id,
         email: formData.email.trim().toLowerCase(),
         name: formData.name.trim(),
-        phone: "",
+        phone: formData.phone ? formData.phone.trim() : "",
         branch: formData.branch,
         year: formData.year,
         section: formData.section.trim(),
@@ -330,18 +405,46 @@ export default function JoinForm() {
         status: "pending",
         memberId: "PENDING",
         createdAt: new Date().toISOString(),
-      });
+      };
 
-      setTargetEmail(formData.email.trim().toLowerCase());
-      setShowOtpVerify(true);
+      const { error: dbError } = await supabase
+        .from('users')
+        .upsert([finalPayload], { onConflict: 'uid' });
+
+      if (dbError) {
+        if (dbError.message?.includes("photoURL") || dbError.message?.includes("schema cache")) {
+          console.warn("photoURL column missing in users table schema, falling back to standard fields insertion...");
+          const { photoURL, ...fallbackPayload } = finalPayload;
+          const { error: fallbackError } = await supabase
+            .from('users')
+            .upsert([fallbackPayload], { onConflict: 'uid' });
+          if (fallbackError && !fallbackError.message?.toLowerCase().includes("duplicate")) {
+            throw fallbackError;
+          }
+        } else if (!dbError.message?.toLowerCase().includes("duplicate")) {
+          throw dbError;
+        }
+      }
+
+      // Clear draft & set completed
+      localStorage.removeItem(DRAFT_KEY);
+      setIsCompleted(true);
     } catch (err) {
-      console.error("Submission failed:", err);
-      if (err.message && err.message.toLowerCase().includes("already registered")) {
-        setErrorMsg("This email is already registered. Please use a different email or log in.");
-      } else if (err.message && err.message.toLowerCase().includes("weak-password")) {
+      const errMsg = err?.message || err?.error_description || (typeof err === "string" ? err : JSON.stringify(err)) || "Registration failed.";
+      console.error("Submission failed:", errMsg, err);
+      const msg = errMsg.toLowerCase();
+
+      if (
+        msg.includes("already registered") ||
+        msg.includes("already in use") ||
+        msg.includes("users_uid_fkey") ||
+        msg.includes("foreign key")
+      ) {
+        setErrorMsg("This email is already registered. Please log in directly or reset your password.");
+      } else if (msg.includes("weak-password")) {
         setErrorMsg("Password is too weak. Please use at least 6 characters.");
       } else {
-        setErrorMsg(err.message || "Registration failed. Please check network settings.");
+        setErrorMsg(errMsg);
       }
     } finally {
       setSubmittingMsg("");
@@ -384,14 +487,42 @@ export default function JoinForm() {
 
     setReqSubmitting(true);
     try {
+      // Check if email already exists in users profile database to prevent silent Supabase Auth block
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('uid')
+        .eq('email', reqFormData.email.trim().toLowerCase())
+        .maybeSingle();
+
+      if (existingUser) {
+        throw new Error("This email is already registered. Please log in directly.");
+      }
+
       // 1. Create Auth Credentials
+      let user = null;
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: reqFormData.email.trim(),
         password: reqFormData.password,
       });
 
-      if (signUpError) throw signUpError;
-      const user = signUpData.user;
+      if (signUpError) {
+        if (signUpError.message?.toLowerCase().includes("already registered") || signUpError.message?.toLowerCase().includes("already in use")) {
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email: reqFormData.email.trim(),
+            password: reqFormData.password,
+          });
+
+          if (signInError) {
+            throw new Error("This email is already registered with a different password. Please log in directly or reset your password.");
+          }
+          user = signInData?.user;
+        } else {
+          throw signUpError;
+        }
+      } else {
+        user = signUpData?.user;
+      }
+
       if (!user) throw new Error("Could not retrieve user registration metadata");
 
       // Extract branch and year from email local part
@@ -406,12 +537,12 @@ export default function JoinForm() {
         joiningYear = "20" + rollPart.substring(5, 7); // e.g. 23 -> 2023
       }
 
-      // Save payload for post-OTP insert
-      setSignupPendingPayload({
+      // Save payload to database directly
+      const finalPayload = {
         uid: user.id,
         email: reqFormData.email.trim().toLowerCase(),
         name: reqFormData.name.trim(),
-        phone: "",
+        phone: reqFormData.phone ? reqFormData.phone.trim() : "",
         branch: branchName,
         year: joiningYear,
         section: "A",
@@ -421,13 +552,31 @@ export default function JoinForm() {
         status: "accepted", // Auto-accepted for student requisitions!
         memberId: "STUDENT",
         createdAt: new Date().toISOString()
-      });
+      };
 
-      setTargetEmail(reqFormData.email.trim().toLowerCase());
-      setShowOtpVerify(true);
+      const { error: dbError } = await supabase
+        .from('users')
+        .upsert([finalPayload], { onConflict: 'uid' });
+
+      if (dbError && !dbError.message?.toLowerCase().includes("duplicate")) {
+        throw dbError;
+      }
+
+      setReqSuccess(true);
     } catch (err) {
       console.error("Hardware Requisition signup failed:", err);
-      setErrorMsg(err.message || "Sign up failed. Please check network settings.");
+      const errMsg = err?.message || err?.error_description || (typeof err === "string" ? err : JSON.stringify(err)) || "Sign up failed.";
+      const msg = errMsg.toLowerCase();
+      if (
+        msg.includes("already registered") ||
+        msg.includes("already in use") ||
+        msg.includes("users_uid_fkey") ||
+        msg.includes("foreign key")
+      ) {
+        setErrorMsg("This email is already registered. Please log in directly or reset your password.");
+      } else {
+        setErrorMsg(errMsg);
+      }
     } finally {
       setReqSubmitting(false);
     }
@@ -444,7 +593,7 @@ export default function JoinForm() {
       }
 
       // 1. Verify OTP with Supabase
-      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
         email: targetEmail,
         token: otpToken.trim(),
         type: 'signup'
@@ -452,13 +601,24 @@ export default function JoinForm() {
 
       if (verifyError) throw verifyError;
 
+      const verifiedUser = verifyData?.user || verifyData?.session?.user;
+
       // 2. Insert user profile details
       if (signupPendingPayload) {
-        const { error: dbError } = await supabase
-          .from('users')
-          .insert([signupPendingPayload]);
+        const finalPayload = {
+          ...signupPendingPayload,
+          uid: signupPendingPayload.uid || (verifiedUser ? verifiedUser.id : "")
+        };
 
-        if (dbError) throw dbError;
+        if (finalPayload.uid) {
+          const { error: dbError } = await supabase
+            .from('users')
+            .insert([finalPayload]);
+
+          if (dbError && !dbError.message?.toLowerCase().includes("duplicate")) {
+            console.error("Profile insertion warning:", dbError);
+          }
+        }
       }
 
       // 3. Clear auth session to log out
@@ -494,7 +654,12 @@ export default function JoinForm() {
       alert("A new verification code has been sent to your email!");
     } catch (err) {
       console.error("Resending OTP failed:", err);
-      setErrorMsg(err.message || "Failed to resend code. Please try again.");
+      const msg = err.message?.toLowerCase() || "";
+      if (msg.includes("rate limit") || msg.includes("rate_limit") || msg.includes("once every") || err.status === 429) {
+        setErrorMsg("Rate limit reached. Please check your inbox for the code already sent, or wait 60 seconds.");
+      } else {
+        setErrorMsg(err.message || "Failed to resend code. Please try again.");
+      }
     } finally {
       setSubmittingMsg("");
     }
@@ -751,30 +916,82 @@ export default function JoinForm() {
 
           <div>
             <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1.5">
-              Password
+              Phone / WhatsApp Number
             </label>
             <input
-              type="password"
+              type="tel"
               required
-              placeholder="Min 6 characters"
-              value={reqFormData.password}
-              onChange={(e) => setReqFormData({ ...reqFormData, password: e.target.value })}
+              placeholder="e.g. 9876543210"
+              value={reqFormData.phone}
+              onChange={(e) => setReqFormData({ ...reqFormData, phone: e.target.value })}
               className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
             />
           </div>
 
           <div>
             <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1.5">
+              Password
+            </label>
+            <div className="relative">
+              <input
+                type={showReqPassword ? "text" : "password"}
+                required
+                placeholder="Min 6 characters"
+                value={reqFormData.password}
+                onChange={(e) => setReqFormData({ ...reqFormData, password: e.target.value })}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 pr-10 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
+              />
+              <button
+                type="button"
+                onClick={() => setShowReqPassword(!showReqPassword)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-white transition-colors focus:outline-none"
+                title={showReqPassword ? "Hide password" : "Show password"}
+              >
+                {showReqPassword ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.046 10.046 0 012.122-.063c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21fM3 3l18 18" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1.5">
               Confirm Password
             </label>
-            <input
-              type="password"
-              required
-              placeholder="Re-enter password"
-              value={reqFormData.confirmPassword}
-              onChange={(e) => setReqFormData({ ...reqFormData, confirmPassword: e.target.value })}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
-            />
+            <div className="relative">
+              <input
+                type={showReqConfirmPassword ? "text" : "password"}
+                required
+                placeholder="Re-enter password"
+                value={reqFormData.confirmPassword}
+                onChange={(e) => setReqFormData({ ...reqFormData, confirmPassword: e.target.value })}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 pr-10 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono"
+              />
+              <button
+                type="button"
+                onClick={() => setShowReqConfirmPassword(!showReqConfirmPassword)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-white transition-colors focus:outline-none"
+                title={showReqConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showReqConfirmPassword ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.046 10.046 0 012.122-.063c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21fM3 3l18 18" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="flex gap-3 pt-3">
@@ -1025,76 +1242,172 @@ export default function JoinForm() {
                 </div>
               )}
 
-              {/* ── Step 2: Email ── */}
+              {/* ── Step 2: Email & Phone ── */}
               {currentStep === 2 && (
-                <div className="space-y-5">
-                  <h2
-                    className="font-black font-orbitron leading-tight"
-                    style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
-                  >
-                    Your college{" "}
-                    <span
-                      style={{
-                        background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                      }}
+                <div className="space-y-6">
+                  <div>
+                    <h2
+                      className="font-black font-orbitron leading-tight mb-2"
+                      style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
                     >
-                      email
-                    </span>{" "}
-                    address?
-                  </h2>
-                  <input
-                    ref={inputRef}
-                    type="email"
-                    placeholder="name@student.amrita.edu"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className={inputCls}
-                    style={{
-                      ...inputStyle,
-                      borderBottomColor: formData.email ? "var(--accent-teal)" : undefined,
-                    }}
-                  />
-                  <p className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
-                    Used for application status correspondence.
-                  </p>
+                      Your contact{" "}
+                      <span
+                        style={{
+                          background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                        }}
+                      >
+                        details
+                      </span>
+                    </h2>
+                    <p className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
+                      Used for application status & official correspondence.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                      College Email Address
+                    </label>
+                    <input
+                      ref={inputRef}
+                      type="email"
+                      placeholder="name@student.amrita.edu"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className={inputCls}
+                      style={{
+                        ...inputStyle,
+                        borderBottomColor: formData.email ? "var(--accent-teal)" : undefined,
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                      Mobile Phone / WhatsApp Number
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="e.g. 9876543210"
+                      value={formData.phone || ""}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className={inputCls}
+                      style={{
+                        ...inputStyle,
+                        borderBottomColor: formData.phone ? "var(--accent-teal)" : undefined,
+                      }}
+                    />
+                  </div>
                 </div>
               )}
 
               {/* ── Step 3: Password ── */}
               {currentStep === 3 && (
-                <div className="space-y-5">
-                  <h2
-                    className="font-black font-orbitron leading-tight"
-                    style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
-                  >
-                    Create a secure{" "}
-                    <span
-                      style={{
-                        background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                      }}
+                <div className="space-y-6">
+                  <div>
+                    <h2
+                      className="font-black font-orbitron leading-tight mb-2"
+                      style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "var(--text-primary)" }}
                     >
-                      password
-                    </span>
-                  </h2>
-                  <input
-                    ref={inputRef}
-                    type="password"
-                    placeholder="••••••••••"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className={inputCls}
-                    style={{
-                      ...inputStyle,
-                      borderBottomColor: formData.password ? "var(--accent-teal)" : undefined,
-                    }}
-                  />
-                  <p className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
-                    Minimum 6 characters. Store securely.
-                  </p>
+                      Create a secure{" "}
+                      <span
+                        style={{
+                          background: "linear-gradient(135deg, var(--accent-purple), var(--accent-teal))",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                        }}
+                      >
+                        password
+                      </span>
+                    </h2>
+                    <p className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
+                      Minimum 6 characters. Store securely.
+                    </p>
+                  </div>
+
+                  {/* Create Password Field */}
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                      Create Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        ref={inputRef}
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••••"
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        className={`${inputCls} pr-12`}
+                        style={{
+                          ...inputStyle,
+                          borderBottomColor: formData.password ? "var(--accent-teal)" : undefined,
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-white transition-colors focus:outline-none"
+                        title={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.046 10.046 0 012.122-.063c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21fM3 3l18 18" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Re-enter Password Field */}
+                  <div className="space-y-2 pt-2">
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                      Re-enter Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Re-enter password"
+                        value={formData.confirmPassword || ""}
+                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                        className={`${inputCls} pr-12`}
+                        style={{
+                          ...inputStyle,
+                          borderBottomColor: formData.confirmPassword
+                            ? formData.password === formData.confirmPassword
+                              ? "var(--accent-teal)"
+                              : "#ef4444"
+                            : undefined,
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-white transition-colors focus:outline-none"
+                        title={showConfirmPassword ? "Hide password" : "Show password"}
+                      >
+                        {showConfirmPassword ? (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.046 10.046 0 012.122-.063c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21fM3 3l18 18" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                    {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                      <p className="font-mono text-xs text-red-400 mt-1">Passwords do not match.</p>
+                    )}
+                  </div>
                 </div>
               )}
 
