@@ -42,7 +42,7 @@ export default function StudentMentors() {
             {/* Left Photo Section */}
             <div className={styles.cardLeft}>
               <Image
-                src={mentor.image}
+                src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}${mentor.image}`}
                 alt={mentor.name}
                 width={400}
                 height={500}
