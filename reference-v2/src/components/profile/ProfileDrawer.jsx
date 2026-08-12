@@ -119,7 +119,7 @@ export default function ProfileDrawer({ isOpen, onClose }) {
       if (selectedFile) {
         const fileExt = selectedFile.name.split('.').pop() || 'jpg';
         const fileName = `${user.id}_${Date.now()}.${fileExt}`;
-        
+
         const { error: uploadErr } = await supabase.storage
           .from('applicants')
           .upload(fileName, selectedFile, { upsert: true });
@@ -213,7 +213,7 @@ export default function ProfileDrawer({ isOpen, onClose }) {
 
   const teamName = getTeamName(profile.role, profile.branch);
   const rcMemberId = profile.memberId || profile.member_id || "RC-MEMBER";
-  
+
   const getRollNumber = () => {
     if (profile.roll_number) return profile.roll_number;
     if (profile.email && profile.email.toLowerCase().startsWith("av.")) {
@@ -232,8 +232,8 @@ export default function ProfileDrawer({ isOpen, onClose }) {
       />
 
       {/* Right-Side Profile Drawer (Desktop) & Responsive Sheet (Mobile) */}
-      <aside className="fixed top-16 md:top-[76px] bottom-0 right-0 left-0 md:left-auto md:w-[460px] bg-[var(--bg-primary)] border-l border-[var(--border-card)] z-[9999] shadow-2xl flex flex-col justify-between overflow-hidden font-inter transition-all duration-300 ease-out animate-slide-in-right">
-        
+      <aside className="fixed top-0 bottom-0 right-0 left-0 md:left-auto md:w-[680px] bg-[var(--bg-primary)] border-l border-[var(--border-card)] z-[9999] shadow-2xl flex flex-col justify-between overflow-hidden font-inter transition-all duration-300 ease-out animate-slide-in-right">
+
         {/* Top Header Bar */}
         <div className="p-4 sm:p-5 border-b border-[var(--border-subtle)] bg-[var(--bg-card)] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
@@ -260,12 +260,12 @@ export default function ProfileDrawer({ isOpen, onClose }) {
         </div>
 
         {/* Scrollable Drawer Body Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 custom-scrollbar">
-          
+        <div data-lenis-prevent="true" className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[var(--border-subtle)] [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[var(--text-muted)]">
+
           {/* DIGITAL RC IDENTITY BADGE HEADER */}
           <div className="glass-card rounded-3xl p-5 border-[var(--border-card)] space-y-4 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent-purple-glow)] rounded-full blur-2xl pointer-events-none opacity-50" />
-            
+
             <div className="flex items-center gap-4 relative z-10">
               <div className="relative shrink-0">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-[var(--bg-secondary)] border-2 border-[var(--accent-purple)] flex items-center justify-center shadow-lg">
@@ -289,7 +289,7 @@ export default function ProfileDrawer({ isOpen, onClose }) {
                 <h3 className="text-lg font-extrabold text-[var(--text-primary)] font-orbitron tracking-wide truncate">
                   {profile.name || "Club Member"}
                 </h3>
-                
+
                 <p className="text-xs text-[var(--accent-purple)] font-mono font-semibold truncate">
                   {teamName}
                 </p>
@@ -332,7 +332,7 @@ export default function ProfileDrawer({ isOpen, onClose }) {
           )}
 
           {/* Quick Sub-Navigation Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-orbitron">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 text-xs font-orbitron [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {[
               { id: "overview", label: "OVERVIEW" },
               { id: "qr", label: "DIGITAL QR" },
@@ -343,11 +343,10 @@ export default function ProfileDrawer({ isOpen, onClose }) {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition-all ${
-                  activeTab === tab.id
-                    ? "bg-[var(--accent-purple)] text-[var(--bg-primary)] border-[var(--accent-purple)] font-bold"
-                    : "bg-[var(--bg-card)] text-[var(--text-secondary)] border-[var(--border-card)] hover:text-[var(--text-primary)]"
-                }`}
+                className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition-all ${activeTab === tab.id
+                  ? "bg-[var(--accent-purple)] text-[var(--bg-primary)] border-[var(--accent-purple)] font-bold"
+                  : "bg-[var(--bg-card)] text-[var(--text-secondary)] border-[var(--border-card)] hover:text-[var(--text-primary)]"
+                  }`}
               >
                 {tab.label}
               </button>
@@ -530,11 +529,10 @@ export default function ProfileDrawer({ isOpen, onClose }) {
               </div>
 
               {passMsg && (
-                <div className={`p-3 rounded-xl text-xs font-mono text-center ${
-                  passMsg.includes("✓") 
-                    ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" 
-                    : "bg-red-500/15 text-red-400 border border-red-500/30"
-                }`}>
+                <div className={`p-3 rounded-xl text-xs font-mono text-center ${passMsg.includes("✓")
+                  ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                  : "bg-red-500/15 text-red-400 border border-red-500/30"
+                  }`}>
                   {passMsg}
                 </div>
               )}
