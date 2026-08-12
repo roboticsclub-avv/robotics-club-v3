@@ -26,7 +26,7 @@ export default function GlobalBackground() {
         loop
         playsInline
         preload="auto"
-        src="/cosmic-background.mp4"
+        src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/cosmic-background.mp4`}
         style={{
           position: "absolute",
           top: 0,

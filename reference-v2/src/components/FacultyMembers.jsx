@@ -11,7 +11,7 @@ export default function FacultyMembers() {
         {/* Left Photo Section */}
         <div className={styles.cardLeft}>
           <Image
-            src="/media/DR. RAVISHANKAR P DESAI.jpeg"
+            src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/media/DR. RAVISHANKAR P DESAI.jpeg`}
             alt="Dr. Ravishankar P Desai"
             width={500}
             height={600}
