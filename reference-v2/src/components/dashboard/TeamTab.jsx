@@ -49,7 +49,10 @@ export default function TeamTab() {
   };
 
   useEffect(() => {
-    fetchTeam();
+    const timeout = setTimeout(() => {
+      fetchTeam();
+    }, 0);
+    return () => clearTimeout(timeout);
   }, []);
 
   const handleChange = (e) => {

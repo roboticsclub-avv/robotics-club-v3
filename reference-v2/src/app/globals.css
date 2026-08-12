@@ -45,8 +45,8 @@
 
 /* 1. Cosmic (Default Dark/Purple/Orange) */
 .theme-cosmic {
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #111111;
+  --bg-primary: transparent;
+  --bg-secondary: rgba(17, 17, 17, 0.5);
   --bg-card: rgba(255, 255, 255, 0.03);
   --bg-card-hover: rgba(255, 255, 255, 0.06);
   --text-primary: #f5f5f5;
@@ -157,7 +157,7 @@ body {
 
 /* ===== GRID OVERLAY (like reference) ===== */
 body::before {
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   left: 0;
@@ -168,10 +168,14 @@ body::before {
     linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-size: 80px 80px;
   pointer-events: none;
-  z-index: 0;
+  z-index: 1;
   /* Promote to its own GPU compositing layer — prevents repaint on scroll */
   will-change: transform;
   transform: translateZ(0);
+}
+
+body[data-theme="theme-cosmic"]::before {
+  display: none;
 }
 
 /* ===== GLOW EFFECTS — removed in V3 ===== */

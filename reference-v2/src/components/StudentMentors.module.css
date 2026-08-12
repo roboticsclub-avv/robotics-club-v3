@@ -1,0 +1,166 @@
+/* ========================================= */
+/* STUDENT MENTORS SECTION CONTAINER         */
+/* ========================================= */
+.container {
+  padding: 4rem 2rem;
+  background-color: transparent;
+  font-family: var(--font-inter), 'Rajdhani', sans-serif;
+  color: var(--text-primary, #ffffff);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  font-family: var(--font-orbitron), 'Orbitron', sans-serif;
+  color: var(--text-primary, #ffffff);
+  font-size: 1.5rem;
+  margin-bottom: 3rem;
+  letter-spacing: 2px;
+  border-bottom: 2px solid var(--border-subtle, #1e293b);
+  display: inline-block;
+  padding-bottom: 0.5rem;
+}
+
+/* ========================================= */
+/* GRID LAYOUT                               */
+/* ========================================= */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ========================================= */
+/* CARD STYLES                               */
+/* ========================================= */
+.cardContent {
+  display: flex;
+  width: 100%;
+  background-color: var(--bg-secondary, #0b0f19);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-card, rgba(255,255,255,0.08));
+}
+
+/* Left Photo Section */
+.cardLeft {
+  width: 40%;
+  min-width: 40%;
+  background-color: #e0e2d8;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Right Info Section */
+.cardRight {
+  width: 60%;
+  padding: 30px;
+  position: relative;
+  color: var(--text-primary, #ffffff);
+  text-align: left;
+}
+
+.watermark {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-family: var(--font-orbitron), 'Orbitron', sans-serif;
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--border-card, rgba(255, 255, 255, 0.05));
+  pointer-events: none;
+}
+
+.name {
+  font-family: var(--font-orbitron), 'Orbitron', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 900;
+  margin: 0 0 5px 0;
+  letter-spacing: 1px;
+  color: var(--text-primary, #ffffff);
+}
+
+.role {
+  font-family: var(--font-orbitron), 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  color: var(--accent-purple, #7c3aed);
+  letter-spacing: 2px;
+  margin: 0 0 20px 0;
+  text-transform: uppercase;
+}
+
+.quote {
+  border-left: 3px solid var(--accent-purple, #7c3aed);
+  padding-left: 12px;
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--text-secondary, #b4bada);
+  margin-bottom: 25px;
+  font-weight: 600;
+}
+
+.subsectionTitle {
+  font-family: var(--font-orbitron), 'Orbitron', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 1.5px;
+  margin: 0 0 10px 0;
+  font-weight: 900;
+  color: var(--text-primary, #ffffff);
+}
+
+.desc {
+  color: var(--text-secondary, #949db1);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0 0 25px 0;
+  font-weight: 600;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  border: 1px solid var(--border-card, #2a3441);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 0.7rem;
+  color: var(--text-secondary, #949db1);
+  background: var(--bg-card, rgba(255, 255, 255, 0.02));
+  font-weight: 700;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) and (min-width: 1024px), (max-width: 640px) {
+  .cardContent {
+    flex-direction: column;
+  }
+  .cardLeft,
+  .cardRight {
+    width: 100%;
+  }
+  .cardLeft {
+    height: 300px;
+    min-height: 300px;
+  }
+}

@@ -98,8 +98,16 @@ export default function EventAttendanceManager({ event, onBack }) {
       }
     } catch (err) {
       console.error("[EventAttendanceManager] Error loading data:", err);
-      await showAlert("Failed to load attendance data: " + err.message, "Load Error");
-    } fontally: {
+      const msg = err?.message || String(err);
+      if (msg.includes("schema cache") || msg.includes("event_checkpoints") || msg.includes("event_attendance")) {
+        await showAlert(
+          "The attendance tables have not been created in your Supabase database yet. Please run the migration SQL script (sql/01_profile_attendance_schema.sql) in the Supabase SQL Editor, then run: NOTIFY pgrst, 'reload schema';",
+          "Database Setup Required"
+        );
+      } else {
+        await showAlert("Failed to load attendance data: " + msg, "Load Error");
+      }
+    } finally {
       setLoading(false);
     }
   };
