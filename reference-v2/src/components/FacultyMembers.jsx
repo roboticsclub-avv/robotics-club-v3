@@ -5,7 +5,7 @@ import styles from './FacultyMembers.module.css';
 export default function FacultyMembers() {
   return (
     <section id="faculty-members" className={styles.container}>
-      <h2 className={styles.sectionTitle}>FACULTY MEMBERS</h2>
+      <h2 className={styles.sectionTitle}>FACULTY MENTOR</h2>
       
       <div className={styles.cardContent}>
         {/* Left Photo Section */}

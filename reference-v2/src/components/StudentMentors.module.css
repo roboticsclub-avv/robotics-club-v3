@@ -2,19 +2,19 @@
 /* STUDENT MENTORS SECTION CONTAINER         */
 /* ========================================= */
 .container {
-  padding: 4rem 2rem;
+  padding: 2.5rem 1.5rem;
   background-color: transparent;
   font-family: var(--font-inter), 'Rajdhani', sans-serif;
   color: var(--text-primary, #ffffff);
-  max-width: 1400px;
+  max-width: 1120px;
   margin: 0 auto;
 }
 
 .sectionTitle {
   font-family: var(--font-orbitron), 'Orbitron', sans-serif;
   color: var(--text-primary, #ffffff);
-  font-size: 1.5rem;
-  margin-bottom: 3rem;
+  font-size: 1.35rem;
+  margin-bottom: 2rem;
   letter-spacing: 2px;
   border-bottom: 2px solid var(--border-subtle, #1e293b);
   display: inline-block;
@@ -27,7 +27,7 @@
 .grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2rem;
+  gap: 1.5rem;
   width: 100%;
 }
 
@@ -52,8 +52,8 @@
 
 /* Left Photo Section */
 .cardLeft {
-  width: 40%;
-  min-width: 40%;
+  width: 35%;
+  min-width: 35%;
   background-color: #e0e2d8;
   position: relative;
   display: flex;
@@ -71,8 +71,8 @@
 
 /* Right Info Section */
 .cardRight {
-  width: 60%;
-  padding: 30px;
+  width: 65%;
+  padding: 20px 24px;
   position: relative;
   color: var(--text-primary, #ffffff);
   text-align: left;
@@ -80,10 +80,10 @@
 
 .watermark {
   position: absolute;
-  top: 15px;
-  right: 20px;
+  top: 12px;
+  right: 15px;
   font-family: var(--font-orbitron), 'Orbitron', sans-serif;
-  font-size: 3rem;
+  font-size: 2.4rem;
   font-weight: 900;
   color: var(--border-card, rgba(255, 255, 255, 0.05));
   pointer-events: none;
@@ -91,60 +91,60 @@
 
 .name {
   font-family: var(--font-orbitron), 'Orbitron', sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.15rem;
   font-weight: 900;
-  margin: 0 0 5px 0;
+  margin: 0 0 3px 0;
   letter-spacing: 1px;
   color: var(--text-primary, #ffffff);
 }
 
 .role {
   font-family: var(--font-orbitron), 'Orbitron', sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--accent-purple, #7c3aed);
   letter-spacing: 2px;
-  margin: 0 0 20px 0;
+  margin: 0 0 14px 0;
   text-transform: uppercase;
 }
 
 .quote {
   border-left: 3px solid var(--accent-purple, #7c3aed);
-  padding-left: 12px;
-  font-size: 0.95rem;
+  padding-left: 10px;
+  font-size: 0.85rem;
   font-style: italic;
   color: var(--text-secondary, #b4bada);
-  margin-bottom: 25px;
+  margin-bottom: 15px;
   font-weight: 600;
 }
 
 .subsectionTitle {
   font-family: var(--font-orbitron), 'Orbitron', sans-serif;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   letter-spacing: 1.5px;
-  margin: 0 0 10px 0;
+  margin: 0 0 6px 0;
   font-weight: 900;
   color: var(--text-primary, #ffffff);
 }
 
 .desc {
   color: var(--text-secondary, #949db1);
-  font-size: 0.85rem;
-  line-height: 1.5;
-  margin: 0 0 25px 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  margin: 0 0 15px 0;
   font-weight: 600;
 }
 
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .tag {
   border: 1px solid var(--border-card, #2a3441);
   border-radius: 20px;
-  padding: 6px 12px;
-  font-size: 0.7rem;
+  padding: 4px 10px;
+  font-size: 0.68rem;
   color: var(--text-secondary, #949db1);
   background: var(--bg-card, rgba(255, 255, 255, 0.02));
   font-weight: 700;

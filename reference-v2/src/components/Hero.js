@@ -69,6 +69,39 @@ export default function Hero({ isReady }) {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [hasBeenViewed, setHasBeenViewed] = useState(false);
   const [webglSupported, setWebglSupported] = useState(true);
+  const [splineApp, setSplineApp] = useState(null);
+
+  const applyFraming = (app) => {
+    if (!app || !app._camera) return;
+    const w = window.innerWidth;
+    // Set Three.js perspective camera zoom:
+    // Default in scene.splinecode is 2.0 (causing background text to be cropped).
+    // Setting zoom to 1.35 on desktop brings "WELCOME TO ROBOTICS CLUB" fully into view with perfect margins.
+    const targetZoom = w <= 768 ? 1.15 : w <= 1100 ? 1.25 : 1.35;
+    app._camera.zoom = targetZoom;
+    if (typeof app._camera.updateProjectionMatrix === "function") {
+      app._camera.updateProjectionMatrix();
+    }
+  };
+
+  const handleSplineLoad = (app) => {
+    setSplineApp(app);
+    if (typeof window !== "undefined") {
+      window._spline = app;
+    }
+    applyFraming(app);
+    setTimeout(() => applyFraming(app), 150);
+    setTimeout(() => applyFraming(app), 500);
+    setTimeout(() => applyFraming(app), 1000);
+  };
+
+  useEffect(() => {
+    if (!splineApp) return;
+    const onResize = () => applyFraming(splineApp);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [splineApp]);
+
   useEffect(() => {
     if (inView) {
       // eslint-disable-next-line
@@ -222,9 +255,9 @@ export default function Hero({ isReady }) {
             </a>
           </div>
 
-          <div className={styles.heroShortcut}>
+          <Link href="/join-us" className={styles.heroShortcut}>
             Press <span className={styles.key}>J</span> to join instantly
-          </div>
+          </Link>
         </div>
 
         <div className={styles.heroVisual}>
@@ -244,7 +277,10 @@ export default function Hero({ isReady }) {
                   opacity: inView ? 1 : 0,
                 }}
               >
-                <Spline scene={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/scene.splinecode`} />
+                <Spline
+                  scene={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/scene.splinecode`}
+                  onLoad={handleSplineLoad}
+                />
               </div>
             </SplineErrorBoundary>
           ) : (

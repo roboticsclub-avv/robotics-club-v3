@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
@@ -30,6 +31,7 @@ const sectionVariants = {
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     if (isLoading) return;
@@ -51,17 +53,23 @@ export default function Home() {
     }
     rafId = requestAnimationFrame(raf);
 
-    /* ===== Keyboard shortcut: J to scroll to contact ===== */
+    /* ===== Keyboard shortcut: J to join instantly ===== */
     const handleKeyDown = (e) => {
+      const isInput =
+        document.activeElement &&
+        (document.activeElement.tagName === "INPUT" ||
+          document.activeElement.tagName === "TEXTAREA" ||
+          document.activeElement.isContentEditable);
+
       if (
-        e.key === "j" &&
+        (e.key === "j" || e.key === "J" || e.code === "KeyJ") &&
         !e.metaKey &&
         !e.ctrlKey &&
-        document.activeElement.tagName !== "INPUT" &&
-        document.activeElement.tagName !== "TEXTAREA"
+        !e.altKey &&
+        !isInput
       ) {
-        const contactSection = document.getElementById("contact");
-        if (contactSection) lenis.scrollTo(contactSection);
+        e.preventDefault();
+        router.push("/join-us");
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -72,7 +80,7 @@ export default function Home() {
       lenis.destroy();
       delete window.lenis;
     };
-  }, [isLoading]);
+  }, [isLoading, router]);
 
   const handleLoadingFinish = () => {
     try {

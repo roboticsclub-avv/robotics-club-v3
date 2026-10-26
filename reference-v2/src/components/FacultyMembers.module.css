@@ -2,19 +2,19 @@
 /* FACULTY MEMBERS SECTION CONTAINER         */
 /* ========================================= */
 .container {
-  padding: 4rem 2rem;
+  padding: 2.5rem 1.5rem;
   background-color: transparent;
   font-family: var(--font-inter), 'Rajdhani', sans-serif;
   color: var(--text-primary, #ffffff);
-  max-width: 1200px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
 .sectionTitle {
   font-family: var(--font-orbitron), 'Orbitron', sans-serif;
   color: var(--text-primary, #ffffff);
-  font-size: 1.5rem;
-  margin-bottom: 3rem;
+  font-size: 1.35rem;
+  margin-bottom: 2rem;
   letter-spacing: 2px;
   border-bottom: 2px solid var(--border-subtle, #1e293b);
   display: inline-block;
@@ -27,19 +27,19 @@
 .cardContent {
   display: flex;
   width: 100%;
-  max-width: 1000px;
+  max-width: 860px;
   background-color: var(--bg-secondary, #0b0f19);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
   border: 1px solid var(--border-card, rgba(255,255,255,0.08));
   margin: 0 auto;
 }
 
 /* Left Photo Section */
 .cardLeft {
-  width: 40%;
-  min-width: 40%;
+  width: 36%;
+  min-width: 36%;
   background-color: #e0e2d8;
   position: relative;
   display: flex;
@@ -57,8 +57,8 @@
 
 /* Right Info Section */
 .cardRight {
-  width: 60%;
-  padding: 50px;
+  width: 64%;
+  padding: 30px 36px;
   position: relative;
   color: var(--text-primary, #ffffff);
   text-align: left;
@@ -66,10 +66,10 @@
 
 .watermark {
   position: absolute;
-  top: 30px;
-  right: 40px;
+  top: 20px;
+  right: 25px;
   font-family: var(--font-orbitron), 'Orbitron', sans-serif;
-  font-size: 4rem;
+  font-size: 3rem;
   font-weight: 900;
   color: var(--border-card, rgba(255, 255, 255, 0.05));
   pointer-events: none;
@@ -77,60 +77,60 @@
 
 .name {
   font-family: var(--font-orbitron), 'Orbitron', sans-serif;
-  font-size: 2rem;
+  font-size: 1.55rem;
   font-weight: 900;
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
   letter-spacing: 1px;
   color: var(--text-primary, #ffffff);
 }
 
 .role {
   font-family: var(--font-orbitron), 'Orbitron', sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: var(--accent-purple, #7c3aed);
   letter-spacing: 2px;
-  margin: 0 0 35px 0;
+  margin: 0 0 20px 0;
   text-transform: uppercase;
 }
 
 .quote {
   border-left: 3px solid var(--accent-purple, #7c3aed);
-  padding-left: 18px;
-  font-size: 1.15rem;
+  padding-left: 14px;
+  font-size: 1rem;
   font-style: italic;
   color: var(--text-secondary, #b4bada);
-  margin-bottom: 40px;
+  margin-bottom: 22px;
   font-weight: 600;
 }
 
 .subsectionTitle {
   font-family: var(--font-orbitron), 'Orbitron', sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   letter-spacing: 1.5px;
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
   font-weight: 900;
   color: var(--text-primary, #ffffff);
 }
 
 .desc {
   color: var(--text-secondary, #949db1);
-  font-size: 0.95rem;
-  line-height: 1.7;
-  margin: 0 0 40px 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin: 0 0 22px 0;
   font-weight: 600;
 }
 
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
 }
 
 .tag {
   border: 1px solid var(--border-card, #2a3441);
   border-radius: 20px;
-  padding: 8px 16px;
-  font-size: 0.8rem;
+  padding: 6px 12px;
+  font-size: 0.74rem;
   color: var(--text-secondary, #949db1);
   background: var(--bg-card, rgba(255, 255, 255, 0.02));
   font-weight: 700;

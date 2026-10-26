@@ -8,13 +8,13 @@
 }
 
 .heroContainer {
-    max-width: var(--container-max);
+    max-width: 1320px;
     margin: 0 auto;
     padding: var(--container-padding);
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1.15fr;
     align-items: center;
-    gap: 60px;
+    gap: 48px;
     position: relative;
     z-index: 3;
 }
@@ -148,13 +148,31 @@
     background: var(--accent-purple-glow);
 }
 
+.heroShortcut,
 .shortcut {
     font-size: 0.85rem;
     color: var(--text-muted);
     margin-top: 4px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color var(--transition-fast);
+    width: fit-content;
+}
+
+.heroShortcut:hover,
+.shortcut:hover {
+    color: var(--text-primary);
+}
+
+.heroShortcut:hover .key,
+.shortcut:hover .key {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    background: rgba(6, 182, 212, 0.12);
+    transform: translateY(-1px);
 }
 
 .key {
@@ -169,6 +187,7 @@
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--text-secondary);
+    transition: all var(--transition-fast);
 }
 
 .heroVisual {
@@ -176,22 +195,26 @@
     align-items: center;
     justify-content: center;
     position: relative;
-    min-height: 500px;
+    width: 100%;
+    min-height: 580px;
     z-index: 2;
 }
 
 .splineWrapper {
     width: 100%;
-    aspect-ratio: 3 / 2;
-    height: auto;
+    height: clamp(560px, 72vh, 660px);
+    min-height: 560px;
     position: relative;
+    border-radius: 20px;
+    overflow: hidden;
     background: var(--bg-primary);
 }
 
 .splineWrapper spline-viewer,
 .splineWrapper canvas {
-    width: 100%;
-    height: 100%;
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
     background: var(--bg-primary) !important;
 }
 
@@ -320,6 +343,16 @@
     .heroCta {
         justify-content: center;
     }
+
+    .heroVisual {
+        min-height: 440px;
+    }
+
+    .splineWrapper,
+    .placeholderContainer {
+        height: 460px;
+        min-height: 400px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -330,6 +363,12 @@
     }
 
     .heroVisual {
+        min-height: 320px;
+    }
+
+    .splineWrapper,
+    .placeholderContainer {
+        height: 360px;
         min-height: 300px;
     }
 
@@ -354,8 +393,8 @@
 /* Static Robot Placeholder styling */
 .placeholderContainer {
     width: 100%;
-    aspect-ratio: 3 / 2;
-    height: auto;
+    height: clamp(560px, 72vh, 660px);
+    min-height: 560px;
     display: flex;
     align-items: center;
     justify-content: center;

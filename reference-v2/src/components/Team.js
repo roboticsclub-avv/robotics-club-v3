@@ -118,7 +118,7 @@ export default function Team() {
                         <>
                             {faculty.length > 0 && (
                                 <div className="mb-16">
-                                    <h3 className="text-2xl font-orbitron text-center mb-10 tracking-widest border-b border-purple-500/30 pb-4 inline-block mx-auto" style={{ color: "var(--text-primary)" }}>FACULTY MEMBERS</h3>
+                                    <h3 className="text-2xl font-orbitron text-center mb-10 tracking-widest border-b border-purple-500/30 pb-4 inline-block mx-auto" style={{ color: "var(--text-primary)" }}>FACULTY MENTOR</h3>
                                     <div>
                                         {faculty.map((member) => (
                                             <div key={member.id} className={`${styles.facultyCard} glass-card`}>
