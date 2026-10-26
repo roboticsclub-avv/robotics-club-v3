@@ -26,7 +26,7 @@ import GlobalBackground from "@/components/GlobalBackground";
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${inter.variable} ${orbitron.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${orbitron.variable} theme-aurora`} suppressHydrationWarning>
       <body>
         <AuthProvider>
           <ThemeProvider>

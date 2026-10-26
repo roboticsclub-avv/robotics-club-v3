@@ -6,7 +6,7 @@ const THEMES = ["theme-cosmic", "theme-aurora", "theme-deepspace"];
 const useThemeStore = create(
   persist(
     (set) => ({
-      theme: "theme-cosmic",
+      theme: "theme-aurora",
       setTheme: (newTheme) => set({ theme: newTheme }),
       cycleTheme: () =>
         set((state) => {
