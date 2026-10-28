@@ -77,7 +77,7 @@ export default function Hero({ isReady }) {
     // Set Three.js perspective camera zoom:
     // Default in scene.splinecode is 2.0 (causing background text to be cropped).
     // Setting zoom to 1.35 on desktop brings "WELCOME TO ROBOTICS CLUB" fully into view with perfect margins.
-    const targetZoom = w <= 768 ? 1.15 : w <= 1100 ? 1.25 : 1.35;
+    const targetZoom = w <= 768 ? 1.05 : w <= 1100 ? 1.25 : 1.35;
     app._camera.zoom = targetZoom;
     if (typeof app._camera.updateProjectionMatrix === "function") {
       app._camera.updateProjectionMatrix();
@@ -99,7 +99,87 @@ export default function Hero({ isReady }) {
     if (!splineApp) return;
     const onResize = () => applyFraming(splineApp);
     window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+
+    const getCanvas = () =>
+      document.querySelector(`.${styles.splineWrapper} canvas`);
+
+    let canvas = getCanvas();
+
+    const forwardPointerEvent = (type, clientX, clientY, buttons = 0) => {
+      if (!canvas) canvas = getCanvas();
+      if (!canvas) return;
+      const pe = new PointerEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        clientX,
+        clientY,
+        pointerId: 1,
+        pointerType: "touch",
+        isPrimary: true,
+        button: buttons > 0 ? 0 : -1,
+        buttons,
+      });
+      canvas.dispatchEvent(pe);
+    };
+
+    const handleTouchMove = (e) => {
+      if (!e.touches || e.touches.length === 0) return;
+      const t = e.touches[0];
+      forwardPointerEvent("pointermove", t.clientX, t.clientY, 1);
+    };
+
+    const handleTouchStart = (e) => {
+      if (!e.touches || e.touches.length === 0) return;
+      const t = e.touches[0];
+      forwardPointerEvent("pointerdown", t.clientX, t.clientY, 1);
+      forwardPointerEvent("pointermove", t.clientX, t.clientY, 1);
+    };
+
+    const handleTouchEnd = (e) => {
+      const changed = e.changedTouches?.[0];
+      const clientX = changed ? changed.clientX : 0;
+      const clientY = changed ? changed.clientY : 0;
+      forwardPointerEvent("pointerup", clientX, clientY, 0);
+    };
+
+    // Gyroscope tracking for natural head movement when tilting mobile phone
+    let lastOrientationTime = 0;
+    const handleOrientation = (e) => {
+      const now = performance.now();
+      if (now - lastOrientationTime < 30) return; // ~30fps throttle
+      lastOrientationTime = now;
+
+      if (e.gamma === null || e.beta === null) return;
+      if (!canvas) canvas = getCanvas();
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const normX = Math.max(-1, Math.min(1, e.gamma / 25));
+      const normY = Math.max(-1, Math.min(1, (e.beta - 45) / 25));
+
+      const clientX = rect.left + rect.width * (0.5 + normX * 0.45);
+      const clientY = rect.top + rect.height * (0.5 + normY * 0.45);
+
+      forwardPointerEvent("pointermove", clientX, clientY, 0);
+    };
+
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
+
+    if (typeof window !== "undefined" && window.DeviceOrientationEvent) {
+      window.addEventListener("deviceorientation", handleOrientation, { passive: true });
+    }
+
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+      if (typeof window !== "undefined" && window.DeviceOrientationEvent) {
+        window.removeEventListener("deviceorientation", handleOrientation);
+      }
+    };
   }, [splineApp]);
 
   useEffect(() => {
@@ -271,8 +351,7 @@ export default function Hero({ isReady }) {
                 style={{
                   // Scaled down on tablet, pointer events disabled to stop tracking
                   transform: deviceType === "tablet" ? "scale(0.85)" : "scale(1)",
-                  pointerEvents:
-                    deviceType === "mobile" || deviceType === "tablet" ? "none" : "auto",
+                  pointerEvents: "auto",
                   transition: "transform 0.3s ease, opacity 0.5s ease",
                   opacity: inView ? 1 : 0,
                 }}
